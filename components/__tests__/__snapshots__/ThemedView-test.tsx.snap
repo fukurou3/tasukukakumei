@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`applies light color 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "light",
+      },
+      undefined,
+    ]
+  }
+/>
+`;
+
+exports[`applies dark color 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "dark",
+      },
+      undefined,
+    ]
+  }
+/>
+`;
