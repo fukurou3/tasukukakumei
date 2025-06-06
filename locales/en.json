@@ -119,7 +119,9 @@
     "no_notification": "No notification",
     "photo_selected": "{{count}} selected",
     "no_notification_button": "No Notification",
-    "no_notification_display": "No notification"
+    "no_notification_display": "No notification",
+    "unselected_date_placeholder": "Not selected",
+    "unselected_time_placeholder": "Not selected"
   },
   "edit_task": {
     "title": "Edit Task",
