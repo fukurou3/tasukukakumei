@@ -18,7 +18,6 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '@/hooks/ThemeContext';
@@ -29,6 +28,7 @@ import dayjs from 'dayjs'; // dayjs をインポート
 import type { DeadlineSettings } from '@/features/add/components/DeadlineSettingModal/types'; // DeadlineSettings の型をインポート
 import { getTimeText } from '@/features/tasks/utils';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { TaskActionModal } from '../components/TaskActionModal';
 
 const STORAGE_KEY = 'TASKS';
 
@@ -55,10 +55,6 @@ type TaskDetailStyles = {
   field: TextStyle;
   countdown: TextStyle;
   image: ImageStyle;
-  menuModalBlur: ViewStyle;
-  menuModalContainer: ViewStyle;
-  menuModalContent: ViewStyle;
-  menuOption: TextStyle;
   appBarMenuButton: ViewStyle;
 };
 
@@ -115,27 +111,6 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
       width: '100%',
       height: '100%',
       borderRadius: 8,
-    },
-    menuModalBlur: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    menuModalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-    menuModalContent: {
-      backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
-      borderRadius: 16,
-      padding: 24,
-      width: '80%',
-      maxWidth: 300,
-      alignItems: 'stretch',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-    menuOption: {
-      fontSize: fontSizes[fsKey] + 2,
-      paddingVertical: 12,
-      textAlign: 'center',
-      color: isDark ? '#E0E0E0' : '#222222',
     },
     appBarMenuButton: { padding: 8, marginLeft: 8 },
   });
@@ -329,30 +304,14 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
           </TouchableOpacity>
         </Modal>
       </ScrollView>
-      <Modal transparent visible={isMenuVisible} animationType="fade" onRequestClose={() => setIsMenuVisible(false)}>
-        <BlurView intensity={isDark ? 20 : 70} tint={isDark ? 'dark' : 'light'} style={styles.menuModalBlur}>
-          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setIsMenuVisible(false)} />
-          <View style={styles.menuModalContainer}>
-            <View style={styles.menuModalContent}>
-              <TouchableOpacity onPress={() => { setIsMenuVisible(false); handleToggleDone(); }} activeOpacity={0.7}>
-                <Text style={styles.menuOption}>□完了済みにする</Text>
-              </TouchableOpacity>
-              <View style={{height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD'}} />
-              <TouchableOpacity onPress={() => { setIsMenuVisible(false); handleShare(); }} activeOpacity={0.7}>
-                <Text style={styles.menuOption}>共有</Text>
-              </TouchableOpacity>
-              <View style={{height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD'}} />
-              <TouchableOpacity onPress={() => { setIsMenuVisible(false); handleEdit(); }} activeOpacity={0.7}>
-                <Text style={styles.menuOption}>編集</Text>
-              </TouchableOpacity>
-              <View style={{height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD'}} />
-              <TouchableOpacity onPress={() => { setIsMenuVisible(false); handleDelete(); }} activeOpacity={0.7}>
-                <Text style={[styles.menuOption, {color: 'red'}]}>消去</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </BlurView>
-      </Modal>
+      <TaskActionModal
+        visible={isMenuVisible}
+        onClose={() => setIsMenuVisible(false)}
+        onToggleDone={handleToggleDone}
+        onShare={handleShare}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
       
       <ConfirmModal
         visible={isDeleteConfirmVisible}
