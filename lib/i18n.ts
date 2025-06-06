@@ -12,14 +12,17 @@ const resources = {
   ja: { translation: ja },
   ko: { translation: ko },
 }
+const getInitialLanguage = () => {
+  const locale = Localization.locale ?? ''
+  if (locale.startsWith('ko')) return 'ko'
+  if (locale.startsWith('ja')) return 'ja'
+  return 'en'
+}
 
 // i18n初期化
 i18n
   .use(initReactI18next)
   .init({
-    resources, // optionsに渡す（正しい位置）
-    lng: Localization.locale.startsWith('ko') ? 'ko' : Localization.locale.startsWith('ja') ? 'ja' : 'en',
-    fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
     },
