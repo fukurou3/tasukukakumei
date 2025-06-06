@@ -275,7 +275,7 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
   }
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onCancel}>
+    <Modal visible={visible} animationType="slide" onRequestClose={onCancel} statusBarTranslucent>
       <SafeAreaView style={localStyles.container}>
         {renderHeader()}
         {content}

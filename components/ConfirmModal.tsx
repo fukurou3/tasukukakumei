@@ -112,6 +112,7 @@ export function ConfirmModal({
       visible={visible}
       transparent
       animationType="fade"
+      statusBarTranslucent
       onRequestClose={onCancel}
     >
       <TouchableOpacity

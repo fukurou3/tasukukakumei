@@ -290,6 +290,7 @@ const DurationPickerModalComponent: React.FC<DurationPickerModalProps> = ({
       hideModalContentWhileAnimating
       useNativeDriver={Platform.OS === 'android'} // Androidではパフォーマンス向上のため推奨
       useNativeDriverForBackdrop
+      statusBarTranslucent
       onBackdropPress={onClose}
       onBackButtonPress={() => { onClose(); return true; }}
     >

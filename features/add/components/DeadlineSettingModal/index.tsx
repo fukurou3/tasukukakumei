@@ -319,6 +319,7 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
         backdropTransitionOutTiming={ANIMATION_TIMING}
         useNativeDriver={true}
         useNativeDriverForBackdrop={true}
+        statusBarTranslucent
         backdropColor="#000000"
         backdropOpacity={BACKDROP_OPACITY}
         onBackdropPress={onClose}

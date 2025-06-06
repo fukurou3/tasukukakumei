@@ -275,6 +275,7 @@ const WheelPickerModalComponent: React.FC<WheelPickerModalProps> = ({
       hideModalContentWhileAnimating
       useNativeDriver={Platform.OS === 'android'}
       useNativeDriverForBackdrop
+      statusBarTranslucent
       onBackdropPress={() => {
           if (typeof onClose === 'function') {
             onClose();
