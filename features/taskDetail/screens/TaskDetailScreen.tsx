@@ -32,6 +32,7 @@ type Task = {
   notifyEnabled: boolean;
   customUnit: 'minutes' | 'hours' | 'days';
   customAmount: number;
+  folder?: string;
   deadlineDetails?: DeadlineSettings; // deadlineDetails プロパティを追加
 };
 
@@ -40,6 +41,7 @@ type TaskDetailStyles = {
   appBar: ViewStyle;
   appBarTitle: TextStyle;
   backButton: ViewStyle;
+  editButton: ViewStyle;
   title: TextStyle;
   label: TextStyle;
   memo: TextStyle;
@@ -60,6 +62,7 @@ const createStyles = (isDark: boolean, subColor: string) =>
       paddingHorizontal: 16,
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       backgroundColor: isDark ? '#121212' : '#ffffff',
     },
     appBarTitle: {
@@ -69,6 +72,9 @@ const createStyles = (isDark: boolean, subColor: string) =>
       marginLeft: 16,
     },
     backButton: {
+      padding: 8,
+    },
+    editButton: {
       padding: 8,
     },
     title: {
@@ -174,6 +180,10 @@ const createStyles = (isDark: boolean, subColor: string) =>
       );
     }
 
+    const notificationText = task.notifyEnabled
+      ? `${task.customAmount} ${t(`add_task.${task.customUnit}_before`, { count: task.customAmount })}`
+      : t('add_task.no_notification_display');
+
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.appBar}>
@@ -181,10 +191,19 @@ const createStyles = (isDark: boolean, subColor: string) =>
             <Ionicons name="arrow-back" size={24} color={subColor} />
           </TouchableOpacity>
           <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => router.push({ pathname: '/add_edit', params: { id } })}
+          >
+            <Ionicons name="create-outline" size={24} color={subColor} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 20 }}>
           <Text style={styles.title}>{task.title}</Text>
+
+          <Text style={styles.label}>{t('task_detail.folder')}</Text>
+          <Text style={styles.field}>{task.folder || t('task_list.no_folder')}</Text>
 
           <Text style={styles.label}>{t('task_detail.memo')}</Text>
           <Text style={styles.memo}>{task.memo || '-'}</Text>
@@ -196,6 +215,9 @@ const createStyles = (isDark: boolean, subColor: string) =>
               ` ${dayjs(task.deadline).format('HH:mm')}`
             ) : ''}
           </Text>
+
+          <Text style={styles.label}>{t('task_detail.notification')}</Text>
+          <Text style={styles.field}>{notificationText}</Text>
 
           {task.imageUris && task.imageUris.length > 0 && ( // task.imageUris が undefined でないかチェック
             <>

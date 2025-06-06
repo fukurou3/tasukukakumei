@@ -2,9 +2,13 @@
   "task_detail": {
     "title": "タスク詳細",
     "memo": "メモ",
+    "deadline": "期限",
     "photo": "写真",
     "delete_confirm_title": "削除確認",
-    "delete_confirm": "このタスクを削除しますか？"
+    "delete_confirm": "このタスクを削除しますか？",
+    "folder": "フォルダ",
+    "notification": "通知",
+    "edit": "編集"
   },
   "settings": {
     "title": "設定",

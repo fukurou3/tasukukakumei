@@ -5,7 +5,10 @@
     "deadline": "마감일",
     "photo": "사진",
     "delete_confirm_title": "삭제 확인",
-    "delete_confirm": "이 작업을 삭제하시겠습니까?"
+    "delete_confirm": "이 작업을 삭제하시겠습니까?",
+    "folder": "폴더",
+    "notification": "알림",
+    "edit": "수정"
   },
   "settings": {
     "title": "설정",

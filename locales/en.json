@@ -5,7 +5,10 @@
     "deadline": "Deadline",
     "photo": "Photo",
     "delete_confirm_title": "Confirm Deletion",
-    "delete_confirm": "Are you sure you want to delete this task?"
+    "delete_confirm": "Are you sure you want to delete this task?",
+    "folder": "Folder",
+    "notification": "Notification",
+    "edit": "Edit"
   },
   "settings": {
     "title": "Settings",
