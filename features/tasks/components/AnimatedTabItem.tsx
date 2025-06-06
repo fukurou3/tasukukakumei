@@ -2,7 +2,7 @@
 import React from 'react';
 import { TouchableOpacity, type LayoutChangeEvent } from 'react-native';
 import Reanimated, { useAnimatedStyle, useDerivedValue, withTiming, interpolateColor } from 'react-native-reanimated';
-import { TAB_MARGIN_RIGHT } from '../constants';
+import { TAB_MARGIN_RIGHT, TAB_SWITCH_THRESHOLD } from '../constants';
 
 type AnimatedTabItemProps = {
   label: string;
@@ -10,6 +10,7 @@ type AnimatedTabItemProps = {
   onPress: (index: number, label: string) => void;
   onTabLayout: (index: number, event: LayoutChangeEvent) => void;
   pageScrollPosition: Reanimated.SharedValue<number>;
+  selectedTabIndexShared: Reanimated.SharedValue<number>;
   selectedTextColor: string;
   unselectedTextColor: string;
   selectedFontWeight: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900' | undefined;
@@ -24,6 +25,7 @@ export const AnimatedTabItem: React.FC<AnimatedTabItemProps> = React.memo(({
   onPress,
   onTabLayout,
   pageScrollPosition,
+  selectedTabIndexShared,
   selectedTextColor,
   unselectedTextColor,
   selectedFontWeight,
@@ -42,8 +44,14 @@ export const AnimatedTabItem: React.FC<AnimatedTabItemProps> = React.memo(({
 
   const activeIndex = useDerivedValue(() => {
     'worklet';
-    // Avoid flickering by simply rounding the pager position
-    return Math.round(pageScrollPosition.value);
+    const current = selectedTabIndexShared.value;
+    const diff = pageScrollPosition.value - current;
+    if (diff >= TAB_SWITCH_THRESHOLD) {
+      return current + 1;
+    } else if (diff <= -TAB_SWITCH_THRESHOLD) {
+      return current - 1;
+    }
+    return current;
   });
 
   const progress = useDerivedValue(() => {
