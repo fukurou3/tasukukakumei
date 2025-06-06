@@ -34,8 +34,10 @@ function InnerTabs() {
             return {
               headerShown: false,
               tabBarStyle: {
-                height: isSelecting ? 0 : TAB_HEIGHT,
-                paddingBottom: isSelecting ? 0 : insets.bottom > 0 ? insets.bottom : 0,
+                height: isSelecting
+                  ? 0
+                  : TAB_HEIGHT + (insets.bottom > 0 ? insets.bottom : 0),
+                paddingBottom: isSelecting ? 0 : insets.bottom,                
                 paddingTop: isSelecting ? 0 : 0,
                 backgroundColor: isDark ? '#121212' : '#f2f2f2',
                 borderTopWidth: 1,
