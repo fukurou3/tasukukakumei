@@ -1,5 +1,6 @@
 import React from 'react';
-import { Alert, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { useDialog } from '@/context/DialogContext';
 import { useRouter } from 'expo-router';
 
 type Props = {
@@ -11,20 +12,21 @@ type Props = {
 
 export function CustomTabButton({ to, children, shouldWarn, onDiscard }: Props) {
   const router = useRouter();
+  const { showDialog } = useDialog();
 
-  const handlePress = () => {
+  const handlePress = async () => {
     if (shouldWarn) {
-      Alert.alert('変更を破棄しますか？', '保存されていない内容は失われます。', [
-        { text: 'キャンセル', style: 'cancel' },
-        {
-          text: '破棄',
-          style: 'destructive',
-          onPress: () => {
-            onDiscard();
-            router.replace(to);
-          },
-        },
-      ]);
+      const confirmed = await showDialog({
+        title: '変更を破棄しますか？',
+        message: '保存されていない内容は失われます。',
+        okText: '破棄',
+        cancelText: 'キャンセル',
+        isOkDestructive: true,
+      });
+      if (confirmed) {
+        onDiscard();
+        router.replace(to);
+      }
     } else {
       router.replace(to);
     }

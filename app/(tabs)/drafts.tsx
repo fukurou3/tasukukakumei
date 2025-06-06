@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   ViewStyle,
   TextStyle,
@@ -17,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import { useDialog } from '@/context/DialogContext';
 
 const DRAFTS_KEY = 'TASK_DRAFTS';
 
@@ -86,6 +86,7 @@ const createStyles = (isDark: boolean, subColor: string) =>
   });
   export default function DraftsScreen() {
     const router = useRouter();
+    const { showDialog } = useDialog();
     const { colorScheme, subColor } = useAppTheme();
     const isDark = colorScheme === 'dark';
     const styles = createStyles(isDark, subColor);
@@ -108,27 +109,23 @@ const createStyles = (isDark: boolean, subColor: string) =>
     }, []);
   
     const deleteDraft = useCallback(async (id: string) => {
-      Alert.alert(
-        t('draft_list.delete_confirm_title'),
-        t('draft_list.delete_confirm_message'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('common.delete'),
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                const updated = drafts.filter((draft) => draft.id !== id);
-                await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(updated));
-                setDrafts(updated);
-              } catch (error) {
-                console.error('Failed to delete draft', error);
-              }
-            },
-          },
-        ]
-      );
-    }, [drafts, t]);
+      const confirmed = await showDialog({
+        title: t('draft_list.delete_confirm_title'),
+        message: t('draft_list.delete_confirm_message'),
+        okText: t('common.delete'),
+        cancelText: t('common.cancel'),
+        isOkDestructive: true,
+      });
+      if (confirmed) {
+        try {
+          const updated = drafts.filter((draft) => draft.id !== id);
+          await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(updated));
+          setDrafts(updated);
+        } catch (error) {
+          console.error('Failed to delete draft', error);
+        }
+      }
+    }, [drafts, t, showDialog]);
   
     useEffect(() => {
       loadDrafts();

@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider, useAppTheme } from '@/hooks/ThemeContext';
 import { FontSizeProvider } from '@/context/FontSizeContext';
 import { GoogleCalendarProvider } from '@/context/GoogleCalendarContext';
+import { DialogProvider } from '@/context/DialogContext';
 import Toast from 'react-native-toast-message';
 import StartupAnimation from '@/components/StartupAnimation';
 
@@ -67,10 +68,12 @@ export default function RootLayout() {
     <ThemeProvider>
       <FontSizeProvider>
         <GoogleCalendarProvider>
-          <InnerLayout />
-          {!animationDone && (
-            <StartupAnimation onAnimationEnd={() => setAnimationDone(true)} />
-          )}
+          <DialogProvider>
+            <InnerLayout />
+            {!animationDone && (
+              <StartupAnimation onAnimationEnd={() => setAnimationDone(true)} />
+            )}
+          </DialogProvider>
         </GoogleCalendarProvider>
       </FontSizeProvider>
     </ThemeProvider>
