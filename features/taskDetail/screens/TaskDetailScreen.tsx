@@ -26,7 +26,7 @@ import { FontSizeContext, type FontSizeKey } from '@/context/FontSizeContext';
 import { fontSizes } from '@/constants/fontSizes';
 import dayjs from 'dayjs'; // dayjs をインポート
 import type { DeadlineSettings } from '@/features/add/components/DeadlineSettingModal/types'; // DeadlineSettings の型をインポート
-import { getTimeText, getTimeColor } from '@/features/tasks/utils';
+import { getTimeText } from '@/features/tasks/utils';
 
 const STORAGE_KEY = 'TASKS';
 
@@ -83,7 +83,7 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
       fontSize: fontSizes[fsKey] + 8,
       fontWeight: 'bold',
       marginBottom: 12,
-      textAlign: 'center',
+      textAlign: 'left',
       color: isDark ? '#fff' : '#000',
     },
     label: {
@@ -266,7 +266,6 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
 
   const effectiveDueDateUtc = task.deadline ? dayjs.utc(task.deadline) : null;
   const countdownText = getTimeText(task as any, t, effectiveDueDateUtc ?? undefined);
-  const countdownColor = getTimeColor(task as any, isDark, effectiveDueDateUtc ?? undefined);
 
   const isDone = task.deadlineDetails?.repeatFrequency && effectiveDueDateUtc
     ? task.completedInstanceDates?.includes(effectiveDueDateUtc.format('YYYY-MM-DD')) ?? false
@@ -279,16 +278,15 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
           <Ionicons name="arrow-back" size={24} color={subColor} />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         <Text style={styles.title}>{task.title}</Text>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={styles.label}>{t('task_detail.deadline')}</Text>
-        </View>
-        <Text style={styles.field}>{deadlineText}</Text>
-        <Text style={[styles.countdown, { color: countdownColor }]}>{countdownText}</Text>
+        <Text style={styles.field} numberOfLines={1}>
+          {`${deadlineText} ${countdownText}`}
+        </Text>
 
         <Text style={styles.label}>{t('task_detail.memo')}</Text>
         <Text style={styles.memo}>{task.memo || '-'}</Text>
