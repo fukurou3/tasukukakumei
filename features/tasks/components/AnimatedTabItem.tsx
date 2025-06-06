@@ -42,17 +42,8 @@ export const AnimatedTabItem: React.FC<AnimatedTabItemProps> = React.memo(({
 
   const activeIndex = useDerivedValue(() => {
     'worklet';
-    const position = pageScrollPosition.value;
-    const threshold = 0.01;
-    const roundedPosition = Math.round(position);
-    const diff = position - roundedPosition;
-
-    if (diff > threshold) {
-      return Math.ceil(position);
-    } else if (diff < -threshold) {
-      return Math.floor(position);
-    }
-    return roundedPosition;
+    // Avoid flickering by simply rounding the pager position
+    return Math.round(pageScrollPosition.value);
   });
 
   const progress = useDerivedValue(() => {
@@ -68,7 +59,7 @@ export const AnimatedTabItem: React.FC<AnimatedTabItemProps> = React.memo(({
       [unselectedTextColor, selectedTextColor]
     );
 
-    const fontWeight = activeIndex.value === index ? selectedFontWeight : unselectedFontWeight;
+    const fontWeight = progress.value > 0.5 ? selectedFontWeight : unselectedFontWeight;
 
     return {
       color: color as string,
