@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Alert } from 'react-native';
+import { useDialog } from '@/context/DialogContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
@@ -66,10 +66,11 @@ export const useUpdateTask = ({
   deadlineDetails,
 }: UpdateTaskParams) => {
   const router = useRouter();
+  const { showDialog } = useDialog();
 
   const updateTask = useCallback(async () => {
     if (!title.trim()) {
-      Alert.alert(t('edit_task.alert_no_title'));
+      await showDialog({ message: t('edit_task.alert_no_title'), okText: 'OK' });
       return;
     }
     try {

@@ -10,11 +10,11 @@ import {
   StyleSheet,
   Dimensions,
   ActivityIndicator,
-  Alert,
   Linking,
 } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import Constants from 'expo-constants';
+import { useDialog } from '@/context/DialogContext';
 
 type Photo = { id: string; uri: string };
 
@@ -33,6 +33,7 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
   onCancel,
   onDone,
 }) => {
+  const { showDialog } = useDialog();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,10 +70,11 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
   useEffect(() => {
     if (visible && granted === null && isComponentMounted.current) {
       if (isExpoGo) {
-        Alert.alert(
-          '開発ビルドが必要です',
-          'Expo Go ではメディアライブラリへのフルアクセスが利用できません。'
-        );
+        showDialog({
+          title: '開発ビルドが必要です',
+          message: 'Expo Go ではメディアライブラリへのフルアクセスが利用できません。',
+          okText: 'OK',
+        });
         setGranted(false);
         setIsLoading(false);
         return;
@@ -97,14 +99,17 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
             } else {
               console.log('Permission denied.');
               setGranted(false);
-              Alert.alert(
-                '権限が必要です',
-                '写真や動画にアクセスするためには許可が必要です。設定画面から許可してください。',
-                [
-                  { text: 'キャンセル', onPress: onCancel, style: 'cancel' },
-                  { text: '設定を開く', onPress: () => Linking.openSettings().finally(onCancel) }
-                ]
-              );
+              const confirmed = await showDialog({
+                title: '権限が必要です',
+                message: '写真や動画にアクセスするためには許可が必要です。設定画面から許可してください。',
+                okText: '設定を開く',
+                cancelText: 'キャンセル',
+              });
+              if (confirmed) {
+                Linking.openSettings().finally(onCancel);
+              } else {
+                onCancel();
+              }
             }
           }
         } catch (error) {
@@ -161,7 +166,12 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
       }
     } catch (error) {
       console.error("Error fetching media:", error);
-      if (isComponentMounted.current) Alert.alert("エラー", "メディアの読み込みに失敗しました。");
+      if (isComponentMounted.current)
+        showDialog({
+          title: 'エラー',
+          message: 'メディアの読み込みに失敗しました。',
+          okText: 'OK',
+        });
     } finally {
       if (isComponentMounted.current) setIsLoading(false);
       console.log('loadMedia: Finished.');

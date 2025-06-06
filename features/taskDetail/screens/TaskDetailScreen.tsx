@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  Alert,
   Share,
   Modal,
   BackHandler,
@@ -18,6 +17,7 @@ import {
   ImageStyle,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useDialog } from '@/context/DialogContext';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -172,30 +172,28 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
     return () => clearInterval(interval);
   }, []);
 
+  const { showDialog } = useDialog();
+
   const handleDelete = async () => {
-      Alert.alert(
-        t('task_detail.delete_confirm_title'),
-        t('task_detail.delete_confirm'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('common.delete'),
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                const raw = await AsyncStorage.getItem(STORAGE_KEY);
-                if (!raw) return;
-                const list = JSON.parse(raw);
-                const updated = list.filter((t: Task) => t.id !== id);
-                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-                router.replace('/(tabs)/tasks'); // パスを修正 (tasks ディレクトリは通常不要)
-              } catch (error) {
-                console.error('Failed to delete task', error);
-              }
-            },
-          },
-        ]
-      );
+    const confirmed = await showDialog({
+      title: t('task_detail.delete_confirm_title'),
+      message: t('task_detail.delete_confirm'),
+      okText: t('common.delete'),
+      cancelText: t('common.cancel'),
+      isOkDestructive: true,
+    });
+    if (confirmed) {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const list = JSON.parse(raw);
+        const updated = list.filter((t: Task) => t.id !== id);
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        router.replace('/(tabs)/tasks'); // パスを修正 (tasks ディレクトリは通常不要)
+      } catch (error) {
+        console.error('Failed to delete task', error);
+      }
+    }
   };
 
   const handleToggleDone = async () => {

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Pressable, Image, Modal, Alert, StyleSheet, useWindowDimensions, Platform } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Pressable, Image, Modal, StyleSheet, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useUnsavedStore } from '@/hooks/useUnsavedStore';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import { useDialog } from '@/context/DialogContext';
 import { FontSizeContext } from '@/context/FontSizeContext';
 import { fontSizes } from '@/constants/fontSizes';
 
@@ -39,6 +40,7 @@ export default function EditTaskScreen() {
   const { fontSizeKey } = useContext(FontSizeContext);
   const fsKey = fontSizeKey;
   const { t, i18n } = useTranslation();
+  const { showDialog } = useDialog();
 
   const unsaved = useUnsavedStore(state => state.unsaved);
   const setUnsaved = useUnsavedStore(state => state.setUnsaved);
@@ -120,21 +122,19 @@ export default function EditTaskScreen() {
     const unsub = navigation.addListener('beforeRemove', (e:any) => {
       if (!unsaved) return;
       e.preventDefault();
-      Alert.alert(
-        t('edit_task.alert_discard_changes_title'),
-        t('edit_task.alert_discard_changes_message'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('edit_task.alert_discard'),
-            style: 'destructive',
-            onPress: () => {
-              resetUnsaved();
-              if (e.data?.action) navigation.dispatch(e.data.action); else router.back();
-            },
-          },
-        ]
-      );
+      (async () => {
+        const confirmed = await showDialog({
+          title: t('edit_task.alert_discard_changes_title'),
+          message: t('edit_task.alert_discard_changes_message'),
+          okText: t('edit_task.alert_discard'),
+          cancelText: t('common.cancel'),
+          isOkDestructive: true,
+        });
+        if (confirmed) {
+          resetUnsaved();
+          if (e.data?.action) navigation.dispatch(e.data.action); else router.back();
+        }
+      })();
     });
     return unsub;
   }, [navigation, router, t, unsaved, resetUnsaved]);

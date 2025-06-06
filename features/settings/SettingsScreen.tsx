@@ -9,12 +9,12 @@ import {
   useWindowDimensions,
   Platform,
   Image,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme, ThemeChoice } from '@/hooks/ThemeContext';
 import { useRouter, useFocusEffect } from 'expo-router'; // ← インポートされます
 import { useTranslation } from 'react-i18next';
+import { useDialog } from '@/context/DialogContext';
 import i18n from '@/lib/i18n';
 import Slider from '@react-native-community/slider'; // ← インポートされます
 import { FontSizeContext, FontSizeKey } from '@/context/FontSizeContext';
@@ -36,6 +36,7 @@ export default function SettingsScreen() {
   } = useAppTheme();
   const { fontSizeKey, setFontSizeKey } = useContext(FontSizeContext);
   const { t } = useTranslation();
+  const { showDialog } = useDialog();
   const router = useRouter();
   const isDark = colorScheme === 'dark';
   const { width } = useWindowDimensions();
@@ -225,16 +226,16 @@ export default function SettingsScreen() {
           <Text style={styles.label}>{t('settings.google_calendar_integration', 'Googleカレンダー連携')}</Text>
           <TouchableOpacity
             style={styles.optionRowButton}
-            onPress={() => {
+            onPress={async () => {
               if (isSignedIn) {
-                Alert.alert(
-                  t('settings.google_calendar_integration', 'Googleカレンダー連携'),
-                  t('settings.disconnect_confirm', '連携を解除しますか？'),
-                  [
-                    { text: t('common.cancel', 'キャンセル'), style: 'cancel' },
-                    { text: t('common.ok', 'OK'), onPress: signOut },
-                  ]
-                );
+                const confirmed = await showDialog({
+                  title: t('settings.google_calendar_integration', 'Googleカレンダー連携'),
+                  message: t('settings.disconnect_confirm', '連携を解除しますか？'),
+                  okText: t('common.ok', 'OK'),
+                  cancelText: t('common.cancel', 'キャンセル'),
+                  isOkDestructive: true,
+                });
+                if (confirmed) signOut();
               } else {
                 signIn();
               }

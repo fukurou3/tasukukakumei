@@ -1,6 +1,6 @@
 // app/features/add/hooks/useSaveTask.ts
 import { useCallback } from 'react';
-import { Alert } from 'react-native';
+import { useDialog } from '@/context/DialogContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
@@ -86,10 +86,14 @@ export const useSaveTask = ({
   deadlineDetails,
 }: SaveTaskParams) => {
   const router = useRouter();
+  const { showDialog } = useDialog();
 
   const saveTask = useCallback(async () => {
     if (!title.trim()) {
-      Alert.alert(t('add_task.alert_no_title'));
+      await showDialog({
+        message: t('add_task.alert_no_title'),
+        okText: 'OK',
+      });
       return;
     }
     const taskId = uuid.v4() as string;
@@ -149,7 +153,10 @@ export const useSaveTask = ({
 
   const saveDraft = useCallback(async () => {
     if (!title.trim()) {
-      Alert.alert(t('add_task.alert_no_title'));
+      await showDialog({
+        message: t('add_task.alert_no_title'),
+        okText: 'OK',
+      });
       return;
     }
     const id = currentDraftId || (uuid.v4() as string);

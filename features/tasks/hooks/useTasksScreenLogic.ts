@@ -1,9 +1,10 @@
 // app/features/tasks/hooks/useTasksScreenLogic.ts
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Alert, Dimensions, Platform, ScrollView } from 'react-native';
+import { Dimensions, Platform, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { useDialog } from '@/context/DialogContext';
 import { useTranslation } from 'react-i18next';
 import PagerView, { type PagerViewOnPageSelectedEvent, type PagerViewOnPageScrollEvent } from 'react-native-pager-view';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
@@ -540,7 +541,9 @@ export const useTasksScreenLogic = () => {
     selectionHook.clearSelection();
   }, [tasks, folderOrder, selectionHook, noFolderName]);
 
-  const handleDeleteSelected = useCallback(() => {
+  const { showDialog } = useDialog();
+
+  const handleDeleteSelected = useCallback(async () => {
     const folderToDelete = selectionHook.selectedItems.find(item => item.type === 'folder');
     const selectedTasksCount = selectionHook.selectedItems.filter(i => i.type === 'task').length;
 
@@ -550,28 +553,31 @@ export const useTasksScreenLogic = () => {
             title = t('task_list.delete_folder_and_selected_tasks_title', {folderName: folderToDelete.id, count: selectedTasksCount});
         }
 
-        Alert.alert(
+        const action = await showDialog({
             title,
-            t('task_list.delete_folder_confirmation'),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                { text: t('task_list.delete_folder_and_tasks'), onPress: () => confirmDelete('delete_all'), style: 'destructive' },
-                { text: t('task_list.delete_folder_only'), onPress: () => confirmDelete('only_folder') }
-            ],
-            { cancelable: true }
-        );
+            message: t('task_list.delete_folder_confirmation'),
+            okText: t('task_list.delete_folder_and_tasks'),
+            cancelText: t('task_list.delete_folder_only'),
+            isOkDestructive: true,
+        });
+        if (action) {
+            confirmDelete('delete_all');
+        } else {
+            confirmDelete('only_folder');
+        }
     } else if (selectedTasksCount > 0) {
-         Alert.alert(
-            t('task_list.delete_tasks_title', {count: selectedTasksCount}),
-            t('task_list.delete_tasks_confirmation', {count: selectedTasksCount}),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                { text: t('common.delete'), onPress: () => confirmDelete('delete_tasks_only'), style: 'destructive' }
-            ],
-            {cancelable: true}
-        );
+        const confirmed = await showDialog({
+            title: t('task_list.delete_tasks_title', {count: selectedTasksCount}),
+            message: t('task_list.delete_tasks_confirmation', {count: selectedTasksCount}),
+            okText: t('common.delete'),
+            cancelText: t('common.cancel'),
+            isOkDestructive: true,
+        });
+        if (confirmed) {
+            confirmDelete('delete_tasks_only');
+        }
     }
-  }, [selectionHook, noFolderName, t, confirmDelete]);
+  }, [selectionHook, noFolderName, t, confirmDelete, showDialog]);
 
   const handleRenameFolderSubmit = useCallback(async (newName: string) => {
     if (!renameTarget || newName.trim() === renameTarget) {

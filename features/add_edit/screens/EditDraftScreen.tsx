@@ -13,7 +13,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Alert,
   Platform,
   StyleSheet,
   NativeSyntheticEvent,
@@ -35,6 +34,7 @@ import Toast from 'react-native-toast-message';
 import { useUnsavedStore } from '@/hooks/useUnsavedStore';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import { useDialog } from '@/context/DialogContext';
 import { FontSizeContext, FontSizeKey } from '@/context/FontSizeContext';
 import { fontSizes } from '@/constants/fontSizes';
 
@@ -301,6 +301,7 @@ export default function EditDraftScreen() {
   const { reset: resetUnsaved } = useUnsavedStore();
   const { colorScheme, subColor } = useAppTheme();
   const isDark = colorScheme === 'dark';
+  const { showDialog } = useDialog();
   const { fontSizeKey } = useContext(FontSizeContext);
   const styles = createStyles(isDark, subColor, fontSizeKey);
   const { t } = useTranslation();
@@ -336,21 +337,19 @@ export default function EditDraftScreen() {
     const unsub = navigation.addListener('beforeRemove', (e: any) => {
       if (!title && !memo && imageUris.length === 0) return;
       e.preventDefault();
-      Alert.alert(
-        t('edit_draft.alert_discard_changes_title'),
-        t('edit_draft.alert_discard_changes_message'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('edit_draft.alert_discard'),
-            style: 'destructive',
-            onPress: () => {
-              resetUnsaved();
-              router.replace('/(tabs)/drafts');
-            },
-          },
-        ]
-      );
+      (async () => {
+        const confirmed = await showDialog({
+          title: t('edit_draft.alert_discard_changes_title'),
+          message: t('edit_draft.alert_discard_changes_message'),
+          okText: t('edit_draft.alert_discard'),
+          cancelText: t('common.cancel'),
+          isOkDestructive: true,
+        });
+        if (confirmed) {
+          resetUnsaved();
+          router.replace('/(tabs)/drafts');
+        }
+      })();
     });
     return unsub;
   }, [navigation, title, memo, imageUris, resetUnsaved, router, t]);
@@ -398,7 +397,7 @@ export default function EditDraftScreen() {
 
   const handleSaveDraft = useCallback(async () => {
     if (!title.trim()) {
-      Alert.alert(t('edit_draft.alert_no_title'));
+      await showDialog({ message: t('edit_draft.alert_no_title'), okText: 'OK' });
       return;
     }
     const updatedDraft = {
@@ -422,7 +421,7 @@ export default function EditDraftScreen() {
 
   const handleConvertToTask = useCallback(async () => {
     if (!title.trim()) {
-      Alert.alert(t('edit_draft.alert_no_title'));
+      await showDialog({ message: t('edit_draft.alert_no_title'), okText: 'OK' });
       return;
     }
     const newTask = {

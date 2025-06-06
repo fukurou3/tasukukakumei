@@ -1,6 +1,6 @@
 // app/features/add/index.tsx
 import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
-import { useWindowDimensions, View, Text, FlatList, TouchableOpacity, Alert, Pressable, Image, Modal, Platform, StyleSheet } from 'react-native';
+import { useWindowDimensions, View, Text, FlatList, TouchableOpacity, Pressable, Image, Modal, Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { FontSizeContext } from '@/context/FontSizeContext';
 import { fontSizes } from '@/constants/fontSizes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDialog } from '@/context/DialogContext';
 
 import type { AddTaskStyles, Task } from './types'; // Task type from local types.ts
 import { createStyles } from './styles';
@@ -110,6 +111,7 @@ export default function AddTaskScreen() {
   const { fontSizeKey } = useContext(FontSizeContext);
   const fsKey = fontSizeKey;
   const { t, i18n } = useTranslation();
+  const { showDialog } = useDialog();
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const router = useRouter();
   const { draftId, date } = useLocalSearchParams<{ draftId?: string; date?: string }>();
@@ -223,22 +225,20 @@ export default function AddTaskScreen() {
         return;
       }
       e.preventDefault();
-      Alert.alert(
-        t('add_task.alert_discard_changes_title'),
-        t('add_task.alert_discard_changes_message'),
-        [
-          { text: t('common.cancel'), style: 'cancel', onPress: () => {} },
-          {
-            text: t('add_task.alert_discard'),
-            style: 'destructive',
-            onPress: () => {
-              clearForm();
-              if (e.data?.action) navigation.dispatch(e.data.action);
-              else router.back();
-            },
-          },
-        ],
-      );
+      (async () => {
+        const confirmed = await showDialog({
+          title: t('add_task.alert_discard_changes_title'),
+          message: t('add_task.alert_discard_changes_message'),
+          okText: t('add_task.alert_discard'),
+          cancelText: t('common.cancel'),
+          isOkDestructive: true,
+        });
+        if (confirmed) {
+          clearForm();
+          if (e.data?.action) navigation.dispatch(e.data.action);
+          else router.back();
+        }
+      })();
     });
     return unsub;
   }, [navigation, clearForm, t, unsaved, router]);
