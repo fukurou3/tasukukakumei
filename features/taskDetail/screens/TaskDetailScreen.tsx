@@ -117,7 +117,7 @@ export default function TaskDetailScreen() {
   }, [id, router, t]);
 
   const handleEdit = useCallback(() => {
-    router.push({ pathname: '/add_edit/index', params: { id } });
+    router.push({ pathname: '/add_edit', params: { id } });
   }, [id, router]);
 
   if (!task) {
