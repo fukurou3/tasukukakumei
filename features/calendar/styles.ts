@@ -6,6 +6,7 @@ export type CalendarScreenStyles = {
   appBar: ViewStyle;
   titleText: TextStyle;
   monthHeader: ViewStyle;
+  monthHeaderSmall: ViewStyle;
   monthText: TextStyle;
   todayButton: ViewStyle;
   todayButtonText: TextStyle;
@@ -59,6 +60,9 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         paddingHorizontal: 12, // 左右の余白を調整
         paddingVertical: 8,
         backgroundColor: isDark ? '#000000' : '#FFFFFF',
+    },
+    monthHeaderSmall: {
+        backgroundColor: 'transparent',
     },
     monthText: {
         fontSize: 22,

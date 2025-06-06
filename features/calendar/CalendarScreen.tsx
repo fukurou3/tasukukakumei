@@ -158,7 +158,7 @@ export default function CalendarPage() {
         styles.calendarContainer,
         viewType === 'full' && styles.fullCalendarContainer,
       ]}>
-        <View style={styles.monthHeader}>
+        <View style={[styles.monthHeader, viewType === 'list' && styles.monthHeaderSmall]}>
              <Text style={styles.monthText}>
                  {displayMonth.format(t('common.year_month_format'))}
              </Text>
