@@ -18,6 +18,7 @@ const TASK_BAR_HEIGHT = 5;
 const TASK_BAR_MARGIN = 3;
 const EVENT_BAR_HEIGHT = 20;
 const EVENT_BAR_Y_OFFSET = 24;
+const TASK_TITLE_BOX_HEIGHT = 16;
 
 interface SkiaCalendarProps {
   date: dayjs.Dayjs;
@@ -27,6 +28,7 @@ interface SkiaCalendarProps {
   onDayPress: (date: string) => void;
   groupedTasks: Record<string, Task[]>;
   eventLayout: EventLayout;
+  showTaskTitles?: boolean;
   theme: {
     primary: string;
     weekday: string;
@@ -47,6 +49,7 @@ export default function SkiaCalendar({
   onDayPress,
   groupedTasks,
   eventLayout,
+  showTaskTitles = false,
   theme,
 }: SkiaCalendarProps) {
   const { t, i18n } = useTranslation();
@@ -224,16 +227,32 @@ export default function SkiaCalendar({
                     color={dayColor}
                   />
 
-                  {tasksOnDay.slice(0, 3).map((task, taskIndex) => (
-                    <Rect
-                      key={task.id}
-                      x={cellX + 4}
-                      y={cellY + cellWidth - (taskIndex + 1) * (TASK_BAR_HEIGHT + TASK_BAR_MARGIN)}
-                      width={cellWidth - 8}
-                      height={TASK_BAR_HEIGHT}
-                      color={theme.primary}
-                    />
-                  ))}
+                  {tasksOnDay.slice(0, showTaskTitles ? 2 : 3).map((task, taskIndex) => {
+                    const barHeight = showTaskTitles ? TASK_TITLE_BOX_HEIGHT : TASK_BAR_HEIGHT;
+                    const barY = cellY + cellWidth - (taskIndex + 1) * (barHeight + TASK_BAR_MARGIN);
+                    return (
+                      <Group key={task.id}>
+                        <RoundedRect
+                          x={cellX + 4}
+                          y={barY}
+                          width={cellWidth - 8}
+                          height={barHeight}
+                          r={2}
+                          color={theme.primary}
+                        />
+                        {showTaskTitles && (
+                          <Text
+                            x={cellX + 6}
+                            y={barY + eventFont.getSize() + 2}
+                            font={eventFont}
+                            text={task.title}
+                            color={theme.eventText}
+                            clip={{ x: cellX + 6, y: barY, width: cellWidth - 12, height: barHeight }}
+                          />
+                        )}
+                      </Group>
+                    );
+                  })}
                 </Group>
               );
             })}
