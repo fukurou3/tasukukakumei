@@ -16,14 +16,14 @@ export function CustomTabButton({ to, children, shouldWarn, onDiscard }: Props) 
 
   const handlePress = async () => {
     if (shouldWarn) {
-      const confirmed = await showDialog({
+      const result = await showDialog({
         title: '変更を破棄しますか？',
         message: '保存されていない内容は失われます。',
         okText: '破棄',
         cancelText: 'キャンセル',
         isOkDestructive: true,
       });
-      if (confirmed) {
+      if (result === 'ok') {
         onDiscard();
         router.replace(to);
       }

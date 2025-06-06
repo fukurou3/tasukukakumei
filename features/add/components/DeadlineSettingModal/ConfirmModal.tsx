@@ -12,9 +12,12 @@ export type ConfirmModalProps = {
   message: string;
   okText?: string;
   cancelText?: string;
+  neutralText?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  onNeutral?: () => void;
   isOkDestructive?: boolean;
+  isNeutralDestructive?: boolean;
 };
 
 const createConfirmModalStyles = (isDark: boolean, subColor: string, baseFontSize: number) => {
@@ -106,6 +109,8 @@ export function ConfirmModal({
 
   const displayTitle = title ?? t('common.notification_title');
   const hasCancelButton = !!(cancelText && onCancel);
+  const hasNeutralButton = !!(neutralText && onNeutral);
+  const multipleButtons = hasCancelButton || hasNeutralButton;
 
   return (
     <Modal
@@ -130,10 +135,12 @@ export function ConfirmModal({
           <Text style={styles.message}>
             {message}
           </Text>
-          <View style={[
-            styles.buttonContainer,
-            hasCancelButton ? { justifyContent: 'space-between' } : { justifyContent: 'flex-end' }
-          ]}>
+          <View
+            style={[
+              styles.buttonContainer,
+              multipleButtons ? { justifyContent: 'space-between' } : { justifyContent: 'flex-end' },
+            ]}
+          >
             {hasCancelButton && (
               <TouchableOpacity onPress={onCancel} style={styles.actionButton}>
                 <Text style={[styles.buttonText, styles.cancelButtonTextContent]}>
@@ -141,14 +148,25 @@ export function ConfirmModal({
                 </Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              onPress={onConfirm}
-              style={styles.actionButton}
-            >
-              <Text style={[
-                styles.buttonText,
-                isOkDestructive ? styles.okDestructiveButtonTextContent : styles.okButtonTextContent
-              ]}>
+            {hasNeutralButton && (
+              <TouchableOpacity onPress={onNeutral} style={styles.actionButton}>
+                <Text
+                  style={[
+                    styles.buttonText,
+                    isNeutralDestructive ? styles.okDestructiveButtonTextContent : styles.okButtonTextContent,
+                  ]}
+                >
+                  {neutralText}
+                </Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={onConfirm} style={styles.actionButton}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  isOkDestructive ? styles.okDestructiveButtonTextContent : styles.okButtonTextContent,
+                ]}
+              >
                 {okText ?? t('common.ok')}
               </Text>
             </TouchableOpacity>

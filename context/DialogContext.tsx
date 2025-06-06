@@ -6,34 +6,44 @@ export type DialogOptions = {
   message: string;
   okText?: string;
   cancelText?: string;
+  neutralText?: string;
   isOkDestructive?: boolean;
+  isNeutralDestructive?: boolean;
 };
 
+export type DialogResult = 'ok' | 'cancel' | 'neutral';
+
 export type DialogContextType = {
-  showDialog: (options: DialogOptions) => Promise<boolean>;
+  showDialog: (options: DialogOptions) => Promise<DialogResult>;
 };
 
 const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 export const DialogProvider = ({ children }: { children: ReactNode }) => {
   const [options, setOptions] = useState<DialogOptions | null>(null);
-  const [resolver, setResolver] = useState<((result: boolean) => void) | null>(null);
+  const [resolver, setResolver] = useState<((result: DialogResult) => void) | null>(null);
 
   const showDialog = (opts: DialogOptions) => {
-    return new Promise<boolean>((resolve) => {
+    return new Promise<DialogResult>((resolve) => {
       setOptions(opts);
       setResolver(() => resolve);
     });
   };
 
   const handleConfirm = () => {
-    resolver?.(true);
+    resolver?.('ok');
     setResolver(null);
     setOptions(null);
   };
 
   const handleCancel = () => {
-    resolver?.(false);
+    resolver?.('cancel');
+    setResolver(null);
+    setOptions(null);
+  };
+
+  const handleNeutral = () => {
+    resolver?.('neutral');
     setResolver(null);
     setOptions(null);
   };
@@ -48,9 +58,12 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
           message={options.message}
           okText={options.okText}
           cancelText={options.cancelText}
+          neutralText={options.neutralText}
           isOkDestructive={options.isOkDestructive}
+          isNeutralDestructive={options.isNeutralDestructive}
           onConfirm={handleConfirm}
           onCancel={handleCancel}
+          onNeutral={handleNeutral}
         />
       )}
     </DialogContext.Provider>

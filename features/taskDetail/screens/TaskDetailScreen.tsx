@@ -175,14 +175,14 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
   const { showDialog } = useDialog();
 
   const handleDelete = async () => {
-    const confirmed = await showDialog({
+    const result = await showDialog({
       title: t('task_detail.delete_confirm_title'),
       message: t('task_detail.delete_confirm'),
       okText: t('common.delete'),
       cancelText: t('common.cancel'),
       isOkDestructive: true,
     });
-    if (confirmed) {
+    if (result === 'ok') {
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (!raw) return;

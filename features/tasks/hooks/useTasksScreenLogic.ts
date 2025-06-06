@@ -553,27 +553,28 @@ export const useTasksScreenLogic = () => {
             title = t('task_list.delete_folder_and_selected_tasks_title', {folderName: folderToDelete.id, count: selectedTasksCount});
         }
 
-        const action = await showDialog({
+        const result = await showDialog({
             title,
             message: t('task_list.delete_folder_confirmation'),
             okText: t('task_list.delete_folder_and_tasks'),
-            cancelText: t('task_list.delete_folder_only'),
+            neutralText: t('task_list.delete_folder_only'),
+            cancelText: t('common.cancel'),
             isOkDestructive: true,
         });
-        if (action) {
+        if (result === 'ok') {
             confirmDelete('delete_all');
-        } else {
+        } else if (result === 'neutral') {
             confirmDelete('only_folder');
         }
     } else if (selectedTasksCount > 0) {
-        const confirmed = await showDialog({
+        const result = await showDialog({
             title: t('task_list.delete_tasks_title', {count: selectedTasksCount}),
             message: t('task_list.delete_tasks_confirmation', {count: selectedTasksCount}),
             okText: t('common.delete'),
             cancelText: t('common.cancel'),
             isOkDestructive: true,
         });
-        if (confirmed) {
+        if (result === 'ok') {
             confirmDelete('delete_tasks_only');
         }
     }

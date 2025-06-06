@@ -123,14 +123,14 @@ export default function EditTaskScreen() {
       if (!unsaved) return;
       e.preventDefault();
       (async () => {
-        const confirmed = await showDialog({
+        const result = await showDialog({
           title: t('edit_task.alert_discard_changes_title'),
           message: t('edit_task.alert_discard_changes_message'),
           okText: t('edit_task.alert_discard'),
           cancelText: t('common.cancel'),
           isOkDestructive: true,
         });
-        if (confirmed) {
+        if (result === 'ok') {
           resetUnsaved();
           if (e.data?.action) navigation.dispatch(e.data.action); else router.back();
         }

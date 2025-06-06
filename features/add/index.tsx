@@ -226,14 +226,14 @@ export default function AddTaskScreen() {
       }
       e.preventDefault();
       (async () => {
-        const confirmed = await showDialog({
+        const result = await showDialog({
           title: t('add_task.alert_discard_changes_title'),
           message: t('add_task.alert_discard_changes_message'),
           okText: t('add_task.alert_discard'),
           cancelText: t('common.cancel'),
           isOkDestructive: true,
         });
-        if (confirmed) {
+        if (result === 'ok') {
           clearForm();
           if (e.data?.action) navigation.dispatch(e.data.action);
           else router.back();

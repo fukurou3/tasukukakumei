@@ -338,14 +338,14 @@ export default function EditDraftScreen() {
       if (!title && !memo && imageUris.length === 0) return;
       e.preventDefault();
       (async () => {
-        const confirmed = await showDialog({
+        const result = await showDialog({
           title: t('edit_draft.alert_discard_changes_title'),
           message: t('edit_draft.alert_discard_changes_message'),
           okText: t('edit_draft.alert_discard'),
           cancelText: t('common.cancel'),
           isOkDestructive: true,
         });
-        if (confirmed) {
+        if (result === 'ok') {
           resetUnsaved();
           router.replace('/(tabs)/drafts');
         }

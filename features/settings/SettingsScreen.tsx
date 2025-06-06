@@ -228,14 +228,14 @@ export default function SettingsScreen() {
             style={styles.optionRowButton}
             onPress={async () => {
               if (isSignedIn) {
-                const confirmed = await showDialog({
+                const result = await showDialog({
                   title: t('settings.google_calendar_integration', 'Googleカレンダー連携'),
                   message: t('settings.disconnect_confirm', '連携を解除しますか？'),
                   okText: t('common.ok', 'OK'),
                   cancelText: t('common.cancel', 'キャンセル'),
                   isOkDestructive: true,
                 });
-                if (confirmed) signOut();
+                if (result === 'ok') signOut();
               } else {
                 signIn();
               }

@@ -99,13 +99,13 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
             } else {
               console.log('Permission denied.');
               setGranted(false);
-              const confirmed = await showDialog({
+              const result = await showDialog({
                 title: '権限が必要です',
                 message: '写真や動画にアクセスするためには許可が必要です。設定画面から許可してください。',
                 okText: '設定を開く',
                 cancelText: 'キャンセル',
               });
-              if (confirmed) {
+              if (result === 'ok') {
                 Linking.openSettings().finally(onCancel);
               } else {
                 onCancel();

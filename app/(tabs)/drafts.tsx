@@ -109,14 +109,14 @@ const createStyles = (isDark: boolean, subColor: string) =>
     }, []);
   
     const deleteDraft = useCallback(async (id: string) => {
-      const confirmed = await showDialog({
+      const result = await showDialog({
         title: t('draft_list.delete_confirm_title'),
         message: t('draft_list.delete_confirm_message'),
         okText: t('common.delete'),
         cancelText: t('common.cancel'),
         isOkDestructive: true,
       });
-      if (confirmed) {
+      if (result === 'ok') {
         try {
           const updated = drafts.filter((draft) => draft.id !== id);
           await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(updated));
