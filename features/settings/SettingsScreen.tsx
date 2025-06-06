@@ -274,8 +274,8 @@ const createStyles = (
       borderBottomColor: isDark ? '#3A3A3C' : '#C6C6C8',
     },
     appBarTitle: {
-      fontSize: fontSizes[fsKey] + (Platform.OS === 'ios' ? 2 : 1),
-      fontWeight: Platform.OS === 'ios' ? '600' : 'bold',
+      fontSize: 20,
+      fontWeight: 'bold',
       color: isDark ? '#EFEFF0' : '#1C1C1E',
     },
     card: {
