@@ -154,26 +154,27 @@ export default function CalendarPage() {
        <View style={styles.appBar}>
          <Text style={styles.titleText}>{t('calendar.title')}</Text>
        </View>
-       <View style={styles.monthHeader}>
-            <Text style={styles.monthText}>
-                {displayMonth.format(t('common.year_month_format'))}
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Pressable onPress={onTodayPress} style={styles.todayButton}>
-                    <Text style={styles.todayButtonText}>{t('common.today')}</Text>
-                </Pressable>
-                <Pressable onPress={toggleView} style={styles.toggleButton}>
-                    <Ionicons name={viewType === 'list' ? 'calendar' : 'list'} size={20} color="#fff" />
-                </Pressable>
-            </View>
-       </View>
-      <GestureDetector gesture={composedGesture}>
-        <View style={[styles.calendarWrapper, viewType === 'full' && { flex: 1 }]}>
-          <SkiaCalendar
-            date={displayMonth}
-            backgroundImage={backgroundImage}
-            opacity={opacity}
-            selectedDate={selectedDate}
+      <View style={styles.calendarContainer}>
+        <View style={styles.monthHeader}>
+             <Text style={styles.monthText}>
+                 {displayMonth.format(t('common.year_month_format'))}
+             </Text>
+             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                 <Pressable onPress={onTodayPress} style={styles.todayButton}>
+                     <Text style={styles.todayButtonText}>{t('common.today')}</Text>
+                 </Pressable>
+                 <Pressable onPress={toggleView} style={styles.toggleButton}>
+                     <Ionicons name={viewType === 'list' ? 'calendar' : 'list'} size={20} color="#fff" />
+                 </Pressable>
+             </View>
+        </View>
+        <GestureDetector gesture={composedGesture}>
+          <View style={[styles.calendarWrapper, viewType === 'full' && { flex: 1 }]}>
+            <SkiaCalendar
+              date={displayMonth}
+              backgroundImage={backgroundImage}
+              opacity={opacity}
+              selectedDate={selectedDate}
             onDayPress={onDayPress}
             groupedTasks={groupedTasks}
             eventLayout={eventLayout}
@@ -184,13 +185,14 @@ export default function CalendarPage() {
               day: textColor,
               saturday: SATURDAY_COLOR,
               sunday: SUNDAY_COLOR,
-              line: isDark ? '#3A3A3C' : '#D1D1D6',
+              line: isDark ? '#303030' : '#B0B0B5',
               background: isDark ? '#000000' : '#FFFFFF',
               eventText: '#FFFFFF',
             }}
           />
-        </View>
-      </GestureDetector>
+          </View>
+        </GestureDetector>
+      </View>
       {viewType === 'list' && (
         <FlatList
           data={dayTasks}
