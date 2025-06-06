@@ -11,7 +11,8 @@ import { runOnJS } from 'react-native-reanimated';
 import type { Task } from '@/features/tasks/types';
 import type { EventLayout } from '../utils';
 
-const FONT_PATH = require('@/assets/fonts/NotoSansJP-Regular.ttf');
+const FONT_PATH_BOLD = require('@/assets/fonts/NotoSansJP-Bold.ttf');
+const FONT_PATH_REGULAR = require('@/assets/fonts/NotoSansJP-Regular.ttf');
 // カレンダー表示用のパディング量（大表示時は0）
 // パディングなしで全幅表示
 const PADDING = 0;
@@ -60,8 +61,8 @@ export default function SkiaCalendar({
   const cellWidth = calendarWidth / 7;
   const cellHeight = showTaskTitles ? cellWidth * 1.5 : cellWidth; // 大表示時は縦長に
 
-  const font = useFont(FONT_PATH, 14);
-  const eventFont = useFont(FONT_PATH, 10);
+  const font = useFont(FONT_PATH_BOLD, 14);
+  const eventFont = useFont(FONT_PATH_REGULAR, 10);
   const skiaImage = backgroundImage ? useImage(backgroundImage) : null;
 
   const year = targetDate.year();
