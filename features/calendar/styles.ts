@@ -9,6 +9,7 @@ export type CalendarScreenStyles = {
   monthText: TextStyle;
   todayButton: ViewStyle;
   todayButtonText: TextStyle;
+  toggleButton: ViewStyle;
   calendarWrapper: ViewStyle;
   list: ViewStyle;
   listContent: ViewStyle;
@@ -64,6 +65,13 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
     },
     todayButton: {
         paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+        backgroundColor: dynamicSubColor,
+    },
+    toggleButton: {
+        marginLeft: 8,
+        paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 8,
         backgroundColor: dynamicSubColor,

@@ -37,9 +37,10 @@ export default function CalendarPage() {
   const [displayMonth, setDisplayMonth] = useState(dayjs());
   const [backgroundImage, setBackgroundImage] = useState<number | null>(null);
   const opacity = useSharedValue(1);
-  
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
+  const [viewType, setViewType] = useState<'list' | 'full'>('list');
 
   const { events: googleAllEvents, loading: googleLoading } = useGoogleCalendarAllEvents(googleEnabled);
 
@@ -100,9 +101,20 @@ export default function CalendarPage() {
       }
   }, [displayMonth]);
 
+  const toggleViewJs = () => {
+    setViewType(v => (v === 'list' ? 'full' : 'list'));
+  };
+
+  const toggleView = useCallback(() => {
+    'worklet';
+    runOnJS(toggleViewJs)();
+  }, []);
+
   const flingRight = Gesture.Fling().direction(Directions.RIGHT).onEnd(() => handleSwipe('prev'));
   const flingLeft = Gesture.Fling().direction(Directions.LEFT).onEnd(() => handleSwipe('next'));
-  const composedGesture = Gesture.Race(flingLeft, flingRight);
+  const flingUp = Gesture.Fling().direction(Directions.UP).onEnd(() => toggleView());
+  const flingDown = Gesture.Fling().direction(Directions.DOWN).onEnd(() => toggleView());
+  const composedGesture = Gesture.Race(flingLeft, flingRight, flingUp, flingDown);
 
   const renderTask = useCallback(({ item }: { item: Task }) => (
     <TaskItem
@@ -146,12 +158,17 @@ export default function CalendarPage() {
             <Text style={styles.monthText}>
                 {displayMonth.format(t('common.year_month_format'))}
             </Text>
-            <Pressable onPress={onTodayPress} style={styles.todayButton}>
-                <Text style={styles.todayButtonText}>{t('common.today')}</Text>
-            </Pressable>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Pressable onPress={onTodayPress} style={styles.todayButton}>
+                    <Text style={styles.todayButtonText}>{t('common.today')}</Text>
+                </Pressable>
+                <Pressable onPress={toggleView} style={styles.toggleButton}>
+                    <Ionicons name={viewType === 'list' ? 'calendar' : 'list'} size={20} color="#fff" />
+                </Pressable>
+            </View>
        </View>
       <GestureDetector gesture={composedGesture}>
-        <View style={styles.calendarWrapper}>
+        <View style={[styles.calendarWrapper, viewType === 'full' && { flex: 1 }]}>
           <SkiaCalendar
             date={displayMonth}
             backgroundImage={backgroundImage}
@@ -160,6 +177,7 @@ export default function CalendarPage() {
             onDayPress={onDayPress}
             groupedTasks={groupedTasks}
             eventLayout={eventLayout}
+            showTaskTitles={viewType === 'full'}
             theme={{
               primary: subColor,
               weekday: WEEKDAY_COLOR,
@@ -173,14 +191,16 @@ export default function CalendarPage() {
           />
         </View>
       </GestureDetector>
-      <FlatList
-        data={dayTasks}
-        keyExtractor={item => item.id}
-        renderItem={renderTask}
-        ListHeaderComponent={renderListHeader}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-      />
+      {viewType === 'list' && (
+        <FlatList
+          data={dayTasks}
+          keyExtractor={item => item.id}
+          renderItem={renderTask}
+          ListHeaderComponent={renderListHeader}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
       <TouchableOpacity
         style={[styles.fab, { bottom: Platform.OS === 'ios' ? 16 : 16 }]}
         onPress={() => router.push({ pathname: '/add/', params: { date: selectedDate } })}
