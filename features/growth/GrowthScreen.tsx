@@ -65,8 +65,8 @@ const createStyles = (isDark: boolean, subColor: string, fontSizeKey: string) =>
       borderBottomColor: isDark ? '#3A3A3C' : '#D1D1D6',
     },
     title: {
-      fontSize: baseFont + 2,
-      fontWeight: '600',
+      fontSize: 20,
+      fontWeight: 'bold',
       color: isDark ? '#FFFFFF' : '#000000',
     },
     content: {

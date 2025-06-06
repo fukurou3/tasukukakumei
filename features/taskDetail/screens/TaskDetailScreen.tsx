@@ -71,10 +71,11 @@ const createStyles = (isDark: boolean, subColor: string) =>
       backgroundColor: isDark ? '#121212' : '#ffffff',
     },
     appBarTitle: {
-      fontSize: 25,
+      fontSize: 20,
       fontWeight: 'bold',
       color: isDark ? '#fff' : '#000',
-      marginLeft: 16,
+      flex: 1,
+      textAlign: 'center',
     },
     backButton: { padding: 8 },
     completeButton: { padding: 8 },
