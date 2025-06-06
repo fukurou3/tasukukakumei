@@ -20,6 +20,7 @@ export type CalendarScreenStyles = {
   googleEventContainer: ViewStyle;
   googleEvent: TextStyle;
   fab: ViewStyle;
+  fullCalendarContainer: ViewStyle;
 };
 
 export const createCalendarStyles = (isDark: boolean, subColor: string): CalendarScreenStyles => {
@@ -137,6 +138,13 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         alignItems: 'center',
         ...shadowStyle,
         elevation: 6,
+    },
+    fullCalendarContainer: {
+        marginHorizontal: 0,
+        borderWidth: 0,
+        borderRadius: 0,
+        overflow: 'visible',
+        flex: 1,
     },
   });
 };
