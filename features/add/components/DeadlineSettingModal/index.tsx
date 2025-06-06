@@ -1,6 +1,6 @@
-// app/features/add/components/DeadlineSettingModal/index.tsx
+// features/add/components/DeadlineSettingModal/index.tsx
 import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
-import { View, TouchableOpacity, Text, useWindowDimensions, Platform, InteractionManager } from 'react-native';
+import { View, TouchableOpacity, Text, useWindowDimensions, Platform, InteractionManager, ActivityIndicator } from 'react-native';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabView, SceneRendererProps, TabBarProps } from 'react-native-tab-view';
@@ -69,11 +69,12 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
   const [isUnsetConfirmVisible, setUnsetConfirmVisible] = useState(false);
   const [isValidationErrorModalVisible, setValidationErrorModalVisible] = useState(false);
   const [validationErrorMessage, setValidationErrorMessage] = useState('');
+  const [isModalReady, setIsModalReady] = useState(false);
 
 
   useEffect(() => {
     if (visible) {
-      InteractionManager.runAfterInteractions(() => {
+      const setupContent = () => {
         const defaults = getDefaultInitialSettings();
         let effectiveInitialSettings = { ...defaults };
 
@@ -99,8 +100,19 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
         } else {
             setActiveTabIndex(0);
         }
-      });
+        setIsModalReady(true);
+      };
+
+      if (initialSettings) {
+        InteractionManager.runAfterInteractions(setupContent);
+      } else {
+        setupContent();
+      }
+
     } else {
+        setIsModalReady(false);
+        setSettings(getDefaultInitialSettings());
+        setActiveTabIndex(0);
         setValidationErrorModalVisible(false);
         setValidationErrorMessage('');
     }
@@ -307,6 +319,32 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
     [styles, setActiveTabIndex]
   );
 
+  const renderContent = () => {
+      if (!isModalReady) {
+          return <ActivityIndicator size="large" color={subColor} style={{ flex: 1 }} />;
+      }
+      return (
+          <>
+            <DeadlineModalHeader
+                settings={settings}
+                styles={styles}
+                activeTabIndex={activeTabIndex}
+            />
+            <TabView
+                navigationState={{ index: activeTabIndex, routes }}
+                renderScene={renderScene}
+                onIndexChange={setActiveTabIndex}
+                initialLayout={{ width: layout.width }}
+                renderTabBar={renderTabBar}
+                style={{ flex: 1 }}
+                swipeEnabled={Platform.OS !== 'web'}
+                lazy
+                lazyPreloadDistance={0}
+            />
+          </>
+      );
+  };
+
   return (
     <>
       <Modal
@@ -319,7 +357,6 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
         backdropTransitionOutTiming={ANIMATION_TIMING}
         useNativeDriver={true}
         useNativeDriverForBackdrop={true}
-        statusBarTranslucent
         backdropColor="#000000"
         backdropOpacity={BACKDROP_OPACITY}
         onBackdropPress={onClose}
@@ -328,22 +365,7 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
         hideModalContentWhileAnimating
       >
         <SafeAreaView edges={['bottom']} style={styles.container}>
-          <DeadlineModalHeader
-            settings={settings}
-            styles={styles}
-            activeTabIndex={activeTabIndex}
-          />
-          <TabView
-            navigationState={{ index: activeTabIndex, routes }}
-            renderScene={renderScene}
-            onIndexChange={setActiveTabIndex}
-            initialLayout={{ width: layout.width }}
-            renderTabBar={renderTabBar}
-            style={{ flex: 1 }}
-            swipeEnabled={Platform.OS !== 'web'}
-            lazy
-            lazyPreloadDistance={0}
-          />
+          {renderContent()}
           <View style={[
             styles.footer,
             {
@@ -366,6 +388,7 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
             <TouchableOpacity
               style={[styles.button, styles.saveButton, { flex: 1, minWidth: 80 }]}
               onPress={handleSave}
+              disabled={!isModalReady}
             >
               <Text style={styles.saveButtonText} numberOfLines={1} adjustsFontSizeToFit>
                 {t('common.save')}
