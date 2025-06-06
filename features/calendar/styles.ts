@@ -10,6 +10,7 @@ export type CalendarScreenStyles = {
   todayButton: ViewStyle;
   todayButtonText: TextStyle;
   toggleButton: ViewStyle;
+  calendarContainer: ViewStyle;
   calendarWrapper: ViewStyle;
   list: ViewStyle;
   listContent: ViewStyle;
@@ -76,14 +77,21 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         borderRadius: 8,
         backgroundColor: dynamicSubColor,
     },
+    calendarContainer: {
+        marginHorizontal: 8,
+        borderWidth: 1,
+        borderColor: isDark ? '#202020' : '#888888',
+        borderRadius: 8,
+        overflow: 'hidden',
+    },
     todayButtonText: {
         fontWeight: 'bold',
         color: '#FFFFFF',
     },
     calendarWrapper: {
         backgroundColor: isDark ? '#000000' : '#FFFFFF',
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: isDark ? '#3A3A3C' : '#D1D1D6',
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: isDark ? '#202020' : '#888888',
     },
     list: {
         flex: 1,
