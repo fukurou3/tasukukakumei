@@ -401,10 +401,9 @@ export const useTasksScreenLogic = () => {
       setSelectedTabIndex(index);
       // PagerView をプログラムで操作
       pagerRef.current?.setPage(index);
-      // アニメーション値を更新して、UIの追従を即座に開始させる（ちらつき防止）
-      pageScrollPosition.value = withTiming(index, { duration: 250 });
+      // 実際のスクロールイベントに任せて位置を更新する
     }
-  }, [selectedTabIndex, pageScrollPosition]);
+  }, [selectedTabIndex]);
 
   const handlePageScroll = useCallback((event: PagerViewOnPageScrollEvent) => {
     // PagerViewのスクロールに追従してアニメーション値を更新
