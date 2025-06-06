@@ -1,5 +1,5 @@
 // app/(tabs)/calendar/styles.ts
-import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet, ViewStyle, TextStyle } from "react-native";
 
 export type CalendarScreenStyles = {
   container: ViewStyle;
@@ -19,86 +19,90 @@ export type CalendarScreenStyles = {
   googleEvent: TextStyle;
 };
 
-export const createCalendarStyles = (isDark: boolean, subColor: string): CalendarScreenStyles => {
-  const textColor = isDark ? '#FFFFFF' : '#000000';
-  const dynamicSubColor = subColor || (isDark ? '#4875B7' : '#2F5A8F');
-  
+export const createCalendarStyles = (
+  isDark: boolean,
+  subColor: string,
+): CalendarScreenStyles => {
+  const textColor = isDark ? "#FFFFFF" : "#000000";
+  const dynamicSubColor = subColor || (isDark ? "#4875B7" : "#2F5A8F");
+
   return StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: isDark ? '#000000' : '#f2f2f4',
+      flex: 1,
+      backgroundColor: isDark ? "#000000" : "#f2f2f4",
     },
     appBar: {
-        height: 56,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: isDark ? '#000000' : '#f2f2f4',
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: isDark ? '#3A3A3C' : '#D1D1D6',
+      height: 56,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: isDark ? "#000000" : "#f2f2f4",
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: isDark ? "#3A3A3C" : "#D1D1D6",
     },
     titleText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: textColor,
+      fontSize: 20,
+      fontWeight: "bold",
+      color: textColor,
     },
     monthHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 12, // 左右の余白を調整
-        paddingVertical: 10,
-        backgroundColor: isDark ? '#000000' : '#f2f2f4',
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 12, // 左右の余白を調整
+      paddingVertical: 10,
+      backgroundColor: isDark ? "#000000" : "#f2f2f4",
     },
     monthText: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: textColor,
+      fontSize: 22,
+      fontWeight: "bold",
+      color: textColor,
     },
     todayButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 8,
-        backgroundColor: dynamicSubColor,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: dynamicSubColor,
     },
     todayButtonText: {
-        fontWeight: 'bold',
-        color: '#FFFFFF',
+      fontWeight: "bold",
+      color: "#FFFFFF",
     },
     calendarWrapper: {
-        backgroundColor: isDark ? '#000000' : '#FFFFFF',
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: isDark ? '#3A3A3C' : '#D1D1D6',
+      backgroundColor: isDark ? "#000000" : "#FFFFFF",
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: isDark ? "#3A3A3C" : "#D1D1D6",
+      overflow: "hidden",
     },
     list: {
-        flex: 1,
-        marginTop: 8,
+      flex: 1,
+      marginTop: 8,
     },
     listContent: {
-        paddingBottom: 20,
-        paddingHorizontal: 12,
+      paddingBottom: 20,
+      paddingHorizontal: 12,
     },
     headerItem: {
-        marginVertical: 16,
+      marginVertical: 16,
     },
     googleHeader: {
-        padding: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: isDark ? '#3A3A3C' : '#D1D1D6',
-        marginHorizontal: 12,
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? "#3A3A3C" : "#D1D1D6",
+      marginHorizontal: 12,
     },
     googleHeaderText: {
-        fontWeight: 'bold',
-        marginBottom: 8,
-        color: dynamicSubColor,
+      fontWeight: "bold",
+      marginBottom: 8,
+      color: dynamicSubColor,
     },
     googleEventContainer: {
-        paddingLeft: 8,
-        paddingVertical: 4,
+      paddingLeft: 8,
+      paddingVertical: 4,
     },
     googleEvent: {
-        fontSize: 14,
-        lineHeight: 18,
-        color: textColor,
+      fontSize: 14,
+      lineHeight: 18,
+      color: textColor,
     },
   });
 };
