@@ -44,16 +44,14 @@ type TaskDetailStyles = {
   appBar: ViewStyle;
   appBarTitle: TextStyle;
   backButton: ViewStyle;
-  completeButton: ViewStyle;
   title: TextStyle;
   label: TextStyle;
   memo: TextStyle;
   field: TextStyle;
   countdown: TextStyle;
   image: ImageStyle;
-  actionRow: ViewStyle;
-  actionButton: ViewStyle;
-  actionButtonText: TextStyle;
+  actionBar: ViewStyle;
+  actionIcon: ViewStyle;
 };
 
 const createStyles = (isDark: boolean, subColor: string) =>
@@ -78,7 +76,6 @@ const createStyles = (isDark: boolean, subColor: string) =>
       textAlign: 'center',
     },
     backButton: { padding: 8 },
-    completeButton: { padding: 8 },
     title: {
       fontSize: 24,
       fontWeight: 'bold',
@@ -111,23 +108,21 @@ const createStyles = (isDark: boolean, subColor: string) =>
       borderRadius: 10,
       marginTop: 10,
     },
-    actionRow: {
+    actionBar: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: isDark ? '#1E1E1E' : '#F8F8F8',
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: isDark ? '#3A3A3C' : '#C6C6C8',
       flexDirection: 'row',
       justifyContent: 'space-around',
-      marginTop: 24,
-    },
-    actionButton: {
-      flex: 1,
-      marginHorizontal: 6,
-      paddingVertical: 12,
-      borderRadius: 10,
       alignItems: 'center',
+      paddingVertical: 8,
+      height: 60,
     },
-    actionButtonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
+    actionIcon: { alignItems: 'center', paddingHorizontal: 8 },
   });
 
   export default function TaskDetailScreen() {
@@ -157,8 +152,8 @@ const createStyles = (isDark: boolean, subColor: string) =>
       router.back();
       return true;
     };
-    BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => BackHandler.removeEventListener('hardwareBackPress', backAction);
+    const sub = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => sub.remove();
   }, [router]);
 
   useEffect(() => {
@@ -192,21 +187,6 @@ const createStyles = (isDark: boolean, subColor: string) =>
       );
   };
 
-  const handleComplete = async () => {
-    if (!task) return;
-    try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const list: Task[] = JSON.parse(raw);
-      const updated = list.map((t) =>
-        t.id === task.id ? { ...t, completedAt: dayjs.utc().toISOString() } : t
-      );
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      router.replace('/(tabs)/growth');
-    } catch (e) {
-      console.error('Failed to complete task', e);
-    }
-  };
 
   const handleEdit = () => {
     router.push({ pathname: '/add_edit', params: { id } });
@@ -254,16 +234,10 @@ const createStyles = (isDark: boolean, subColor: string) =>
           <Ionicons name="arrow-back" size={24} color={subColor} />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
-        <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
-          <Ionicons name="checkmark" size={24} color={subColor} />
-        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         <Text style={styles.title}>{task.title}</Text>
-
-        <Text style={styles.label}>{t('task_detail.memo')}</Text>
-        <Text style={styles.memo}>{task.memo || '-'}</Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Text style={styles.label}>{t('task_detail.deadline')}</Text>
@@ -273,6 +247,9 @@ const createStyles = (isDark: boolean, subColor: string) =>
         </View>
         <Text style={styles.field}>{deadlineText}</Text>
         <Text style={[styles.countdown, { color: countdownColor }]}>{countdownText}</Text>
+
+        <Text style={styles.label}>{t('task_detail.memo')}</Text>
+        <Text style={styles.memo}>{task.memo || '-'}</Text>
 
         {task.imageUris && task.imageUris.length > 0 && (
           <>
@@ -285,35 +262,23 @@ const createStyles = (isDark: boolean, subColor: string) =>
           </>
         )}
 
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: subColor }]}
-            onPress={handleEdit}
-          >
-            <Ionicons name="create-outline" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>{t('task_detail.edit')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: subColor }]}
-            onPress={handleShare}
-          >
-            <Ionicons name="share-social-outline" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>{t('task_detail.share')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: 'red' }]}
-            onPress={handleDelete}
-          >
-            <Ionicons name="trash" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>{t('common.delete')}</Text>
-          </TouchableOpacity>
-        </View>
         <Modal visible={!!previewUri} transparent onRequestClose={() => setPreviewUri(null)}>
           <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' }} onPress={() => setPreviewUri(null)}>
             {previewUri && <Image source={{ uri: previewUri }} style={{ width: '90%', height: '80%' }} resizeMode="contain" />}
           </TouchableOpacity>
         </Modal>
       </ScrollView>
+      <View style={styles.actionBar}>
+        <TouchableOpacity style={styles.actionIcon} onPress={handleDelete}>
+          <Ionicons name="trash" size={28} color="red" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionIcon} onPress={handleEdit}>
+          <Ionicons name="create-outline" size={28} color={subColor} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionIcon} onPress={handleShare}>
+          <Ionicons name="share-social-outline" size={28} color={subColor} />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
   }
