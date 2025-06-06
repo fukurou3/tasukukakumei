@@ -26,28 +26,18 @@ import { FontSizeContext, type FontSizeKey } from '@/context/FontSizeContext';
 import { fontSizes } from '@/constants/fontSizes';
 import dayjs from 'dayjs'; // dayjs をインポート
 import type { DeadlineSettings } from '@/features/add/components/DeadlineSettingModal/types'; // DeadlineSettings の型をインポート
+import type { Task } from '@/features/add/types';
 import { getTimeText } from '@/features/tasks/utils';
 import { ConfirmModal } from '@/components/ConfirmModal';
 
 const STORAGE_KEY = 'TASKS';
-
-type Task = {
-  id: string;
-  title: string;
-  memo: string;
-  deadline?: string; // deadline はオプショナルに変更
-  imageUris: string[];
-  notifyEnabled: boolean;
-  customUnit: 'minutes' | 'hours' | 'days';
-  customAmount: number;
-  deadlineDetails?: DeadlineSettings; // deadlineDetails プロパティを追加
-};
 
 type TaskDetailStyles = {
   container: ViewStyle;
   appBar: ViewStyle;
   appBarTitle: TextStyle;
   backButton: ViewStyle;
+  appBarActionPlaceholder: ViewStyle;
   title: TextStyle;
   label: TextStyle;
   memo: TextStyle;
