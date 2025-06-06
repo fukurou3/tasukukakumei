@@ -123,6 +123,13 @@ export default function CalendarPage() {
     },
     [googleAllEvents],
   );
+
+  // 現在月の前後も先読みしてキャッシュ
+  useEffect(() => {
+    getEventLayout(displayMonth);
+    getEventLayout(displayMonth.subtract(1, "month"));
+    getEventLayout(displayMonth.add(1, "month"));
+  }, [displayMonth, getEventLayout]);
   const dayTasks = useMemo(
     () => groupedTasks[selectedDate] || [],
     [groupedTasks, selectedDate],
