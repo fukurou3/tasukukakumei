@@ -18,8 +18,7 @@ import { groupTasksByDate, processMultiDayEvents } from '@/features/calendar/uti
 import type { Task } from '@/features/tasks/types';
 import { STORAGE_KEY as TASKS_KEY } from '@/features/tasks/constants';
 import { TaskItem } from '@/features/tasks/components/TaskItem';
-import { createCalendarStyles } from './styles';
-
+import { createCalendarStyles } from '@/features/calendar/styles';
 const CALENDAR_BG_KEY = '@calendar_background_id';
 const WEEKDAY_COLOR = '#888888';
 const SUNDAY_COLOR = '#FF6666';
