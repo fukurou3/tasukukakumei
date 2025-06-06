@@ -101,7 +101,7 @@ function InnerTabs() {
             'task-detail/[id]',
             'drafts',
             'explore',
-            // 'index',
+            'index',
           ].map((name) => (
             <Tabs.Screen key={name} name={name} options={{ href: null }} />
           ))}
