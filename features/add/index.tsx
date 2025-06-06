@@ -112,7 +112,7 @@ export default function AddTaskScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const router = useRouter();
-  const { draftId } = useLocalSearchParams<{ draftId?: string }>();
+  const { draftId, date } = useLocalSearchParams<{ draftId?: string; date?: string }>();
 
   const unsaved = useUnsavedStore((state) => state.unsaved);
   const setUnsaved = useUnsavedStore((state) => state.setUnsaved);
@@ -142,11 +142,11 @@ export default function AddTaskScreen() {
     memo: '',
     selectedUris: [] as string[],
     folder: '',
-    currentDeadlineSettings: undefined as DeadlineSettings | undefined,
+    currentDeadlineSettings: date ? { taskDeadlineDate: String(date) } as DeadlineSettings : undefined,
     notificationActive: false,
     customAmount: 1,
     customUnit: 'hours' as NotificationUnit,
-  }), []);
+  }), [date]);
 
 
   const [selectedUris, setSelectedUris] = useState<string[]>(initialFormState.selectedUris);

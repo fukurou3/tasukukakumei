@@ -17,11 +17,19 @@ export type CalendarScreenStyles = {
   googleHeaderText: TextStyle;
   googleEventContainer: ViewStyle;
   googleEvent: TextStyle;
+  fab: ViewStyle;
 };
 
 export const createCalendarStyles = (isDark: boolean, subColor: string): CalendarScreenStyles => {
   const textColor = isDark ? '#FFFFFF' : '#000000';
   const dynamicSubColor = subColor || (isDark ? '#4875B7' : '#2F5A8F');
+  const shadowStyle = {
+    shadowColor: isDark ? '#000' : '#555',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0.25 : 0.1,
+    shadowRadius: 3.84,
+    elevation: 3,
+  };
   
   return StyleSheet.create({
     container: {
@@ -99,6 +107,20 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         fontSize: 14,
         lineHeight: 18,
         color: textColor,
+    },
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 16,
+        bottom: 16,
+        backgroundColor: dynamicSubColor,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        ...shadowStyle,
+        elevation: 6,
     },
   });
 };

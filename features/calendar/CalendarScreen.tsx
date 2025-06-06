@@ -1,7 +1,7 @@
 // app/(tabs)/calendar/index.tsx
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { View, FlatList, Text, ActivityIndicator, Pressable } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { View, FlatList, Text, ActivityIndicator, Pressable, TouchableOpacity, Platform } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handler';
 import { useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
@@ -19,6 +19,7 @@ import type { Task } from '@/features/tasks/types';
 import { STORAGE_KEY as TASKS_KEY } from '@/features/tasks/constants';
 import { TaskItem } from '@/features/tasks/components/TaskItem';
 import { createCalendarStyles } from '@/features/calendar/styles';
+import { Ionicons } from '@expo/vector-icons';
 const CALENDAR_BG_KEY = '@calendar_background_id';
 const WEEKDAY_COLOR = '#888888';
 const SUNDAY_COLOR = '#FF6666';
@@ -29,6 +30,7 @@ export default function CalendarPage() {
   const { colorScheme, subColor } = useAppTheme();
   const isDark = colorScheme === 'dark';
   const styles = createCalendarStyles(isDark, subColor);
+  const router = useRouter();
 
   const { enabled: googleEnabled } = useGoogleCalendarSync();
 
@@ -179,6 +181,12 @@ export default function CalendarPage() {
         style={styles.list}
         contentContainerStyle={styles.listContent}
       />
+      <TouchableOpacity
+        style={[styles.fab, { bottom: Platform.OS === 'ios' ? 16 : 16 }]}
+        onPress={() => router.push({ pathname: '/add/', params: { date: selectedDate } })}
+      >
+        <Ionicons name="add" size={32} color="#fff" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
