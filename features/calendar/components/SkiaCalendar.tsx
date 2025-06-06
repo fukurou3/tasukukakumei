@@ -14,9 +14,9 @@ import type { EventLayout } from '../utils';
 const FONT_PATH = require('@/assets/fonts/NotoSansJP-Regular.ttf');
 const PADDING = 0; // 横幅いっぱいに表示するために余白を0に
 const HEADER_HEIGHT = 40;
-const TASK_BAR_HEIGHT = 4;
-const TASK_BAR_MARGIN = 2;
-const EVENT_BAR_HEIGHT = 18;
+const TASK_BAR_HEIGHT = 5;
+const TASK_BAR_MARGIN = 3;
+const EVENT_BAR_HEIGHT = 20;
 const EVENT_BAR_Y_OFFSET = 24;
 
 interface SkiaCalendarProps {
@@ -163,7 +163,15 @@ export default function SkiaCalendar({
               return (
                 <Group key={`cell-${day}`}>
                   {dateStr === selectedDate && (
-                    <Rect x={cellX} y={cellY} width={cellWidth} height={cellWidth} color={theme.primary} opacity={0.3} />
+                    <RoundedRect
+                      x={cellX + 1}
+                      y={cellY + 1}
+                      width={cellWidth - 2}
+                      height={cellWidth - 2}
+                      r={6}
+                      color={theme.primary}
+                      opacity={0.25}
+                    />
                   )}
 
                   {eventsOnDay.map(({ event, lane, type }) => {

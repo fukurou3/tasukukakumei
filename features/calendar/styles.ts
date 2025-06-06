@@ -37,7 +37,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         borderBottomColor: isDark ? '#3A3A3C' : '#D1D1D6',
     },
     titleText: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
         color: textColor,
     },
@@ -50,7 +50,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         backgroundColor: isDark ? '#000000' : '#f2f2f4',
     },
     monthText: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
         color: textColor,
     },
@@ -58,12 +58,11 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 8,
-        borderWidth: 1,
-        borderColor: isDark ? '#3A3A3C' : '#D1D1D6',
+        backgroundColor: dynamicSubColor,
     },
     todayButtonText: {
         fontWeight: 'bold',
-        color: dynamicSubColor,
+        color: '#FFFFFF',
     },
     calendarWrapper: {
         backgroundColor: isDark ? '#000000' : '#FFFFFF',
@@ -76,6 +75,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
     },
     listContent: {
         paddingBottom: 20,
+        paddingHorizontal: 12,
     },
     headerItem: {
         marginVertical: 16,
@@ -97,6 +97,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
     },
     googleEvent: {
         fontSize: 14,
+        lineHeight: 18,
         color: textColor,
     },
   });
