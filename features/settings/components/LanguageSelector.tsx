@@ -4,14 +4,15 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
+import { changeAppLanguage } from '@/lib/i18n'
 
 export default function LanguageScreen() {
   const { i18n, t } = useTranslation()
   const router = useRouter()
   const currentLang = i18n.language
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng)
+  const changeLanguage = async (lng: string) => {
+    await changeAppLanguage(lng)
     router.back()
   }
 

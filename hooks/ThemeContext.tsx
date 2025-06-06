@@ -21,7 +21,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  themeChoice: 'system',
+  themeChoice: 'light',
   setThemeChoice: () => {},
   colorScheme: 'light',
   subColor: '#4CAF50',
@@ -37,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [systemScheme, setSystemScheme] = useState<'light' | 'dark'>(
     () => normalizeScheme(Appearance.getColorScheme())
   )
-  const [themeChoice, setThemeChoiceState] = useState<ThemeChoice>('system')
+  const [themeChoice, setThemeChoiceState] = useState<ThemeChoice>('light')
   const [subColor, setSubColorState] = useState('#4CAF50') // デフォルト緑
 
   useEffect(() => {
