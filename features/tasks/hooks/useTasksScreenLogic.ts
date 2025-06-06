@@ -397,10 +397,9 @@ export const useTasksScreenLogic = () => {
       setSelectedTabIndex(index);
       // PagerView をプログラムで操作
       pagerRef.current?.setPage(index);
-      // Accent line と同期させるため即座に値を更新しておく
-      pageScrollPosition.value = withTiming(index, { duration: 250 });
+      // pageScrollPosition は PagerView のスクロールイベントに任せる
     }
-  }, [selectedTabIndex, pageScrollPosition]);
+  }, [selectedTabIndex]);
 
   const handlePageScroll = useCallback((event: PagerViewOnPageScrollEvent) => {
     const { position, offset } = event.nativeEvent;
