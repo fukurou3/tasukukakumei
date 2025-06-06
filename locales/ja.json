@@ -1,9 +1,11 @@
 {
   "task_detail": {
-    "title": "タスク詳細",
-    "memo": "メモ",
-    "photo": "写真",
-    "delete_confirm_title": "削除確認",
+  "title": "タスク詳細",
+  "memo": "メモ",
+  "deadline": "期限",
+  "photo": "写真",
+  "edit": "編集",
+  "delete_confirm_title": "削除確認",
     "delete_confirm": "このタスクを削除しますか？"
   },
   "settings": {
