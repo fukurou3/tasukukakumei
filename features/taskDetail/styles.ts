@@ -1,12 +1,14 @@
+// features/taskDetail/styles.ts
 import { StyleSheet, ViewStyle, TextStyle, ImageStyle } from 'react-native';
 import { fontSizes } from '@/constants/fontSizes';
 import type { FontSizeKey } from '@/context/FontSizeContext';
+import { initialWindowMetrics } from 'react-native-safe-area-context';
 
 export type TaskDetailStyles = {
   container: ViewStyle;
   appBar: ViewStyle;
-  appBarTitle: TextStyle;
   backButton: ViewStyle;
+  backButtonText: TextStyle;
   headerAction: ViewStyle;
   title: TextStyle;
   label: TextStyle;
@@ -41,15 +43,16 @@ export const createTaskDetailStyles = (
       justifyContent: 'space-between',
       backgroundColor: isDark ? '#121212' : '#ffffff',
     },
-    appBarTitle: {
-      fontSize: fontSizes[fsKey] + 4,
-      fontWeight: 'bold',
-      color: isDark ? '#fff' : '#000',
-      flex: 1,
-      textAlign: 'center',
-      marginHorizontal: 16,
+    backButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
     },
-    backButton: { padding: 8 },
+    backButtonText: {
+      color: subColor,
+      fontSize: fontSizes[fsKey] + 2,
+      marginLeft: 2,
+    },
     headerAction: {
       padding: 8,
     },
@@ -87,25 +90,26 @@ export const createTaskDetailStyles = (
     },
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: 'rgba(0,0,0,0.3)',
       justifyContent: 'flex-end',
     },
     actionSheetContainer: {
       backgroundColor: isDark ? '#1E1E1E' : '#F8F8F8',
-      borderRadius: 12,
-      marginHorizontal: 10,
-      marginBottom: 30,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
       overflow: 'hidden',
+      paddingBottom: initialWindowMetrics?.insets.bottom ?? 20,
     },
     actionSheetItem: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       paddingVertical: 16,
       paddingHorizontal: 20,
       backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
     },
     actionSheetIcon: {
-      marginRight: 20,
+      color: subColor,
     },
     actionSheetText: {
       fontSize: fontSizes[fsKey] + 2,

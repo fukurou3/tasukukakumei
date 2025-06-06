@@ -97,7 +97,6 @@ export default function TaskDetailScreen() {
   };
 
   const handleToggleDone = async () => {
-    setIsActionModalVisible(false);
     if (!task) return;
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -151,10 +150,9 @@ export default function TaskDetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.appBar}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={subColor} />
+            <Ionicons name="chevron-back" size={26} color={subColor} />
+            <Text style={styles.backButtonText}>{t('common.detail')}</Text>
           </TouchableOpacity>
-          <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
-          <View style={{ width: Platform.OS === 'ios' ? 40 : 24 }} />
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={styles.memo}>{t('common.loading')}</Text>
@@ -179,9 +177,9 @@ export default function TaskDetailScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.appBar}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={subColor} />
+          <Ionicons name="chevron-back" size={26} color={subColor} />
+          <Text style={styles.backButtonText}>{t('common.detail')}</Text>
         </TouchableOpacity>
-        <Text style={styles.appBarTitle} numberOfLines={1}>{task.title}</Text>
         <TouchableOpacity style={styles.headerAction} onPress={() => setIsActionModalVisible(true)}>
           <Ionicons name="ellipsis-vertical" size={24} color={subColor} />
         </TouchableOpacity>
