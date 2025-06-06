@@ -4,7 +4,8 @@ import { View, FlatList, Text, ActivityIndicator, Pressable, TouchableOpacity, P
 import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handler';
-import { useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
+import { useSharedValue, runOnJS } from 'react-native-reanimated';
+import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -64,30 +65,32 @@ export default function CalendarPage() {
   );
 
   const groupedTasks = useMemo(() => groupTasksByDate(tasks), [tasks]);
-  const eventLayout = useMemo(() => processMultiDayEvents(googleAllEvents, displayMonth), [googleAllEvents, displayMonth]);
+  const monthPages = useMemo(() => [
+    displayMonth.subtract(1, 'month'),
+    displayMonth,
+    displayMonth.add(1, 'month'),
+  ], [displayMonth]);
+  const getEventLayout = useCallback((month: dayjs.Dayjs) => {
+    return processMultiDayEvents(googleAllEvents, month);
+  }, [googleAllEvents]);
   const dayTasks = useMemo(() => groupedTasks[selectedDate] || [], [groupedTasks, selectedDate]);
   const googleDayEvents = useMemo(() => {
     if (!googleEnabled) return [];
     return googleAllEvents.filter(ev => dayjs(ev.start).format('YYYY-MM-DD') === selectedDate);
   }, [googleAllEvents, selectedDate, googleEnabled]);
 
-  const changeMonthJs = useCallback((direction: 'next' | 'prev') => {
-    setDisplayMonth(current =>
-      direction === 'next' ? current.add(1, 'month') : current.subtract(1, 'month')
-    );
+  const handlePageSelected = useCallback((e: PagerViewOnPageSelectedEvent) => {
+    const index = e.nativeEvent.position;
+    if (index === 0) {
+      setDisplayMonth(current => current.subtract(1, 'month'));
+    } else if (index === 2) {
+      setDisplayMonth(current => current.add(1, 'month'));
+    }
   }, []);
 
-  const handleSwipe = useCallback((direction: 'next' | 'prev') => {
-    'worklet';
-    if (opacity.value !== 1) return;
-
-    opacity.value = withTiming(0, { duration: 150 }, (isFinished) => {
-      if (isFinished) {
-        runOnJS(changeMonthJs)(direction);
-        opacity.value = withTiming(1, { duration: 150 });
-      }
-    });
-  }, [opacity, changeMonthJs]);
+  useEffect(() => {
+    pagerRef.current?.setPageWithoutAnimation(1);
+  }, [displayMonth]);
 
   const onDayPress = useCallback((date: string) => {
     setSelectedDate(date);
@@ -110,11 +113,10 @@ export default function CalendarPage() {
     runOnJS(toggleViewJs)();
   }, []);
 
-  const flingRight = Gesture.Fling().direction(Directions.RIGHT).onEnd(() => handleSwipe('prev'));
-  const flingLeft = Gesture.Fling().direction(Directions.LEFT).onEnd(() => handleSwipe('next'));
+  const pagerRef = React.useRef<PagerView>(null);
   const flingUp = Gesture.Fling().direction(Directions.UP).onEnd(() => toggleView());
   const flingDown = Gesture.Fling().direction(Directions.DOWN).onEnd(() => toggleView());
-  const composedGesture = Gesture.Race(flingLeft, flingRight, flingUp, flingDown);
+  const composedGesture = Gesture.Race(flingUp, flingDown);
 
   const renderTask = useCallback(({ item }: { item: Task }) => (
     <TaskItem
@@ -172,28 +174,36 @@ export default function CalendarPage() {
              </View>
         </View>
         <GestureDetector gesture={composedGesture}>
-          <View style={[styles.calendarWrapper, viewType === 'full' && { flex: 1 }]}>
-            <SkiaCalendar
-              date={displayMonth}
-              backgroundImage={backgroundImage}
-              opacity={opacity}
-              selectedDate={selectedDate}
-            onDayPress={onDayPress}
-            groupedTasks={groupedTasks}
-            eventLayout={eventLayout}
-            showTaskTitles={viewType === 'full'}
-            theme={{
-              primary: subColor,
-              weekday: WEEKDAY_COLOR,
-              day: textColor,
-              saturday: SATURDAY_COLOR,
-              sunday: SUNDAY_COLOR,
-              line: isDark ? '#303030' : '#B0B0B5',
-              background: isDark ? '#000000' : '#FFFFFF',
-              eventText: '#FFFFFF',
-            }}
-          />
-          </View>
+          <PagerView
+            ref={pagerRef}
+            style={[styles.calendarWrapper, viewType === 'full' && { flex: 1 }]}
+            initialPage={1}
+            onPageSelected={handlePageSelected}
+          >
+            {monthPages.map((m) => (
+              <SkiaCalendar
+                key={m.format('YYYY-MM')}
+                date={m}
+                backgroundImage={backgroundImage}
+                opacity={opacity}
+                selectedDate={selectedDate}
+                onDayPress={onDayPress}
+                groupedTasks={groupedTasks}
+                eventLayout={getEventLayout(m)}
+                showTaskTitles={viewType === 'full'}
+                theme={{
+                  primary: subColor,
+                  weekday: WEEKDAY_COLOR,
+                  day: textColor,
+                  saturday: SATURDAY_COLOR,
+                  sunday: SUNDAY_COLOR,
+                  line: isDark ? '#303030' : '#B0B0B5',
+                  background: isDark ? '#000000' : '#FFFFFF',
+                  eventText: '#FFFFFF',
+                }}
+              />
+            ))}
+          </PagerView>
         </GestureDetector>
       </View>
       {viewType === 'list' && (
