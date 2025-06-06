@@ -12,7 +12,8 @@ import type { Task } from '@/features/tasks/types';
 import type { EventLayout } from '../utils';
 
 const FONT_PATH = require('@/assets/fonts/NotoSansJP-Regular.ttf');
-const PADDING = 0; // 横幅いっぱいに表示するために余白を0に
+// カレンダー外枠の余白に合わせて調整
+const PADDING = 4; // 左右の余白を4に
 const HEADER_HEIGHT = 30; // 曜日表示欄を少し細くする
 const TASK_BAR_HEIGHT = 5;
 const TASK_BAR_MARGIN = 3;
