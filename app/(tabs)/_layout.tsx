@@ -52,6 +52,8 @@ function InnerTabs() {
                   iconName = 'calendar-outline';
                 } else if (route.name === 'tasks/index') {
                   iconName = 'list-outline';
+                } else if (route.name === 'growth/index') {
+                  iconName = 'leaf-outline';
                 } else if (route.name === 'settings/index') {
                   iconName = 'settings-outline';
                 }
@@ -69,6 +71,8 @@ function InnerTabs() {
                   label = 'カレンダー';
                 } else if (route.name === 'tasks/index') {
                   label = 'タスク一覧';
+                } else if (route.name === 'growth/index') {
+                  label = '成長';
                 } else if (route.name === 'settings/index') {
                   label = '設定';
                 }
@@ -88,9 +92,10 @@ function InnerTabs() {
             };
           }}
         >
-          {/* ✅ 表示するメインタブ3つ */}
+          {/* ✅ 表示するメインタブ */}
           <Tabs.Screen name="calendar/index" />
           <Tabs.Screen name="tasks/index" />
+          <Tabs.Screen name="growth/index" />
           <Tabs.Screen name="settings/index" />
 
           {/* ✅ 非表示にしたいルートたち */}

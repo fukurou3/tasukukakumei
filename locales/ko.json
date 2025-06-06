@@ -294,6 +294,11 @@
     "set_task_duration_title": "소요 시간 설정",
     "date_missing_for_time_alert_message": "시간을 설정하려면 날짜도 선택해주세요.",
     "weekly_day_missing_alert_message": "주간 반복의 경우 요일을 하나 이상 선택해주세요.",
-    "period_start_must_be_before_end_alert_message": "기간 시작일은 종료일보다 이전이어야 합니다."
+  "period_start_must_be_before_end_alert_message": "기간 시작일은 종료일보다 이전이어야 합니다."
+  },
+  "growth": {
+    "title": "성장",
+    "description": "작업을 완료하면 나무가 자라납니다",
+    "completed": "완료한 작업 수: {{count}}"
   }
 }

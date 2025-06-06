@@ -310,7 +310,7 @@
     "weekly_day_missing_alert_message": "Please select at least one day of the week for weekly repeat.",
     "period_start_must_be_before_end_alert_message": "The period start date must be before the end date."
   },
-    "calendar": {
+  "calendar": {
     "weekdays": {
       "0": "Sun",
       "1": "Mon",
@@ -320,5 +320,10 @@
       "5": "Fri",
       "6": "Sat"
     }
+  },
+  "growth": {
+    "title": "Growth",
+    "description": "Your tree grows as you complete tasks",
+    "completed": "Completed tasks: {{count}}"
   }
 }
