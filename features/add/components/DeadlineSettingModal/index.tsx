@@ -73,9 +73,8 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
 
   useEffect(() => {
     if (visible) {
-      InteractionManager.runAfterInteractions(() => {
-        const defaults = getDefaultInitialSettings();
-        let effectiveInitialSettings = { ...defaults };
+      const defaults = getDefaultInitialSettings();
+      let effectiveInitialSettings = { ...defaults };
 
         if (initialSettings) {
            effectiveInitialSettings = {
@@ -94,12 +93,11 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
         }
         setSettings(effectiveInitialSettings);
 
-        if (effectiveInitialSettings.repeatFrequency) {
-            setActiveTabIndex(1);
-        } else {
-            setActiveTabIndex(0);
-        }
-      });
+      if (effectiveInitialSettings.repeatFrequency) {
+          setActiveTabIndex(1);
+      } else {
+          setActiveTabIndex(0);
+      }
     } else {
         setValidationErrorModalVisible(false);
         setValidationErrorMessage('');
@@ -324,7 +322,6 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
         onBackdropPress={onClose}
         onBackButtonPress={onClose}
         style={styles.modal}
-        hideModalContentWhileAnimating
       >
         <SafeAreaView edges={['bottom']} style={styles.container}>
           <DeadlineModalHeader

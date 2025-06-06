@@ -287,7 +287,6 @@ const DurationPickerModalComponent: React.FC<DurationPickerModalProps> = ({
       backdropOpacity={BACKDROP_OPACITY}
       animationInTiming={ANIMATION_TIMING}
       animationOutTiming={ANIMATION_TIMING}
-      hideModalContentWhileAnimating
       useNativeDriver={Platform.OS === 'android'} // Androidではパフォーマンス向上のため推奨
       useNativeDriverForBackdrop
       onBackdropPress={onClose}

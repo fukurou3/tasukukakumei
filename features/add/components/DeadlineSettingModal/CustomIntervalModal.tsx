@@ -95,7 +95,6 @@ export const CustomIntervalModal: React.FC<CustomIntervalModalProps> = ({
       useNativeDriverForBackdrop={true}
       backdropColor="#000000"
       backdropOpacity={BACKDROP_OPACITY}
-      hideModalContentWhileAnimating
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
