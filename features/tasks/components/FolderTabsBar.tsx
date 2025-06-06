@@ -164,7 +164,6 @@ export const FolderTabsBar: React.FC<FolderTabsBarProps> = React.memo(({
               index={index}
               onPress={memoizedOnItemPress}
               onTabLayout={memoizedOnTabLayout}
-              pageScrollPosition={pageScrollPosition}
               selectedTabIndexShared={selectedTabIndexShared}
               selectedTextColor={selectedTextColor}
               unselectedTextColor={unselectedTextColor}

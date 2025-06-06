@@ -54,6 +54,7 @@ export const useTasksScreenLogic = () => {
   // ★ ちらつきの原因となっていた currentContentPage を廃止し、新しい確定状態を導入
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
   const selectedTabIndexShared = useSharedValue(0);
+  const startScrollIndexRef = useRef(0);
 
   const pageScrollPosition = useSharedValue(0);
 
@@ -395,7 +396,9 @@ export const useTasksScreenLogic = () => {
   // ★ タブタップ時の処理を修正
   const handleFolderTabPress = useCallback((_folderName: string, index: number) => {
     if (selectedTabIndex !== index) {
-      // Remember the current index during the animation
+      // 現在のタブを開始位置として記録
+      startScrollIndexRef.current = selectedTabIndex;
+      // アニメーション開始時点では既存のタブを選択状態にしておく
       selectedTabIndexShared.value = selectedTabIndex;
       // 更新する確定状態
       setSelectedTabIndex(index);
@@ -406,9 +409,26 @@ export const useTasksScreenLogic = () => {
   }, [selectedTabIndex]);
 
   const handlePageScroll = useCallback((event: PagerViewOnPageScrollEvent) => {
+    const { position, offset } = event.nativeEvent;
+    const value = position + offset;
+
+    // スクロール開始地点を記録
+    if (offset === 0) {
+      startScrollIndexRef.current = position;
+    }
+
     // PagerViewのスクロールに追従してアニメーション値を更新
-    pageScrollPosition.value = event.nativeEvent.position + event.nativeEvent.offset;
-  }, [pageScrollPosition]);
+    pageScrollPosition.value = value;
+
+    const diff = value - startScrollIndexRef.current;
+    if (diff >= TAB_SWITCH_THRESHOLD) {
+      selectedTabIndexShared.value = startScrollIndexRef.current + 1;
+    } else if (diff <= -TAB_SWITCH_THRESHOLD) {
+      selectedTabIndexShared.value = startScrollIndexRef.current - 1;
+    } else {
+      selectedTabIndexShared.value = startScrollIndexRef.current;
+    }
+  }, [pageScrollPosition, selectedTabIndexShared]);
 
   // ★ ページ切り替え完了時の処理を修正
   const handlePageSelected = useCallback((event: PagerViewOnPageSelectedEvent) => {
@@ -422,6 +442,7 @@ export const useTasksScreenLogic = () => {
     // ページャーからの最終位置を共有値に反映し、差分をゼロにする
     pageScrollPosition.value = newPageIndex;
     selectedTabIndexShared.value = newPageIndex;
+    startScrollIndexRef.current = newPageIndex;
 
     // 現在のタブを中央にスクロール
     scrollFolderTabsToCenter(newPageIndex);
