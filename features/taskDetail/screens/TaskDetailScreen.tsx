@@ -12,6 +12,7 @@ import {
   Modal,
   BackHandler,
   useWindowDimensions,
+  Platform,
   ViewStyle,
   TextStyle,
   ImageStyle,
@@ -80,7 +81,7 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
     },
     backButton: { padding: 8, marginRight: 8 },
     appBarActionPlaceholder: {
-      width: 24 + 8,
+      width: (Platform.OS === 'ios' ? 32 : 24) + 8,
     },
     title: {
       fontSize: fontSizes[fsKey] + 8,
