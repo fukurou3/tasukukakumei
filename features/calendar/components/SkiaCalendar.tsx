@@ -12,7 +12,7 @@ import type { Task } from '@/features/tasks/types';
 import type { EventLayout } from '../utils';
 
 const FONT_PATH = require('@/assets/fonts/NotoSansJP-Regular.ttf');
-// カレンダーコンテナの左右余白と枠線分を考慮したパディング
+// カレンダー表示用のパディング量（大表示時は0）
 const PADDING = 5;
 const HEADER_HEIGHT = 30; // 曜日表示欄を少し細くする
 const TASK_BAR_HEIGHT = 5;
@@ -55,7 +55,8 @@ export default function SkiaCalendar({
 }: SkiaCalendarProps) {
   const { t, i18n } = useTranslation();
   const { width } = useWindowDimensions();
-  const calendarWidth = width - PADDING * 2;
+  const padding = showTaskTitles ? 0 : PADDING;
+  const calendarWidth = width - padding * 2;
   const cellWidth = calendarWidth / 7;
   const cellHeight = showTaskTitles ? cellWidth * 1.5 : cellWidth; // 大表示時は縦長に
 
