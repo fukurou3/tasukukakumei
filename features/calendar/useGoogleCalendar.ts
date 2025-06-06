@@ -1,7 +1,7 @@
 // features/calendar/useGoogleCalendar.ts
-import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import dayjs from 'dayjs';
+import { useState, useEffect, useCallback } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import dayjs from "dayjs";
 
 export type GoogleEvent = {
   id: string;
@@ -15,10 +15,8 @@ export const useGoogleCalendarAllEvents = (enabled: boolean) => {
   const [events, setEvents] = useState<GoogleEvent[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadEvents = async () => {
+  const loadEvents = useCallback(
+    async (force = false) => {
       if (!enabled) {
         setEvents([]);
         return;
@@ -29,48 +27,49 @@ export const useGoogleCalendarAllEvents = (enabled: boolean) => {
         return;
       }
 
-      const CACHE_KEY = '@google_calendar_cache';
+      const CACHE_KEY = "@google_calendar_cache";
 
-      try {
-        const raw = await AsyncStorage.getItem(CACHE_KEY);
-        if (raw) {
-          const { timestamp, events: cached } = JSON.parse(raw);
-          if (dayjs().diff(dayjs(timestamp), 'hour') < 6) {
-            if (!cancelled) setEvents(cached);
-            return;
-          } else if (!cancelled) {
-            setEvents(cached);
+      if (!force) {
+        try {
+          const raw = await AsyncStorage.getItem(CACHE_KEY);
+          if (raw) {
+            const { timestamp, events: cached } = JSON.parse(raw);
+            if (dayjs().diff(dayjs(timestamp), "hour") < 6) {
+              setEvents(cached);
+              return;
+            } else {
+              setEvents(cached);
+            }
           }
-        }
-      } catch {}
+        } catch {}
+      }
 
       setLoading(true);
       try {
         const res = await fetch(url);
         const text = await res.text();
         const parsed = parseICal(text);
-        if (!cancelled) {
-          setEvents(parsed);
-        }
+        setEvents(parsed);
         await AsyncStorage.setItem(
           CACHE_KEY,
-          JSON.stringify({ timestamp: dayjs().toISOString(), events: parsed })
+          JSON.stringify({ timestamp: dayjs().toISOString(), events: parsed }),
         );
       } catch {
-        if (!cancelled) setEvents([]);
+        setEvents([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
-    };
+    },
+    [enabled],
+  );
 
+  useEffect(() => {
     loadEvents();
+  }, [loadEvents]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled]);
+  const refresh = useCallback(() => loadEvents(true), [loadEvents]);
 
-  return { events, loading };
+  return { events, loading, refresh };
 };
 
 export const parseICal = (ics: string): GoogleEvent[] => {
@@ -78,26 +77,32 @@ export const parseICal = (ics: string): GoogleEvent[] => {
   const lines = ics.split(/\r?\n/);
   let current: Partial<GoogleEvent> | null = null;
   for (const line of lines) {
-    if (line === 'BEGIN:VEVENT') {
+    if (line === "BEGIN:VEVENT") {
       current = { isAllDay: false };
-    } else if (line === 'END:VEVENT') {
-      if (current && current.id && current.start && current.end && current.title) {
+    } else if (line === "END:VEVENT") {
+      if (
+        current &&
+        current.id &&
+        current.start &&
+        current.end &&
+        current.title
+      ) {
         events.push(current as GoogleEvent);
       }
       current = null;
     } else if (current) {
-      if (line.startsWith('UID')) {
-        current.id = line.substring(line.indexOf(':') + 1);
-      } else if (line.startsWith('SUMMARY')) {
-        current.title = line.substring(line.indexOf(':') + 1);
-      } else if (line.startsWith('DTSTART')) {
-        const value = line.substring(line.indexOf(':') + 1);
+      if (line.startsWith("UID")) {
+        current.id = line.substring(line.indexOf(":") + 1);
+      } else if (line.startsWith("SUMMARY")) {
+        current.title = line.substring(line.indexOf(":") + 1);
+      } else if (line.startsWith("DTSTART")) {
+        const value = line.substring(line.indexOf(":") + 1);
         current.start = icsDateToISO(value);
-        if (line.includes('VALUE=DATE')) {
-            current.isAllDay = true;
+        if (line.includes("VALUE=DATE")) {
+          current.isAllDay = true;
         }
-      } else if (line.startsWith('DTEND')) {
-        const value = line.substring(line.indexOf(':') + 1);
+      } else if (line.startsWith("DTEND")) {
+        const value = line.substring(line.indexOf(":") + 1);
         current.end = icsDateToISO(value, current.isAllDay);
       }
     }
@@ -107,8 +112,10 @@ export const parseICal = (ics: string): GoogleEvent[] => {
 
 const icsDateToISO = (str: string, isAllDayEnd: boolean = false): string => {
   if (str.length === 8) {
-    const d = dayjs(str, 'YYYYMMDD');
-    return isAllDayEnd ? d.subtract(1, 'day').endOf('day').toISOString() : d.startOf('day').toISOString();
+    const d = dayjs(str, "YYYYMMDD");
+    return isAllDayEnd
+      ? d.subtract(1, "day").endOf("day").toISOString()
+      : d.startOf("day").toISOString();
   }
-  return dayjs(str.replace(/Z$/, ''), 'YYYYMMDDTHHmmss').toISOString();
+  return dayjs(str.replace(/Z$/, ""), "YYYYMMDDTHHmmss").toISOString();
 };
