@@ -1,5 +1,6 @@
 // features/calendar/useGoogleCalendar.ts
 import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 
 export type GoogleEvent = {
@@ -15,31 +16,58 @@ export const useGoogleCalendarAllEvents = (enabled: boolean) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!enabled) {
-      setEvents([]);
-      return;
-    }
-    const url = process.env.EXPO_PUBLIC_GOOGLE_CALENDAR_ICS_URL;
-    if (!url) {
-      setEvents([]);
-      return;
-    }
+    let cancelled = false;
 
-    const fetchEvents = async () => {
+    const loadEvents = async () => {
+      if (!enabled) {
+        setEvents([]);
+        return;
+      }
+      const url = process.env.EXPO_PUBLIC_GOOGLE_CALENDAR_ICS_URL;
+      if (!url) {
+        setEvents([]);
+        return;
+      }
+
+      const CACHE_KEY = '@google_calendar_cache';
+
+      try {
+        const raw = await AsyncStorage.getItem(CACHE_KEY);
+        if (raw) {
+          const { timestamp, events: cached } = JSON.parse(raw);
+          if (dayjs().diff(dayjs(timestamp), 'hour') < 6) {
+            if (!cancelled) setEvents(cached);
+            return;
+          } else if (!cancelled) {
+            setEvents(cached);
+          }
+        }
+      } catch {}
+
       setLoading(true);
       try {
         const res = await fetch(url);
         const text = await res.text();
         const parsed = parseICal(text);
-        setEvents(parsed);
+        if (!cancelled) {
+          setEvents(parsed);
+        }
+        await AsyncStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ timestamp: dayjs().toISOString(), events: parsed })
+        );
       } catch {
-        setEvents([]);
+        if (!cancelled) setEvents([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchEvents();
+    loadEvents();
+
+    return () => {
+      cancelled = true;
+    };
   }, [enabled]);
 
   return { events, loading };

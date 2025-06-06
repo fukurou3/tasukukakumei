@@ -1,5 +1,5 @@
 // app/(tabs)/calendar/index.tsx
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, FlatList, Text, ActivityIndicator, Pressable, TouchableOpacity, Platform } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +16,7 @@ import { useAppTheme } from '@/hooks/ThemeContext';
 import { useGoogleCalendarSync } from '@/context/GoogleCalendarContext';
 import { useGoogleCalendarAllEvents, GoogleEvent } from '@/features/calendar/useGoogleCalendar';
 import { groupTasksByDate, processMultiDayEvents } from '@/features/calendar/utils';
+import type { EventLayout } from '@/features/calendar/utils';
 import type { Task } from '@/features/tasks/types';
 import { STORAGE_KEY as TASKS_KEY } from '@/features/tasks/constants';
 import { TaskItem } from '@/features/tasks/components/TaskItem';
@@ -44,6 +45,11 @@ export default function CalendarPage() {
   const [viewType, setViewType] = useState<'list' | 'full'>('list');
 
   const { events: googleAllEvents, loading: googleLoading } = useGoogleCalendarAllEvents(googleEnabled);
+  const eventCacheRef = useRef<Record<string, EventLayout>>({});
+
+  useEffect(() => {
+    eventCacheRef.current = {};
+  }, [googleAllEvents]);
 
   useFocusEffect(
     useCallback(() => {
@@ -71,7 +77,11 @@ export default function CalendarPage() {
     displayMonth.add(1, 'month'),
   ], [displayMonth]);
   const getEventLayout = useCallback((month: dayjs.Dayjs) => {
-    return processMultiDayEvents(googleAllEvents, month);
+    const key = month.format('YYYY-MM');
+    if (!eventCacheRef.current[key]) {
+      eventCacheRef.current[key] = processMultiDayEvents(googleAllEvents, month);
+    }
+    return eventCacheRef.current[key];
   }, [googleAllEvents]);
   const dayTasks = useMemo(() => groupedTasks[selectedDate] || [], [groupedTasks, selectedDate]);
   const googleDayEvents = useMemo(() => {
