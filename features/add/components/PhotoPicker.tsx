@@ -14,6 +14,7 @@ import {
   Linking,
 } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
+import Constants from 'expo-constants';
 
 type Photo = { id: string; uri: string };
 
@@ -38,6 +39,7 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
   const [granted, setGranted] = useState<boolean | null>(null);
   const [after, setAfter] = useState<string | undefined>(undefined);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const isExpoGo = Constants.appOwnership === 'expo';
 
   // isMounted のような役割で、アンマウント後の setState を防ぐ (モーダル非表示時)
   const isComponentMounted = useRef(false);
@@ -66,6 +68,16 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
   // --- 2. 権限確認 ---
   useEffect(() => {
     if (visible && granted === null && isComponentMounted.current) {
+      if (isExpoGo) {
+        Alert.alert(
+          '開発ビルドが必要です',
+          'Expo Go ではメディアライブラリへのフルアクセスが利用できません。'
+        );
+        setGranted(false);
+        setIsLoading(false);
+        return;
+      }
+
       console.log('[EFFECT] Visible and permission not determined: Checking permissions.');
       setIsLoading(true); // 権限確認中もローディング表示
       (async () => {

@@ -27,8 +27,6 @@ function InnerLayout() {
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      const navigationBarColor = isDark ? '#121212' : '#f2f2f2';
-      NavigationBar.setBackgroundColorAsync(navigationBarColor);
       NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
     }
   }, [isDark]);
@@ -40,11 +38,7 @@ function InnerLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
-        <StatusBar
-          style={isDark ? 'light' : 'dark'}
-          backgroundColor="transparent"
-          translucent
-        />
+        <StatusBar style={isDark ? 'light' : 'dark'} translucent />
         <Toast />
       </NavThemeProvider>
     </GestureHandlerRootView>
