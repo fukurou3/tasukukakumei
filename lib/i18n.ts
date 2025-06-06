@@ -23,6 +23,10 @@ const getInitialLanguage = () => {
 i18n
   .use(initReactI18next)
   .init({
+    resources,
+    lng: getInitialLanguage(),
+    fallbackLng: 'en',
+    compatibilityJSON: 'v4',
     interpolation: {
       escapeValue: false,
     },

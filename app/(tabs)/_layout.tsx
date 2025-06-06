@@ -98,7 +98,6 @@ function InnerTabs() {
             'add/index',
             'add_edit/index',
             'add_edit/edit-draft',
-
             'task-detail/[id]',
             'drafts',
             'explore',
