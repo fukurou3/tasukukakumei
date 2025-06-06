@@ -70,6 +70,7 @@ export default function TasksScreen() {
         folderTabLayouts={folderTabLayouts}
         setFolderTabLayouts={setFolderTabLayouts}
         handleFolderTabPress={handleFolderTabPress}
+        selectedTabIndex={selectedTabIndex}
         pageScrollPosition={pageScrollPosition}
         folderTabsScrollViewRef={folderTabsScrollViewRef}
       />

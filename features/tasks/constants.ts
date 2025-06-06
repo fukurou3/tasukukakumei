@@ -10,3 +10,4 @@ export const ACCENT_LINE_HEIGHT = 2;
 // fraction of the screen width) before the tab text switches selection state.
 // 0.001 corresponds to 0.1% of the page width.
 export const TAB_SWITCH_THRESHOLD = 0.001;
+

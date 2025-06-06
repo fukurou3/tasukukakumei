@@ -17,6 +17,7 @@ type FolderTabsBarProps = {
   folderTabLayouts: Record<number, FolderTabLayout>;
   setFolderTabLayouts: (updater: (prev: Record<number, FolderTabLayout>) => Record<number, FolderTabLayout>) => void;
   handleFolderTabPress: (folderName: string, index: number) => void;
+  selectedTabIndex: number;
   pageScrollPosition: SharedValue<number>;
   folderTabsScrollViewRef: React.RefObject<ScrollView>;
 };
@@ -28,6 +29,7 @@ export const FolderTabsBar: React.FC<FolderTabsBarProps> = React.memo(({
   folderTabLayouts,
   setFolderTabLayouts,
   handleFolderTabPress,
+  selectedTabIndex,
   pageScrollPosition,
   folderTabsScrollViewRef,
 }) => {
@@ -162,7 +164,7 @@ export const FolderTabsBar: React.FC<FolderTabsBarProps> = React.memo(({
               index={index}
               onPress={memoizedOnItemPress}
               onTabLayout={memoizedOnTabLayout}
-              pageScrollPosition={pageScrollPosition}
+              selectedTabIndex={selectedTabIndex}
               selectedTextColor={selectedTextColor}
               unselectedTextColor={unselectedTextColor}
               selectedFontWeight={selectedFontWeight}

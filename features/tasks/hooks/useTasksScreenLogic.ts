@@ -11,7 +11,7 @@ import { useSharedValue, withTiming } from 'react-native-reanimated';
 import type { Task, FolderOrder, SelectableItem, DisplayTaskOriginal, DisplayableTaskItem } from '@/features/tasks/types';
 import { calculateNextDisplayInstanceDate, calculateActualDueDate } from '@/features/tasks/utils';
 import { useSelection } from '@/features/tasks/context';
-import { STORAGE_KEY, FOLDER_ORDER_KEY, SELECTION_BAR_HEIGHT, FOLDER_TABS_CONTAINER_PADDING_HORIZONTAL, TAB_MARGIN_RIGHT } from '@/features/tasks/constants';
+import { STORAGE_KEY, FOLDER_ORDER_KEY, SELECTION_BAR_HEIGHT, FOLDER_TABS_CONTAINER_PADDING_HORIZONTAL, TAB_MARGIN_RIGHT, TAB_SWITCH_THRESHOLD } from '@/features/tasks/constants';
 import i18n from '@/lib/i18n';
 
 const windowWidth = Dimensions.get('window').width;
@@ -53,6 +53,8 @@ export const useTasksScreenLogic = () => {
   
   // ★ ちらつきの原因となっていた currentContentPage を廃止し、新しい確定状態を導入
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+
+  const scrollStartIndexRef = useRef(0);
 
   const pageScrollPosition = useSharedValue(0);
 
@@ -405,7 +407,27 @@ export const useTasksScreenLogic = () => {
     const { position, offset } = event.nativeEvent;
     const value = position + offset;
     pageScrollPosition.value = value;
-  }, [pageScrollPosition]);
+
+    if (offset === 0) {
+      scrollStartIndexRef.current = position;
+      return;
+    }
+
+    const startIndex = scrollStartIndexRef.current;
+    const diff = value - startIndex;
+
+    if (diff > TAB_SWITCH_THRESHOLD) {
+      const target = Math.min(folderTabs.length - 1, startIndex + 1);
+      if (selectedTabIndex !== target) {
+        setSelectedTabIndex(target);
+      }
+    } else if (diff < -TAB_SWITCH_THRESHOLD) {
+      const target = Math.max(0, startIndex - 1);
+      if (selectedTabIndex !== target) {
+        setSelectedTabIndex(target);
+      }
+    }
+  }, [pageScrollPosition, selectedTabIndex, folderTabs]);
 
   // ★ ページ切り替え完了時の処理を修正
   const handlePageSelected = useCallback((event: PagerViewOnPageSelectedEvent) => {
