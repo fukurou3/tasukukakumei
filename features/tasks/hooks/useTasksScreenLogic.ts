@@ -53,8 +53,6 @@ export const useTasksScreenLogic = () => {
   
   // ★ ちらつきの原因となっていた currentContentPage を廃止し、新しい確定状態を導入
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
-  const selectedTabIndexShared = useSharedValue(0);
-  const startScrollIndexRef = useRef(0);
 
   const pageScrollPosition = useSharedValue(0);
 
@@ -142,7 +140,6 @@ export const useTasksScreenLogic = () => {
       // フォルダタブリストが変化したときのみページャーを同期させる
       pagerRef.current?.setPageWithoutAnimation(newIndex);
       pageScrollPosition.value = newIndex;
-      selectedTabIndexShared.value = newIndex;
     }
   }, [folderTabs]);
 
@@ -396,39 +393,20 @@ export const useTasksScreenLogic = () => {
   // ★ タブタップ時の処理を修正
   const handleFolderTabPress = useCallback((_folderName: string, index: number) => {
     if (selectedTabIndex !== index) {
-      // 現在のタブを開始位置として記録
-      startScrollIndexRef.current = selectedTabIndex;
-      // アニメーション開始時点では既存のタブを選択状態にしておく
-      selectedTabIndexShared.value = selectedTabIndex;
       // 更新する確定状態
       setSelectedTabIndex(index);
       // PagerView をプログラムで操作
       pagerRef.current?.setPage(index);
-      // 実際のスクロールイベントに任せて位置を更新する
+      // Accent line と同期させるため即座に値を更新しておく
+      pageScrollPosition.value = withTiming(index, { duration: 250 });
     }
-  }, [selectedTabIndex]);
+  }, [selectedTabIndex, pageScrollPosition]);
 
   const handlePageScroll = useCallback((event: PagerViewOnPageScrollEvent) => {
     const { position, offset } = event.nativeEvent;
     const value = position + offset;
-
-    // スクロール開始地点を記録
-    if (offset === 0) {
-      startScrollIndexRef.current = position;
-    }
-
-    // PagerViewのスクロールに追従してアニメーション値を更新
     pageScrollPosition.value = value;
-
-    const diff = value - startScrollIndexRef.current;
-    if (diff >= TAB_SWITCH_THRESHOLD) {
-      selectedTabIndexShared.value = startScrollIndexRef.current + 1;
-    } else if (diff <= -TAB_SWITCH_THRESHOLD) {
-      selectedTabIndexShared.value = startScrollIndexRef.current - 1;
-    } else {
-      selectedTabIndexShared.value = startScrollIndexRef.current;
-    }
-  }, [pageScrollPosition, selectedTabIndexShared]);
+  }, [pageScrollPosition]);
 
   // ★ ページ切り替え完了時の処理を修正
   const handlePageSelected = useCallback((event: PagerViewOnPageSelectedEvent) => {
@@ -439,10 +417,8 @@ export const useTasksScreenLogic = () => {
       setSelectedTabIndex(newPageIndex);
     }
 
-    // ページャーからの最終位置を共有値に反映し、差分をゼロにする
+    // ページャーからの最終位置を共有値に反映
     pageScrollPosition.value = newPageIndex;
-    selectedTabIndexShared.value = newPageIndex;
-    startScrollIndexRef.current = newPageIndex;
 
     // 現在のタブを中央にスクロール
     scrollFolderTabsToCenter(newPageIndex);
@@ -453,7 +429,7 @@ export const useTasksScreenLogic = () => {
       setSelectedFolderTabName(newSelectedFolder);
       selectionHook.clearSelection();
     }
-  }, [folderTabs, selectedTabIndex, selectionHook, scrollFolderTabsToCenter, pageScrollPosition, selectedTabIndexShared]);
+  }, [folderTabs, selectedTabIndex, selectionHook, scrollFolderTabsToCenter, pageScrollPosition]);
 
   const handleSelectAll = useCallback(() => {
     // ★ 依存を selectedTabIndex に変更
@@ -673,7 +649,6 @@ export const useTasksScreenLogic = () => {
     isReordering, draggingFolder, renameModalVisible, renameTarget,
     selectionAnim, folderTabLayouts, selectedTabIndex, // ★ currentContentPage の代わりに selectedTabIndex を返す
     pageScrollPosition,
-    selectedTabIndexShared,
     noFolderName, folderTabs,
     pagerRef, folderTabsScrollViewRef,
     isSelecting: selectionHook.isSelecting,
