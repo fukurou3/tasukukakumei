@@ -1,4 +1,4 @@
-package com.fukuroulu.tasukuKAKUMEI
+package com.fukuroulu.app
 
 import android.app.Application
 import android.content.res.Configuration
