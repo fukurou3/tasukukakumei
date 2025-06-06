@@ -1,7 +1,13 @@
 // app/features/tasks/components/AnimatedTabItem.tsx
 import React from 'react';
 import { TouchableOpacity, type LayoutChangeEvent } from 'react-native';
-import Reanimated, { useAnimatedStyle, useSharedValue, withTiming, interpolateColor } from 'react-native-reanimated';
+import Reanimated, {
+  useAnimatedStyle,
+  useDerivedValue,
+  interpolateColor,
+  type SharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { TAB_MARGIN_RIGHT } from '../constants';
 
 type AnimatedTabItemProps = {
@@ -9,7 +15,7 @@ type AnimatedTabItemProps = {
   index: number;
   onPress: (index: number, label: string) => void;
   onTabLayout: (index: number, event: LayoutChangeEvent) => void;
-  selectedTabIndex: number;
+  pageScrollPosition: SharedValue<number>;
   selectedTextColor: string;
   unselectedTextColor: string;
   selectedFontWeight: 'normal' | 'bold' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900' | undefined;
@@ -23,7 +29,7 @@ export const AnimatedTabItem: React.FC<AnimatedTabItemProps> = React.memo(({
   index,
   onPress,
   onTabLayout,
-  selectedTabIndex,
+  pageScrollPosition,
   selectedTextColor,
   unselectedTextColor,
   selectedFontWeight,
@@ -40,11 +46,11 @@ export const AnimatedTabItem: React.FC<AnimatedTabItemProps> = React.memo(({
     onTabLayout(index, event);
   };
 
-  const progress = useSharedValue(selectedTabIndex === index ? 1 : 0);
-
-  React.useEffect(() => {
-    progress.value = withTiming(selectedTabIndex === index ? 1 : 0, { duration: 100 });
-  }, [selectedTabIndex, index, progress]);
+  const progress = useDerivedValue(() => {
+    'worklet';
+    const diff = Math.abs(pageScrollPosition.value - index);
+    return withTiming(Math.max(0, 1 - Math.min(diff, 1)), { duration: 100 });
+  });
 
   const animatedTextStyle = useAnimatedStyle(() => {
     'worklet';
