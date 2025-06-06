@@ -154,7 +154,10 @@ export default function CalendarPage() {
        <View style={styles.appBar}>
          <Text style={styles.titleText}>{t('calendar.title')}</Text>
        </View>
-      <View style={styles.calendarContainer}>
+      <View style={[
+        styles.calendarContainer,
+        viewType === 'full' && styles.fullCalendarContainer,
+      ]}>
         <View style={styles.monthHeader}>
              <Text style={styles.monthText}>
                  {displayMonth.format(t('common.year_month_format'))}
