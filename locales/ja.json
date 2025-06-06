@@ -34,7 +34,14 @@
     "stop_action": "解除する",
     "view_task_details_tooltip": "タスク詳細を見る",
     "google_calendar_integration": "Googleカレンダー連携",
-    "calendar_background": "カレンダーの背景"
+    "calendar_background": "カレンダーの背景",
+    "connected": "連携済み",
+    "not_connected": "未連携",
+    "disconnect_confirm": "連携を解除しますか？",
+    "login_with_google": "Googleアカウントでログイン",
+    "logout": "ログアウト",
+    "connected_as": "{{name}}として連携中",
+    "google_sync_description": "Googleアカウントと連携することで、カレンダーの予定を双方向で同期できるようになります。"
   },
   "common": {
     "loading": "読み込み中...",

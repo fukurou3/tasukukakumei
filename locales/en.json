@@ -26,7 +26,14 @@
     "font_size_medium": "Normal",
     "font_size_large": "Large",
     "google_calendar_integration": "Google Calendar Integration",
-        "calendar_background": "Calendar Background"
+        "calendar_background": "Calendar Background",
+        "connected": "Connected",
+        "not_connected": "Not connected",
+        "disconnect_confirm": "Do you want to disconnect?",
+        "login_with_google": "Login with Google",
+        "logout": "Logout",
+        "connected_as": "Connected as {{name}}",
+        "google_sync_description": "By connecting your Google account, you can sync calendar events bidirectionally."
 
   },
   "common": {

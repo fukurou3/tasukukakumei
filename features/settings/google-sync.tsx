@@ -15,7 +15,7 @@ export default function GoogleSyncSettingsScreen() {
   const router = useRouter();
   const styles = createGoogleSyncStyles(isDark, subColor);
 
-  const { user, isSignedIn, signIn, isSigningIn } = useGoogleAuth();
+  const { user, isSignedIn, signIn, signOut, isSigningIn } = useGoogleAuth();
 
   return (
     <SafeAreaView style={styles.container}>
