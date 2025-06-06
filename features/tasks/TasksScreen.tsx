@@ -34,7 +34,7 @@ export default function TasksScreen() {
     loading, activeTab, sortMode, sortModalVisible,
     isReordering,
     selectionAnim,
-    folderTabLayouts, selectedTabIndex, // ★ currentContentPage の代わりに selectedTabIndex を使用
+    folderTabLayouts, selectedTabIndex, selectedTabIndexShared,
     pageScrollPosition,
     noFolderName, folderTabs,
     pagerRef, folderTabsScrollViewRef,
@@ -71,6 +71,7 @@ export default function TasksScreen() {
         setFolderTabLayouts={setFolderTabLayouts}
         handleFolderTabPress={handleFolderTabPress}
         pageScrollPosition={pageScrollPosition}
+        selectedTabIndexShared={selectedTabIndexShared}
         folderTabsScrollViewRef={folderTabsScrollViewRef}
       />
 
