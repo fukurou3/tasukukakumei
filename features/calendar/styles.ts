@@ -83,7 +83,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         backgroundColor: dynamicSubColor,
     },
     calendarContainer: {
-        marginHorizontal: 5,
+        marginHorizontal: 12,
         borderWidth: 0,
         borderRadius: 0,
         overflow: 'visible',
@@ -144,7 +144,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         elevation: 6,
     },
     fullCalendarContainer: {
-        marginHorizontal: 5,
+        marginHorizontal: 12,
         borderWidth: 0,
         borderRadius: 0,
         overflow: 'visible',
