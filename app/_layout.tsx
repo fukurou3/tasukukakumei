@@ -5,7 +5,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import '@/lib/i18n';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,6 +14,7 @@ import { ThemeProvider, useAppTheme } from '@/hooks/ThemeContext';
 import { FontSizeProvider } from '@/context/FontSizeContext';
 import { GoogleCalendarProvider } from '@/context/GoogleCalendarContext';
 import Toast from 'react-native-toast-message';
+import StartupAnimation from '@/components/StartupAnimation';
 
 import * as NavigationBar from 'expo-navigation-bar';
 import { Platform } from 'react-native';
@@ -49,6 +50,7 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const [animationDone, setAnimationDone] = useState(false);
 
   useEffect(() => {
     if (loaded) SplashScreen.hideAsync();
@@ -61,6 +63,9 @@ export default function RootLayout() {
       <FontSizeProvider>
         <GoogleCalendarProvider>
           <InnerLayout />
+          {!animationDone && (
+            <StartupAnimation onAnimationEnd={() => setAnimationDone(true)} />
+          )}
         </GoogleCalendarProvider>
       </FontSizeProvider>
     </ThemeProvider>
