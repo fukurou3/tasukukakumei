@@ -12,8 +12,9 @@ import type { Task } from '@/features/tasks/types';
 import type { EventLayout } from '../utils';
 
 const FONT_PATH = require('@/assets/fonts/NotoSansJP-Regular.ttf');
-// カレンダーコンテナの左右余白と枠線分を考慮したパディング
-const PADDING = 5;
+// カレンダー表示用のパディング量（大表示時は0）
+// パディングなしで全幅表示
+const PADDING = 0;
 const HEADER_HEIGHT = 30; // 曜日表示欄を少し細くする
 const TASK_BAR_HEIGHT = 5;
 const TASK_BAR_MARGIN = 3;
