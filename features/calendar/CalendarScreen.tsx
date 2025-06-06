@@ -10,11 +10,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  Gesture,
-  GestureDetector,
-  Directions,
-} from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Reanimated, {
   useSharedValue,
   useAnimatedStyle,
@@ -119,8 +115,6 @@ export default function CalendarPage() {
   const handleSwipe = useCallback(
     (direction: "next" | "prev") => {
       "worklet";
-      if (translateX.value !== 0) return;
-
       const offset = direction === "next" ? -width : width;
       translateX.value = withTiming(offset, { duration: 150 }, (isFinished) => {
         if (isFinished) {
@@ -145,13 +139,21 @@ export default function CalendarPage() {
     }
   }, [displayMonth]);
 
-  const flingRight = Gesture.Fling()
-    .direction(Directions.RIGHT)
-    .onEnd(() => handleSwipe("prev"));
-  const flingLeft = Gesture.Fling()
-    .direction(Directions.LEFT)
-    .onEnd(() => handleSwipe("next"));
-  const composedGesture = Gesture.Race(flingLeft, flingRight);
+  const panGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      "worklet";
+      translateX.value = e.translationX;
+    })
+    .onEnd((e) => {
+      "worklet";
+      if (e.translationX <= -width / 3) {
+        handleSwipe("next");
+      } else if (e.translationX >= width / 3) {
+        handleSwipe("prev");
+      } else {
+        translateX.value = withTiming(0, { duration: 150 });
+      }
+    });
 
   const renderTask = useCallback(
     ({ item }: { item: Task }) => (
@@ -210,7 +212,7 @@ export default function CalendarPage() {
           <Text style={styles.todayButtonText}>{t("common.today")}</Text>
         </Pressable>
       </View>
-      <GestureDetector gesture={composedGesture}>
+      <GestureDetector gesture={panGesture}>
         <Reanimated.View style={[styles.calendarWrapper, animatedStyle]}>
           <SkiaCalendar
             date={displayMonth}
