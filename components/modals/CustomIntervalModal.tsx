@@ -1,19 +1,16 @@
 // app/features/add/components/DeadlineSettingModal/CustomIntervalModal.tsx
 import React, { useState, useEffect, useMemo, useCallback, useContext } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet, KeyboardAvoidingView } from 'react-native';
-import Modal from 'react-native-modal';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet } from 'react-native';
+import { AppModal } from './AppModal';
 import { useTranslation } from 'react-i18next';
 import WheelPicker from 'react-native-wheely';
 
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { FontSizeContext, type FontSizeKey } from '@/context/FontSizeContext';
 import { fontSizes as appFontSizes } from '@/constants/fontSizes';
-import type { CustomIntervalUnit } from './types';
-import type { DeadlineModalStyles } from './types';
+import type { CustomIntervalUnit } from '@/features/add/components/DeadlineSettingModal/types';
+import type { DeadlineModalStyles } from '@/features/add/components/DeadlineSettingModal/types';
 
-const ANIMATION_TIMING = 250;
-const BACKDROP_OPACITY = 0.4;
 
 const WHEELY_ITEM_HEIGHT = Platform.OS === 'ios' ? 40 : 50;
 const BASE_PICKER_FONT_SIZE_INCREASE = 2;
@@ -80,28 +77,8 @@ export const CustomIntervalModal: React.FC<CustomIntervalModalProps> = ({
 
 
   return (
-    <Modal
-      isVisible={visible}
-      onBackdropPress={onClose}
-      onBackButtonPress={onClose}
-      style={styles.modal}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      animationInTiming={ANIMATION_TIMING}
-      animationOutTiming={ANIMATION_TIMING}
-      backdropTransitionInTiming={ANIMATION_TIMING}
-      backdropTransitionOutTiming={ANIMATION_TIMING}
-      useNativeDriver={true}
-      useNativeDriverForBackdrop={true}
-      backdropColor="#000000"
-      backdropOpacity={BACKDROP_OPACITY}
-      hideModalContentWhileAnimating
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ justifyContent: 'flex-end', flex:1 }}
-      >
-        <SafeAreaView edges={['bottom']} style={[styles.timePickerModalContainer, styles.customIntervalModalContainer]}>
+    <AppModal visible={visible} onClose={onClose} style={styles.modal}>
+      <View style={[styles.timePickerModalContainer, styles.customIntervalModalContainer]}>
           <View style={styles.headerContainer}>
             <Text style={styles.headerText}>{t('deadline_modal.set_custom_interval')}</Text>
           </View>
@@ -158,8 +135,7 @@ export const CustomIntervalModal: React.FC<CustomIntervalModalProps> = ({
               </Text>
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+    </AppModal>
   );
 };

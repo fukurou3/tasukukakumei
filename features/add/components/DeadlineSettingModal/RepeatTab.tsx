@@ -20,7 +20,7 @@ import type {
 } from './types';
 import { DatePickerModal } from './DatePickerModal';
 // import { TimePickerModal } from './TimePickerModal'; // 廃止のためコメントアウト
-import { CustomIntervalModal } from './CustomIntervalModal';
+import { CustomIntervalModal } from '@/components/modals/CustomIntervalModal';
 
 
 const todayString = CalendarUtils.getCalendarDateString(new Date());

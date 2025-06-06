@@ -1,12 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { AppModal } from '@/components/modals/AppModal';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { FontSizeContext } from '@/context/FontSizeContext';
@@ -55,11 +49,10 @@ export function FolderSelectorModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <AppModal visible={visible} onClose={onClose}>
       <View
         style={{
           flex: 1,
-          backgroundColor: 'rgba(0,0,0,0.5)',
           justifyContent: 'center',
           alignItems: 'center',
           padding: 20,
@@ -263,6 +256,6 @@ export function FolderSelectorModal({
           </View>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 }
