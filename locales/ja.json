@@ -8,7 +8,10 @@
     "edit": "編集",
     "share": "共有",
     "delete_confirm_title": "削除確認",
-    "delete_confirm": "このタスクを削除しますか？"
+    "delete_confirm": "このタスクを削除しますか？",
+    "mark_as_done": "完了にする",
+    "mark_as_not_done": "未完了にする",
+    "delete": "削除"
   },
   "settings": {
     "title": "設定",
@@ -51,6 +54,7 @@
     "loading": "読み込み中...",
     "cancel": "キャンセル",
     "delete": "削除",
+    "detail": "詳細",
     "save": "保存",
     "ok": "OK",
     "enabled": "有効",
