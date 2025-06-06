@@ -1,5 +1,5 @@
 // app/features/add/components/DeadlineSettingModal/DatePickerModal.tsx
-import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react';
+import React, { useState, useLayoutEffect, useContext, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Platform, TextStyle, useWindowDimensions, ViewStyle, ColorValue } from 'react-native';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -117,7 +117,7 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = React.memo(({
   const monthData = useMemo(() => createMonthData(t), [t]);
   const dayData = useMemo(() => createDayData(selectedYear, selectedMonth), [selectedYear, selectedMonth]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (visible) {
       const currentDate = new Date();
       let yearToSet: number, monthToSet: number, dayToSet: number;
@@ -265,7 +265,6 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = React.memo(({
       onBackdropPress={onClose}
       onBackButtonPress={onClose}
       style={[stylesFromTs.modal, { justifyContent: 'flex-end' }]}
-      hideModalContentWhileAnimating
     >
       <SafeAreaView
         edges={['bottom']}

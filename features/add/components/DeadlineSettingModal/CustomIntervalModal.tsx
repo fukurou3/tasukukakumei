@@ -1,5 +1,5 @@
 // app/features/add/components/DeadlineSettingModal/CustomIntervalModal.tsx
-import React, { useState, useEffect, useMemo, useCallback, useContext } from 'react';
+import React, { useState, useLayoutEffect, useMemo, useCallback, useContext } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Platform, StyleSheet, KeyboardAvoidingView } from 'react-native';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -53,7 +53,7 @@ export const CustomIntervalModal: React.FC<CustomIntervalModalProps> = ({
   const [inputValue, setInputValue] = useState<string>(initialValue?.toString() ?? '1');
   const [selectedUnit, setSelectedUnit] = useState<CustomIntervalUnit>(initialUnit ?? 'days');
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (visible) {
       setInputValue(initialValue?.toString() ?? '1');
       setSelectedUnit(initialUnit ?? 'days');

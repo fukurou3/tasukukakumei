@@ -1,5 +1,5 @@
 // app/features/add/components/DeadlineSettingModal/DurationPickerModal.tsx
-import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react';
+import React, { useState, useLayoutEffect, useContext, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Platform, TextStyle, useWindowDimensions, ViewStyle, StyleSheet, ColorValue } from 'react-native';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -195,7 +195,7 @@ const DurationPickerModalComponent: React.FC<DurationPickerModalProps> = ({
   const [selectedAmount, setSelectedAmount] = useState<number>(initialDuration?.amount || getDefaultAmount(initialDuration?.unit || getDefaultUnit()));
 
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (visible) {
       const unitToSet = initialDuration?.unit || getDefaultUnit();
       const unitConfig = durationUnitData.find(u => u.value === unitToSet);

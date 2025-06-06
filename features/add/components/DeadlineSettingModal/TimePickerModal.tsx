@@ -1,5 +1,5 @@
 // app/features/add/components/DeadlineSettingModal/TimePickerModal.tsx
-import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react';
+import React, { useState, useLayoutEffect, useContext, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Platform, TextStyle, useWindowDimensions, ViewStyle, ColorValue } from 'react-native';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -108,7 +108,7 @@ const TimePickerModalMemo: React.FC<TimePickerModalProps> = ({
   const [selectedHour, setSelectedHour] = useState<number>(defaultDisplayTime.hour12);
   const [selectedMinute, setSelectedMinute] = useState<number>(defaultDisplayTime.minute);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (visible) {
       const displayTime = to12HourFormat(initialTime?.hour ?? 0, initialTime?.minute ?? 0); // MODIFIED: Default hour from 9 to 0
       setSelectedAmPm(displayTime.ampm);
@@ -233,7 +233,6 @@ const TimePickerModalMemo: React.FC<TimePickerModalProps> = ({
       onBackdropPress={onClose}
       onBackButtonPress={onClose}
       style={[stylesFromTs.modal, { justifyContent: 'flex-end' }]}
-      hideModalContentWhileAnimating
     >
       <SafeAreaView
         edges={['bottom']}

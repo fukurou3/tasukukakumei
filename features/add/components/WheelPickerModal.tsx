@@ -1,5 +1,5 @@
 // app/features/add/components/WheelPickerModal.tsx
-import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react';
+import React, { useState, useLayoutEffect, useContext, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Platform, TextStyle, useWindowDimensions, ViewStyle, StyleSheet, ColorValue } from 'react-native';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -200,7 +200,7 @@ const WheelPickerModalComponent: React.FC<WheelPickerModalProps> = ({
   const [selectedAmount, setSelectedAmount] = useState<number>(propInitialAmount ?? defaultAmount);
   const [selectedUnit, setSelectedUnit] = useState<NotificationUnit>(propInitialUnit ?? defaultUnit);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (visible) {
       // モーダル表示時に常に初期値をセットする（通知なし状態から再度開いた場合も考慮）
       setSelectedAmount(propInitialAmount ?? defaultAmount);
@@ -272,7 +272,6 @@ const WheelPickerModalComponent: React.FC<WheelPickerModalProps> = ({
       backdropOpacity={BACKDROP_OPACITY}
       animationInTiming={ANIMATION_TIMING}
       animationOutTiming={ANIMATION_TIMING}
-      hideModalContentWhileAnimating
       useNativeDriver={Platform.OS === 'android'}
       useNativeDriverForBackdrop
       onBackdropPress={() => {

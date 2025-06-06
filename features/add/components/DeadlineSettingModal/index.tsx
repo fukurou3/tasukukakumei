@@ -1,5 +1,5 @@
 // app/features/add/components/DeadlineSettingModal/index.tsx
-import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
+import React, { useState, useLayoutEffect, useCallback, useContext, useMemo } from 'react';
 import { View, TouchableOpacity, Text, useWindowDimensions, Platform, InteractionManager } from 'react-native';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -71,7 +71,7 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
   const [validationErrorMessage, setValidationErrorMessage] = useState('');
 
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (visible) {
       const defaults = getDefaultInitialSettings();
       let effectiveInitialSettings = { ...defaults };
