@@ -13,7 +13,7 @@ import type { EventLayout } from '../utils';
 
 const FONT_PATH = require('@/assets/fonts/NotoSansJP-Regular.ttf');
 const PADDING = 0; // 横幅いっぱいに表示するために余白を0に
-const HEADER_HEIGHT = 40;
+const HEADER_HEIGHT = 30; // 曜日表示欄を少し細くする
 const TASK_BAR_HEIGHT = 5;
 const TASK_BAR_MARGIN = 3;
 const EVENT_BAR_HEIGHT = 20;
@@ -56,6 +56,7 @@ export default function SkiaCalendar({
   const { width } = useWindowDimensions();
   const calendarWidth = width - PADDING * 2;
   const cellWidth = calendarWidth / 7;
+  const cellHeight = showTaskTitles ? cellWidth * 1.5 : cellWidth; // 大表示時は縦長に
 
   const font = useFont(FONT_PATH, 14);
   const eventFont = useFont(FONT_PATH, 10);
@@ -68,19 +69,22 @@ export default function SkiaCalendar({
   const startDayOfWeek = firstDayOfMonth.day();
   const weekdays = [0, 1, 2, 3, 4, 5, 6].map(day => t(`calendar.weekdays.${day}`));
   const numRows = Math.ceil((startDayOfWeek + daysInMonth) / 7);
-  const calendarHeight = HEADER_HEIGHT + cellWidth * numRows;
+  const calendarHeight = HEADER_HEIGHT + cellHeight * numRows;
 
   let gridPath = '';
-  for (let i = 1; i < 7; i++) {
-    gridPath += `M ${cellWidth * i} ${HEADER_HEIGHT} L ${cellWidth * i} ${calendarHeight} `;
+  for (let i = 0; i <= 7; i++) {
+    const x = cellWidth * i;
+    gridPath += `M ${x} 0 L ${x} ${calendarHeight} `;
   }
   for (let i = 0; i <= numRows; i++) {
-    gridPath += `M 0 ${HEADER_HEIGHT + cellWidth * i} L ${calendarWidth} ${HEADER_HEIGHT + cellWidth * i} `;
+    const y = HEADER_HEIGHT + cellHeight * i;
+    gridPath += `M 0 ${y} L ${calendarWidth} ${y} `;
   }
+  gridPath += `M 0 0 L ${calendarWidth} 0 `;
   
   const processTap = (tapX: number, tapY: number) => {
     const col = Math.floor(tapX / cellWidth);
-    const row = Math.floor((tapY - HEADER_HEIGHT) / cellWidth);
+    const row = Math.floor((tapY - HEADER_HEIGHT) / cellHeight);
 
     if (row < 0 || row >= numRows) return;
 
@@ -150,7 +154,7 @@ export default function SkiaCalendar({
               const x = (startDayOfWeek + i) % 7;
               const y = Math.floor((startDayOfWeek + i) / 7);
               const cellX = x * cellWidth;
-              const cellY = HEADER_HEIGHT + y * cellWidth;
+              const cellY = HEADER_HEIGHT + y * cellHeight;
 
               let dayColor = theme.day;
               const isJpHoliday = i18n.language.startsWith('ja') && isHoliday(date.toDate());
@@ -170,7 +174,7 @@ export default function SkiaCalendar({
                       x={cellX + 1}
                       y={cellY + 1}
                       width={cellWidth - 2}
-                      height={cellWidth - 2}
+                      height={cellHeight - 2}
                       r={6}
                       color={theme.primary}
                       opacity={0.25}
@@ -229,7 +233,7 @@ export default function SkiaCalendar({
 
                   {tasksOnDay.slice(0, showTaskTitles ? 2 : 3).map((task, taskIndex) => {
                     const barHeight = showTaskTitles ? TASK_TITLE_BOX_HEIGHT : TASK_BAR_HEIGHT;
-                    const barY = cellY + cellWidth - (taskIndex + 1) * (barHeight + TASK_BAR_MARGIN);
+                    const barY = cellY + cellHeight - (taskIndex + 1) * (barHeight + TASK_BAR_MARGIN);
                     return (
                       <Group key={task.id}>
                         <RoundedRect

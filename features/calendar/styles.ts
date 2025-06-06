@@ -55,8 +55,8 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 12, // 左右の余白を調整
-        paddingVertical: 10,
-        backgroundColor: isDark ? '#000000' : '#f2f2f4',
+        paddingVertical: 8,
+        backgroundColor: isDark ? '#000000' : '#FFFFFF',
     },
     monthText: {
         fontSize: 22,
@@ -64,15 +64,15 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         color: textColor,
     },
     todayButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
         borderRadius: 8,
         backgroundColor: dynamicSubColor,
     },
     toggleButton: {
         marginLeft: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
         borderRadius: 8,
         backgroundColor: dynamicSubColor,
     },
