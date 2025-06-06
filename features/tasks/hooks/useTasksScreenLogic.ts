@@ -133,15 +133,14 @@ export const useTasksScreenLogic = () => {
   useEffect(() => {
     const targetIndex = folderTabs.findIndex(ft => ft.name === selectedFolderTabName);
     const newIndex = targetIndex !== -1 ? targetIndex : 0;
-    
+
     if (selectedTabIndex !== newIndex) {
-        setSelectedTabIndex(newIndex);
-        // アニメーションなしで即座にページを切り替え
-        pagerRef.current?.setPageWithoutAnimation(newIndex);
-        // アニメーション用の共有値も即座に更新
-        pageScrollPosition.value = newIndex;
+      setSelectedTabIndex(newIndex);
+      // フォルダタブリストが変化したときのみページャーを同期させる
+      pagerRef.current?.setPageWithoutAnimation(newIndex);
+      pageScrollPosition.value = newIndex;
     }
-  }, [folderTabs, selectedFolderTabName]);
+  }, [folderTabs]);
 
 
   const scrollFolderTabsToCenter = useCallback((pageIndex: number) => {
