@@ -9,6 +9,7 @@ export type CalendarScreenStyles = {
   monthText: TextStyle;
   todayButton: ViewStyle;
   todayButtonText: TextStyle;
+  toggleButton: ViewStyle;
   calendarWrapper: ViewStyle;
   list: ViewStyle;
   listContent: ViewStyle;
@@ -55,7 +56,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         alignItems: 'center',
         paddingHorizontal: 12, // 左右の余白を調整
         paddingVertical: 10,
-        backgroundColor: isDark ? '#000000' : '#f2f2f4',
+        backgroundColor: isDark ? '#000000' : '#FFFFFF',
     },
     monthText: {
         fontSize: 22,
@@ -64,6 +65,13 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
     },
     todayButton: {
         paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+        backgroundColor: dynamicSubColor,
+    },
+    toggleButton: {
+        marginLeft: 8,
+        paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 8,
         backgroundColor: dynamicSubColor,

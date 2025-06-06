@@ -13,11 +13,13 @@ import type { EventLayout } from '../utils';
 
 const FONT_PATH = require('@/assets/fonts/NotoSansJP-Regular.ttf');
 const PADDING = 0; // 横幅いっぱいに表示するために余白を0に
-const HEADER_HEIGHT = 40;
+const HEADER_HEIGHT = 30; // 曜日欄を少し薄くする
 const TASK_BAR_HEIGHT = 5;
 const TASK_BAR_MARGIN = 3;
 const EVENT_BAR_HEIGHT = 20;
 const EVENT_BAR_Y_OFFSET = 24;
+const TASK_TITLE_BOX_HEIGHT = 14;
+const CELL_HEIGHT_RATIO_FULL = 1.6;
 
 interface SkiaCalendarProps {
   date: dayjs.Dayjs;
@@ -27,6 +29,7 @@ interface SkiaCalendarProps {
   onDayPress: (date: string) => void;
   groupedTasks: Record<string, Task[]>;
   eventLayout: EventLayout;
+  showTaskTitles?: boolean;
   theme: {
     primary: string;
     weekday: string;
@@ -47,12 +50,14 @@ export default function SkiaCalendar({
   onDayPress,
   groupedTasks,
   eventLayout,
+  showTaskTitles = false,
   theme,
 }: SkiaCalendarProps) {
   const { t, i18n } = useTranslation();
   const { width } = useWindowDimensions();
   const calendarWidth = width - PADDING * 2;
   const cellWidth = calendarWidth / 7;
+  const cellHeight = showTaskTitles ? cellWidth * CELL_HEIGHT_RATIO_FULL : cellWidth;
 
   const font = useFont(FONT_PATH, 14);
   const eventFont = useFont(FONT_PATH, 10);
@@ -65,19 +70,20 @@ export default function SkiaCalendar({
   const startDayOfWeek = firstDayOfMonth.day();
   const weekdays = [0, 1, 2, 3, 4, 5, 6].map(day => t(`calendar.weekdays.${day}`));
   const numRows = Math.ceil((startDayOfWeek + daysInMonth) / 7);
-  const calendarHeight = HEADER_HEIGHT + cellWidth * numRows;
+  const calendarHeight = HEADER_HEIGHT + cellHeight * numRows;
 
   let gridPath = '';
+  gridPath += `M 0 0 L ${calendarWidth} 0 M 0 0 L 0 ${calendarHeight} M ${calendarWidth} 0 L ${calendarWidth} ${calendarHeight} `;
   for (let i = 1; i < 7; i++) {
-    gridPath += `M ${cellWidth * i} ${HEADER_HEIGHT} L ${cellWidth * i} ${calendarHeight} `;
+    gridPath += `M ${cellWidth * i} 0 L ${cellWidth * i} ${calendarHeight} `;
   }
   for (let i = 0; i <= numRows; i++) {
-    gridPath += `M 0 ${HEADER_HEIGHT + cellWidth * i} L ${calendarWidth} ${HEADER_HEIGHT + cellWidth * i} `;
+    gridPath += `M 0 ${HEADER_HEIGHT + cellHeight * i} L ${calendarWidth} ${HEADER_HEIGHT + cellHeight * i} `;
   }
   
   const processTap = (tapX: number, tapY: number) => {
     const col = Math.floor(tapX / cellWidth);
-    const row = Math.floor((tapY - HEADER_HEIGHT) / cellWidth);
+    const row = Math.floor((tapY - HEADER_HEIGHT) / cellHeight);
 
     if (row < 0 || row >= numRows) return;
 
@@ -147,7 +153,7 @@ export default function SkiaCalendar({
               const x = (startDayOfWeek + i) % 7;
               const y = Math.floor((startDayOfWeek + i) / 7);
               const cellX = x * cellWidth;
-              const cellY = HEADER_HEIGHT + y * cellWidth;
+                const cellY = HEADER_HEIGHT + y * cellHeight;
 
               let dayColor = theme.day;
               const isJpHoliday = i18n.language.startsWith('ja') && isHoliday(date.toDate());
@@ -167,7 +173,7 @@ export default function SkiaCalendar({
                       x={cellX + 1}
                       y={cellY + 1}
                       width={cellWidth - 2}
-                      height={cellWidth - 2}
+                      height={cellHeight - 2}
                       r={6}
                       color={theme.primary}
                       opacity={0.25}
@@ -204,12 +210,12 @@ export default function SkiaCalendar({
                         {bar}
                         {(type === 'start' || type === 'single') && (
                           <Text
-                            x={cellX + 6}
-                            y={barY + eventFont.getSize() + 2}
+                            x={cellX + 5}
+                            y={barY + eventFont.getSize() + 1}
                             font={eventFont}
                             text={event.title}
                             color={theme.eventText}
-                            clip={{ x: cellX + 4, y: barY, width: cellWidth - 8, height: EVENT_BAR_HEIGHT }}
+                            clip={{ x: cellX + 5, y: barY, width: cellWidth - 10, height: EVENT_BAR_HEIGHT }}
                           />
                         )}
                       </Group>
@@ -224,16 +230,32 @@ export default function SkiaCalendar({
                     color={dayColor}
                   />
 
-                  {tasksOnDay.slice(0, 3).map((task, taskIndex) => (
-                    <Rect
-                      key={task.id}
-                      x={cellX + 4}
-                      y={cellY + cellWidth - (taskIndex + 1) * (TASK_BAR_HEIGHT + TASK_BAR_MARGIN)}
-                      width={cellWidth - 8}
-                      height={TASK_BAR_HEIGHT}
-                      color={theme.primary}
-                    />
-                  ))}
+                  {tasksOnDay.slice(0, showTaskTitles ? 2 : 3).map((task, taskIndex) => {
+                    const barHeight = showTaskTitles ? TASK_TITLE_BOX_HEIGHT : TASK_BAR_HEIGHT;
+                      const barY = cellY + cellHeight - (taskIndex + 1) * (barHeight + TASK_BAR_MARGIN);
+                    return (
+                      <Group key={task.id}>
+                        <RoundedRect
+                          x={cellX + 4}
+                          y={barY}
+                          width={cellWidth - 8}
+                          height={barHeight}
+                          r={2}
+                          color={theme.primary}
+                        />
+                        {showTaskTitles && (
+                          <Text
+                            x={cellX + 5}
+                            y={barY + eventFont.getSize() + 1}
+                            font={eventFont}
+                            text={task.title}
+                            color={theme.eventText}
+                            clip={{ x: cellX + 5, y: barY, width: cellWidth - 10, height: barHeight }}
+                          />
+                        )}
+                      </Group>
+                    );
+                  })}
                 </Group>
               );
             })}
