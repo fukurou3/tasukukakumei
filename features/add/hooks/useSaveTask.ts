@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { Task, Draft } from '../types';
 import { STORAGE_KEY, DRAFTS_KEY } from '../constants';
+import { useTasksContext } from '@/context/TasksContext';
 import type { DeadlineSettings, DeadlineTime } from '../components/DeadlineSettingModal/types';
 
 dayjs.extend(utc);
@@ -86,6 +87,7 @@ export const useSaveTask = ({
   deadlineDetails,
 }: SaveTaskParams) => {
   const router = useRouter();
+  const { refresh } = useTasksContext();
 
   const saveTask = useCallback(async () => {
     if (!title.trim()) {
@@ -126,6 +128,7 @@ export const useSaveTask = ({
         STORAGE_KEY,
         JSON.stringify([...tasks, newTask])
       );
+      await refresh();
       Toast.show({ type: 'success', text1: t('add_task.task_added_successfully', 'タスクを追加しました') });
       clearForm();
       router.replace('/(tabs)/tasks');
@@ -145,6 +148,7 @@ export const useSaveTask = ({
     router,
     t,
     deadlineDetails,
+    refresh,
   ]);
 
   const saveDraft = useCallback(async () => {

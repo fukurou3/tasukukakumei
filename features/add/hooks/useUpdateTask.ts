@@ -8,6 +8,7 @@ import utc from 'dayjs/plugin/utc';
 import type { Task } from '../types';
 import { STORAGE_KEY } from '../constants';
 import type { DeadlineSettings, DeadlineTime } from '../components/DeadlineSettingModal/types';
+import { useTasksContext } from '@/context/TasksContext';
 
 dayjs.extend(utc);
 
@@ -66,6 +67,7 @@ export const useUpdateTask = ({
   deadlineDetails,
 }: UpdateTaskParams) => {
   const router = useRouter();
+  const { refresh } = useTasksContext();
 
   const updateTask = useCallback(async () => {
     if (!title.trim()) {
@@ -98,13 +100,14 @@ export const useUpdateTask = ({
         deadlineDetails: finalDeadlineDetails,
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      await refresh();
       Toast.show({ type: 'success', text1: t('edit_task.save_success') });
       router.replace('/(tabs)/tasks');
     } catch (error) {
       console.error('Failed to update task:', error);
       Toast.show({ type: 'error', text1: t('add_task.error_saving_task', '保存に失敗しました') });
     }
-  }, [id, title, memo, imageUris, notifyEnabled, customUnit, customAmount, folder, t, deadlineDetails, router]);
+  }, [id, title, memo, imageUris, notifyEnabled, customUnit, customAmount, folder, t, deadlineDetails, router, refresh]);
 
   return { updateTask };
 };

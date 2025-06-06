@@ -12,6 +12,7 @@ import type { Task, FolderOrder, SelectableItem, DisplayTaskOriginal, Displayabl
 import { calculateNextDisplayInstanceDate, calculateActualDueDate } from '@/features/tasks/utils';
 import { useSelection } from '@/features/tasks/context';
 import { STORAGE_KEY, FOLDER_ORDER_KEY, SELECTION_BAR_HEIGHT, FOLDER_TABS_CONTAINER_PADDING_HORIZONTAL, TAB_MARGIN_RIGHT } from '@/features/tasks/constants';
+import { useTasksContext } from '@/context/TasksContext';
 import i18n from '@/lib/i18n';
 
 const windowWidth = Dimensions.get('window').width;
@@ -32,7 +33,7 @@ export const useTasksScreenLogic = () => {
   const { t } = useTranslation();
   const selectionHook = useSelection();
 
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { tasks, setTasks, loading: tasksLoading, refresh } = useTasksContext();
   const [folderOrder, setFolderOrder] = useState<FolderOrder>([]);
   const [loading, setLoading] = useState(true);
   const [isDataInitialized, setIsDataInitialized] = useState(false);
@@ -107,15 +108,10 @@ export const useTasksScreenLogic = () => {
           setLoading(true);
         }
         try {
-          const [rawTasksData, rawOrderData] = await Promise.all([
-            AsyncStorage.getItem(STORAGE_KEY),
-            AsyncStorage.getItem(FOLDER_ORDER_KEY),
-          ]);
-          setTasks(rawTasksData ? JSON.parse(rawTasksData) : []);
+          const rawOrderData = await AsyncStorage.getItem(FOLDER_ORDER_KEY);
           setFolderOrder(rawOrderData ? JSON.parse(rawOrderData) : []);
         } catch (e) {
-          console.error('Failed to load data from storage on focus:', e);
-          setTasks([]);
+          console.error('Failed to load folder order:', e);
           setFolderOrder([]);
         } finally {
           if (!isDataInitialized) {
@@ -627,9 +623,7 @@ export const useTasksScreenLogic = () => {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      const rawTasksData = await AsyncStorage.getItem(STORAGE_KEY);
-      setTasks(rawTasksData ? JSON.parse(rawTasksData) : []);
-
+      await refresh();
       const rawOrderData = await AsyncStorage.getItem(FOLDER_ORDER_KEY);
       setFolderOrder(rawOrderData ? JSON.parse(rawOrderData) : []);
     } catch (e) {
@@ -637,10 +631,12 @@ export const useTasksScreenLogic = () => {
     } finally {
       setIsRefreshing(false);
     }
-  }, []);
+  }, [refresh]);
+
+  const combinedLoading = loading || tasksLoading;
 
   return {
-    tasks, folderOrder, loading, activeTab, selectedFolderTabName, sortMode, sortModalVisible,
+    tasks, folderOrder, loading: combinedLoading, activeTab, selectedFolderTabName, sortMode, sortModalVisible,
     isReordering, draggingFolder, renameModalVisible, renameTarget,
     selectionAnim, folderTabLayouts, selectedTabIndex, // ★ currentContentPage の代わりに selectedTabIndex を返す
     pageScrollPosition,

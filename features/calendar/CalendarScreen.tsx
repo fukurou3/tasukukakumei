@@ -44,7 +44,7 @@ import {
 } from "@/features/calendar/utils";
 import type { EventLayout } from "@/features/calendar/utils";
 import type { Task } from "@/features/tasks/types";
-import { STORAGE_KEY as TASKS_KEY } from "@/features/tasks/constants";
+import { useTasksContext } from "@/context/TasksContext";
 import { TaskItem } from "@/features/tasks/components/TaskItem";
 import { createCalendarStyles } from "@/features/calendar/styles";
 import { Ionicons } from "@expo/vector-icons";
@@ -66,7 +66,7 @@ export default function CalendarPage() {
   const [backgroundImage, setBackgroundImage] = useState<number | null>(null);
   const opacity = useSharedValue(1);
 
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { tasks } = useTasksContext();
   const [selectedDate, setSelectedDate] = useState<string>(
     dayjs().format("YYYY-MM-DD"),
   );
@@ -90,12 +90,7 @@ export default function CalendarPage() {
 
         setBackgroundImage(selectedImage ? selectedImage.source : null);
 
-        try {
-          const rawTasks = await AsyncStorage.getItem(TASKS_KEY);
-          setTasks(rawTasks ? JSON.parse(rawTasks) : []);
-        } catch {
-          setTasks([]);
-        }
+        // tasks are loaded via context
       };
       loadData();
     }, []),
