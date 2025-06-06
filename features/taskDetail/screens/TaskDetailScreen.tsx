@@ -152,8 +152,8 @@ const createStyles = (isDark: boolean, subColor: string) =>
       router.back();
       return true;
     };
-    BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => BackHandler.removeEventListener('hardwareBackPress', backAction);
+    const sub = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => sub.remove();
   }, [router]);
 
   useEffect(() => {
