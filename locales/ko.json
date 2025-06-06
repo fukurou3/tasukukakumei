@@ -3,6 +3,10 @@
     "title": "작업 상세",
     "memo": "메모",
     "photo": "사진",
+    "deadline": "마감일",
+    "complete": "완료",
+    "edit": "편집",
+    "share": "공유",
     "delete_confirm_title": "삭제 확인",
     "delete_confirm": "이 작업을 삭제하시겠습니까?"
   },

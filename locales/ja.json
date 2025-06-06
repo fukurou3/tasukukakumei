@@ -3,6 +3,10 @@
     "title": "タスク詳細",
     "memo": "メモ",
     "photo": "写真",
+    "deadline": "締切",
+    "complete": "完了",
+    "edit": "編集",
+    "share": "共有",
     "delete_confirm_title": "削除確認",
     "delete_confirm": "このタスクを削除しますか？"
   },
