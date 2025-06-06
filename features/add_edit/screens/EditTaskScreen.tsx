@@ -1,310 +1,124 @@
-// app/(tabs)/edit-task.tsx
-
-import React, { useEffect, useState, useCallback, useRef, useContext } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  Platform,
-  StyleSheet,
-  NativeSyntheticEvent,
-  TextInputContentSizeChangeEventData,
-  ViewStyle,
-  TextStyle,
-  ImageStyle,
-} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Pressable, Image, Modal, Alert, StyleSheet, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
-import Toast from 'react-native-toast-message';
 import { useUnsavedStore } from '@/hooks/useUnsavedStore';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { FontSizeContext, FontSizeKey } from '@/context/FontSizeContext';
+import { FontSizeContext } from '@/context/FontSizeContext';
 import { fontSizes } from '@/constants/fontSizes';
 
-const LIGHT_INPUT_BG = '#e0e0e0';
-const DARK_INPUT_BG = '#2e2d2d';
-const LIGHT_PLACEHOLDER = '#777';
-const DARK_PLACEHOLDER = '#adaaaa';
-const LIGHT_REMOVE_BG = '#fff';
-const DARK_REMOVE_BG = '#0d0d0d';
+import type { Task } from '@/features/add/types';
+import { createStyles } from '@/features/add/styles';
+import { useFolders } from '@/features/add/hooks/useFolders';
+import { useUpdateTask } from '@/features/add/hooks/useUpdateTask';
+import { TitleField } from '@/features/add/components/TitleField';
+import { MemoField } from '@/features/add/components/MemoField';
+import { PhotoPicker } from '@/features/add/components/PhotoPicker';
+import { FolderSelectorModal } from '@/features/add/components/FolderSelectorModal';
+import { WheelPickerModal } from '@/features/add/components/WheelPickerModal';
+import { DeadlineSettingModal } from '@/features/add/components/DeadlineSettingModal';
+import type { DeadlineSettings, DeadlineTime, RepeatFrequency } from '@/features/add/components/DeadlineSettingModal/types';
 
-const STORAGE_KEY = 'TASKS';
-
-type EditTaskStyles = {
-  container: ViewStyle;
-  appBar: ViewStyle;
-  appBarTitle: TextStyle;
-  label: TextStyle;
-  input: TextStyle;
-  pickerButton: ViewStyle;
-  pickerButtonWithPreview: ViewStyle;
-  addMoreButton: ViewStyle;
-  addMoreButtonText: TextStyle;
-  fieldWrapper: ViewStyle;
-  datetimeRow: ViewStyle;
-  datetimeText: TextStyle;
-  dateWrapper: ViewStyle;
-  timeWrapper: ViewStyle;
-  notifyContainer: ViewStyle;
-  notifyHeader: ViewStyle;
-  notifyLabel: TextStyle;
-  toggleContainer: ViewStyle;
-  toggleCircle: ViewStyle;
-  slotPickerRow: ViewStyle;
-  slotPickerWrapper: ViewStyle;
-  slotPicker: TextStyle;
-  previewWrapper: ViewStyle;
-  previewImage: ImageStyle;
-  removeIcon: ViewStyle;
-  buttonRow: ViewStyle;
-  backButton: ViewStyle;
-  saveButton: ViewStyle;
-  saveButtonText: TextStyle;
-};
-
-const createStyles = (
-  isDark: boolean,
-  subColor: string,
-  fsKey: FontSizeKey
-) =>
-  StyleSheet.create<EditTaskStyles>({
-    container: {
-      flex: 1,
-      backgroundColor: isDark ? '#121212' : '#ffffff',
-    },
-    appBar: {
-      height: 56,
-      paddingHorizontal: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: isDark ? '#121212' : '#ffffff',
-    },
-    appBarTitle: {
-      fontSize: fontSizes[fsKey] + 4,
-      fontWeight: 'bold',
-      color: isDark ? '#fff' : '#000',
-    },
-    label: {
-      fontSize: fontSizes[fsKey],
-      marginBottom: 3,
-      fontWeight: '600',
-    },
-    input: {
-      backgroundColor: isDark ? DARK_INPUT_BG : LIGHT_INPUT_BG,
-      color: isDark ? '#fff' : '#000',
-      padding: 13,
-      borderRadius: 8,
-      marginBottom: 16,
-      fontSize: fontSizes[fsKey],
-    },
-    pickerButton: {
-      backgroundColor: isDark ? DARK_INPUT_BG : LIGHT_INPUT_BG,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 22,
-      alignItems: 'center',
-    },
-    pickerButtonWithPreview: {
-      backgroundColor: isDark ? DARK_INPUT_BG : LIGHT_INPUT_BG,
-      borderRadius: 10,
-      padding: 8,
-      marginBottom: 10,
-    },
-    addMoreButton: {
-      alignSelf: 'flex-end',
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-      borderRadius: 6,
-      backgroundColor: subColor,
-      marginBottom: 8,
-    },
-    addMoreButtonText: {
-      color: '#fff',
-      fontSize: fontSizes[fsKey] - 2,
-      fontWeight: '600',
-    },
-    fieldWrapper: {
-      backgroundColor: isDark ? DARK_INPUT_BG : LIGHT_INPUT_BG,
-      borderRadius: 10,
-      paddingHorizontal: 15,
-      justifyContent: 'center',
-      height: 50,
-      marginBottom: 10,
-    },
-    datetimeRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 10,
-    },
-    datetimeText: {
-      color: isDark ? '#fff' : '#000',
-      fontSize: fontSizes[fsKey],
-    },
-    dateWrapper: {
-      flex: 1,
-      marginRight: 8,
-    },
-    timeWrapper: {
-      flex: 1,
-    },
-    notifyContainer: {
-      backgroundColor: isDark ? '#1e1e1e' : '#f4f4f4',
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 10,
-    },
-    notifyHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 8,
-    },
-    notifyLabel: {
-      fontSize: fontSizes[fsKey],
-      fontWeight: '600',
-    },
-    toggleContainer: {
-      width: 50,
-      height: 28,
-      borderRadius: 14,
-      padding: 2,
-      justifyContent: 'center',
-    },
-    toggleCircle: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      backgroundColor: '#fff',
-    },
-    slotPickerRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 0,
-    },
-    slotPickerWrapper: {
-      flex: 1,
-      marginRight: 8,
-      justifyContent: 'center',
-    },
-    slotPicker: {
-      width: '100%',
-      color: isDark ? '#fff' : '#000',
-      fontSize: fontSizes[fsKey],
-    },
-    previewWrapper: {
-      position: 'relative',
-      marginRight: 12,
-    },
-    previewImage: {
-      width: 100,
-      height: 100,
-      borderRadius: 8,
-    },
-    removeIcon: {
-      position: 'absolute',
-      top: -6,
-      right: -6,
-      backgroundColor: isDark ? DARK_REMOVE_BG : LIGHT_REMOVE_BG,
-      borderRadius: 10,
-      padding: 2,
-    },
-    buttonRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 20,
-    },
-    backButton: {
-      flex: 1,
-      backgroundColor: '#888',
-      paddingVertical: 12,
-      borderRadius: 10,
-      alignItems: 'center',
-      marginRight: 10,
-    },
-    saveButton: {
-      flex: 1,
-      backgroundColor: subColor,
-      paddingVertical: 12,
-      borderRadius: 10,
-      alignItems: 'center',
-    },
-    saveButtonText: {
-      color: '#fff',
-      fontSize: fontSizes[fsKey],
-      fontWeight: 'bold',
-    },
-  });
+const INITIAL_INPUT_HEIGHT = 60;
+const PHOTO_LIST_HORIZONTAL_PADDING = 8 * 2;
+const MIN_IMAGE_SIZE = 120;
+const IMAGE_MARGIN = 8;
+const DESTRUCTIVE_ACTION_COLOR = '#FF3B30';
 
 export default function EditTaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const navigation = useNavigation();
+  const navigation = useNavigation<BottomTabNavigationProp<{ tasks: undefined }>>();
   const { colorScheme, subColor } = useAppTheme();
   const isDark = colorScheme === 'dark';
   const { fontSizeKey } = useContext(FontSizeContext);
-  const styles = createStyles(isDark, subColor, fontSizeKey);
-  const { reset: resetUnsaved } = useUnsavedStore();
-  const { t } = useTranslation();
+  const fsKey = fontSizeKey;
+  const { t, i18n } = useTranslation();
+
+  const unsaved = useUnsavedStore(state => state.unsaved);
+  const setUnsaved = useUnsavedStore(state => state.setUnsaved);
+  const resetUnsaved = useUnsavedStore(state => state.reset);
+
+  const styles = createStyles(isDark, subColor, fsKey);
+
+  const { width: screenWidth } = useWindowDimensions();
+  const photoListContentWidth = screenWidth - PHOTO_LIST_HORIZONTAL_PADDING - (8 * 2);
+  const numColumns = useMemo(() => {
+    const n = Math.floor((photoListContentWidth + IMAGE_MARGIN) / (MIN_IMAGE_SIZE + IMAGE_MARGIN));
+    return Math.max(1, n);
+  }, [photoListContentWidth]);
+  const imageSize = useMemo(() => {
+    const totalMarginSpace = (numColumns - 1) * IMAGE_MARGIN;
+    return Math.floor((photoListContentWidth - totalMarginSpace) / numColumns);
+  }, [photoListContentWidth, numColumns]);
+
+  const [loading, setLoading] = useState(true);
+  const [originalTask, setOriginalTask] = useState<Task | null>(null);
 
   const [title, setTitle] = useState('');
   const [memo, setMemo] = useState('');
-  const [memoHeight, setMemoHeight] = useState(40);
-  const [imageUris, setImageUris] = useState<string[]>([]);
-  const [deadline, setDeadline] = useState(new Date());
-  const [notifyEnabled, setNotifyEnabled] = useState(true);
+  const [selectedUris, setSelectedUris] = useState<string[]>([]);
+  const [folder, setFolder] = useState('');
+  const [currentDeadlineSettings, setCurrentDeadlineSettings] = useState<DeadlineSettings | undefined>(undefined);
+  const [notificationActive, setNotificationActive] = useState(false);
   const [customUnit, setCustomUnit] = useState<'minutes' | 'hours' | 'days'>('hours');
   const [customAmount, setCustomAmount] = useState(1);
-  const original = useRef<any>(null);
-
-  const getRange = useCallback((unit: 'minutes' | 'hours' | 'days') => {
-    const max = unit === 'minutes' ? 60 : unit === 'hours' ? 48 : 31;
-    return Array.from({ length: max }, (_, i) => i + 1);
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const list = JSON.parse(raw);
-      const task = list.find((t: any) => t.id === id);
-      if (!task) return;
-      original.current = task;
-      setTitle(task.title);
-      setMemo(task.memo);
-      setMemoHeight(Math.max(40, task.memo.length));
-      setDeadline(new Date(task.deadline));
-      setImageUris(task.imageUris || []);
-      setNotifyEnabled(typeof task.notifyEnabled === 'boolean' ? task.notifyEnabled : true);
-      setCustomUnit(task.customUnit ?? 'hours');
-      setCustomAmount(task.customAmount ?? 1);
-    })();
-  }, [id]);
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [showFolderModal, setShowFolderModal] = useState(false);
+  const [folders, setFolders] = useState<string[]>([]);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [showWheelModal, setShowWheelModal] = useState(false);
+  const [showDeadlineModal, setShowDeadlineModal] = useState(false);
 
   useEffect(() => {
-    const unsub = navigation.addListener('beforeRemove', (e: any) => {
-      if (!original.current) return;
-      const o = original.current;
-      const changed =
-        title !== o.title ||
-        memo !== o.memo ||
-        deadline.toISOString() !== o.deadline ||
-        notifyEnabled !== o.notifyEnabled ||
-        customUnit !== o.customUnit ||
-        customAmount !== o.customAmount ||
-        JSON.stringify(imageUris) !== JSON.stringify(o.imageUris || []);
-      if (!changed) return;
+    const load = async () => {
+      const raw = await AsyncStorage.getItem('TASKS');
+      const tasks: Task[] = raw ? JSON.parse(raw) : [];
+      const found = tasks.find(t => t.id === id);
+      if (!found) {
+        router.back();
+        return;
+      }
+      setOriginalTask(found);
+      setTitle(found.title);
+      setMemo(found.memo);
+      setSelectedUris(found.imageUris || []);
+      setFolder(found.folder || '');
+      setCurrentDeadlineSettings(found.deadlineDetails);
+      setNotificationActive(found.notifyEnabled);
+      setCustomUnit(found.customUnit);
+      setCustomAmount(found.customAmount);
+      setLoading(false);
+      setUnsaved(false);
+    };
+    load();
+  }, [id, router, setUnsaved]);
+
+  const existingFolders = useFolders(showFolderModal);
+  useEffect(() => { if (showFolderModal) setFolders(existingFolders); }, [showFolderModal, existingFolders]);
+
+  useEffect(() => {
+    if (!originalTask) return;
+    const changed =
+      title !== originalTask.title ||
+      memo !== originalTask.memo ||
+      JSON.stringify(selectedUris) !== JSON.stringify(originalTask.imageUris || []) ||
+      folder !== (originalTask.folder || '') ||
+      JSON.stringify(currentDeadlineSettings) !== JSON.stringify(originalTask.deadlineDetails) ||
+      notificationActive !== originalTask.notifyEnabled ||
+      customUnit !== originalTask.customUnit ||
+      customAmount !== originalTask.customAmount;
+    setUnsaved(changed);
+  }, [title, memo, selectedUris, folder, currentDeadlineSettings, notificationActive, customUnit, customAmount, originalTask, setUnsaved]);
+
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', (e:any) => {
+      if (!unsaved) return;
       e.preventDefault();
       Alert.alert(
         t('edit_task.alert_discard_changes_title'),
@@ -316,212 +130,232 @@ export default function EditTaskScreen() {
             style: 'destructive',
             onPress: () => {
               resetUnsaved();
-              router.replace('/(tabs)/tasks');
+              if (e.data?.action) navigation.dispatch(e.data.action); else router.back();
             },
           },
         ]
       );
     });
     return unsub;
-  }, [navigation, title, memo, deadline, imageUris, notifyEnabled, customUnit, customAmount]);
+  }, [navigation, router, t, unsaved, resetUnsaved]);
 
-  const showDatePicker = useCallback(() => {
-    DateTimePickerAndroid.open({
-      value: deadline,
-      mode: 'date',
-      is24Hour: true,
-      onChange: (_e, d) =>
-        d && setDeadline(new Date(d.getFullYear(), d.getMonth(), d.getDate(), deadline.getHours(), deadline.getMinutes())),
-    });
-  }, [deadline]);
+  const { updateTask } = useUpdateTask({
+    id: id as string,
+    title,
+    memo,
+    imageUris: selectedUris,
+    notifyEnabled: notificationActive,
+    customUnit: notificationActive ? customUnit : undefined,
+    customAmount: notificationActive ? customAmount : undefined,
+    folder,
+    t,
+    deadlineDetails: currentDeadlineSettings,
+  });
 
-  const showTimePicker = useCallback(() => {
-    DateTimePickerAndroid.open({
-      value: deadline,
-      mode: 'time',
-      is24Hour: true,
-      onChange: (_e, t) =>
-        t && setDeadline(new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate(), t.getHours(), t.getMinutes())),
-    });
-  }, [deadline]);
+  const handleSetNoNotificationInModal = () => {
+    setNotificationActive(false);
+    setCustomAmount(1);
+    setCustomUnit('hours');
+    setShowWheelModal(false);
+  };
 
-  const handlePickImages = useCallback(async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 1,
-    });
-    if (!res.canceled) {
-      const uris = res.assets.map(a => a.uri);
-      setImageUris(prev => [...prev, ...uris.filter(u => !prev.includes(u))]);
-    }
-  }, []);
+  const handleConfirmNotificationInModal = (amount:number, unit:'minutes'|'hours'|'days') => {
+    setNotificationActive(true);
+    setCustomAmount(amount);
+    setCustomUnit(unit);
+    setShowWheelModal(false);
+  };
 
-  const handleRemoveImage = useCallback((uri: string) => {
-    setImageUris(prev => prev.filter(u => u !== uri));
-  }, []);
+  const renderPhotoItem = ({ item, index }: { item: string; index: number }) => (
+    <View
+      style={[styles.photoPreviewItem, {
+        width: imageSize,
+        height: imageSize,
+        marginRight: (index + 1) % numColumns !== 0 ? IMAGE_MARGIN : 0,
+        marginBottom: IMAGE_MARGIN,
+      }]}
+    >
+      <Pressable onPress={() => setPreviewUri(item)}>
+        <Image source={{ uri: item }} style={styles.photoPreviewImage} />
+      </Pressable>
+      <TouchableOpacity
+        onPress={() => setSelectedUris(prev => prev.filter(u => u !== item))}
+        style={styles.removeIcon}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Ionicons name="close-circle" size={22} color={DESTRUCTIVE_ACTION_COLOR} />
+      </TouchableOpacity>
+    </View>
+  );
 
-  const handleSave = useCallback(async () => {
-    if (!title.trim()) {
-      Alert.alert(t('edit_task.alert_no_title'));
-      return;
-    }
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    const list = raw ? JSON.parse(raw) : [];
-    const updated = list.map((t: any) =>
-      t.id === id
-        ? {
-            ...t,
-            title,
-            memo,
-            deadline: deadline.toISOString(),
-            imageUris,
-            notifyEnabled,
-            customUnit,
-            customAmount,
-          }
-        : t
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <View style={styles.appBar}>
+          <Text style={styles.appBarTitle}>{t('edit_task.title')}</Text>
+        </View>
+        <View style={{ flex:1, justifyContent:'center', alignItems:'center' }}>
+          <Text>{t('common.loading')}</Text>
+        </View>
+      </SafeAreaView>
     );
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    Toast.show({ type: 'success', text1: t('edit_task.save_success') });
-    resetUnsaved();
-    router.replace('/(tabs)/tasks');
-  }, [id, title, memo, deadline, imageUris, notifyEnabled, customUnit, customAmount]);
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.appBar}>
-        <TouchableOpacity onPress={() => router.replace('/(tabs)/tasks')}>
-          <Ionicons name="arrow-back" size={fontSizes[fontSizeKey]} color={subColor} />
-        </TouchableOpacity>
         <Text style={styles.appBarTitle}>{t('edit_task.title')}</Text>
-        <View style={{ width: fontSizes[fontSizeKey] }} />
+        <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
-        <Text style={[styles.label, { color: subColor }]}>{t('edit_task.input_title')}</Text>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder={t('edit_task.input_title_placeholder')}
-          placeholderTextColor={isDark ? DARK_PLACEHOLDER : LIGHT_PLACEHOLDER}
-          multiline
-          style={[styles.input, { minHeight: 40 }]}
-        />
-
-        <Text style={[styles.label, { color: subColor }]}>{t('edit_task.memo')}</Text>
-        <TextInput
-          value={memo}
-          onChangeText={setMemo}
-          placeholder={t('edit_task.memo_placeholder')}
-          placeholderTextColor={isDark ? DARK_PLACEHOLDER : LIGHT_PLACEHOLDER}
-          multiline
-          onContentSizeChange={(e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) =>
-            setMemoHeight(e.nativeEvent.contentSize.height)
-          }
-          style={[styles.input, { height: Math.max(40, memoHeight) }]}
-        />
-
-        <Text style={[styles.label, { color: subColor }]}>{t('edit_task.photo')}</Text>
-        {imageUris.length === 0 ? (
-          <TouchableOpacity style={styles.pickerButton} onPress={handlePickImages}>
-            <Text style={{ color: isDark ? '#fff' : '#000', fontSize: fontSizes[fontSizeKey] }}>{t('edit_task.select_photo')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.pickerButtonWithPreview}>
-            <TouchableOpacity style={styles.addMoreButton} onPress={handlePickImages}>
-              <Text style={styles.addMoreButtonText}>{t('edit_task.add_photo')}</Text>
-            </TouchableOpacity>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {imageUris.map(uri => (
-                <View key={uri} style={styles.previewWrapper}>
-                  <Image source={{ uri }} style={styles.previewImage} />
-                  <TouchableOpacity style={styles.removeIcon} onPress={() => handleRemoveImage(uri)}>
-                    <Ionicons name="close-circle" size={fontSizes[fontSizeKey]} color="red" />
-                  </TouchableOpacity>
+      <FlatList
+        ListHeaderComponent={
+          <>
+            <View style={{
+              backgroundColor: isDark ? '#121212' : '#FFFFFF',
+              borderRadius: 12,
+              overflow: 'hidden',
+              marginHorizontal:8,
+              marginTop: 16,
+              marginBottom: selectedUris.length > 0 ? 0 : 24,
+            }}>
+              <View style={{ paddingHorizontal:8, paddingTop:12, paddingBottom:12 }}>
+                <TitleField
+                  label={t('edit_task.input_title')}
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder={t('edit_task.input_title_placeholder')}
+                  placeholderTextColor={isDark ? '#adaaaa' : '#777'}
+                  labelStyle={[styles.label, { color: subColor }]}
+                  inputStyle={[styles.input, { minHeight: INITIAL_INPUT_HEIGHT, backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0' }]}
+                />
+              </View>
+              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD', marginHorizontal:8 }} />
+              <View style={{ paddingHorizontal:8, paddingTop:12, paddingBottom:12 }}>
+                <MemoField
+                  label={t('edit_task.memo')}
+                  value={memo}
+                  onChangeText={setMemo}
+                  placeholder={t('edit_task.memo_placeholder')}
+                  placeholderTextColor={isDark ? '#adaaaa' : '#777'}
+                  labelStyle={[styles.label, { color: subColor }]}
+                  inputStyle={[styles.input, { minHeight: INITIAL_INPUT_HEIGHT, backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0', textAlignVertical:'top' }]}
+                />
+              </View>
+              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD', marginHorizontal:8 }} />
+              <TouchableOpacity onPress={() => setPickerVisible(true)} style={{ paddingVertical:14, paddingHorizontal:8 }}>
+                <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center' }}>
+                  <Text style={[styles.label, { color: subColor, marginBottom:0 }]}>{t('edit_task.photo')}</Text>
+                  <View style={{ flexDirection:'row', alignItems:'center' }}>
+                    <Text style={{ color: isDark ? '#FFF' : '#000', fontSize: fontSizes[fsKey], fontWeight:'400', marginRight:4 }}>
+                      {selectedUris.length > 0 ? t('add_task.photo_selected', { count: selectedUris.length }) : t('edit_task.select_photo')}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={fontSizes[fsKey]} color={isDark ? '#A0A0A0' : '#555555'} />
+                  </View>
                 </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        <View style={styles.notifyContainer}>
-          <Text style={[styles.label, { color: subColor }]}>{t('edit_task.deadline')}</Text>
-          {Platform.OS === 'android' && (
-            <View style={styles.datetimeRow}>
-              <TouchableOpacity style={[styles.fieldWrapper, styles.dateWrapper]} onPress={showDatePicker}>
-                <Text style={styles.datetimeText}>{deadline.toLocaleDateString()}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.fieldWrapper, styles.timeWrapper]} onPress={showTimePicker}>
-                <Text style={styles.datetimeText}>
-                  {deadline.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
               </TouchableOpacity>
             </View>
-          )}
-
-          <View style={styles.notifyHeader}>
-            <Text style={[styles.notifyLabel, { color: subColor }]}>{t('edit_task.notification')}</Text>
-            <TouchableOpacity
-              style={[
-                styles.toggleContainer,
-                notifyEnabled ? { backgroundColor: subColor } : { backgroundColor: isDark ? DARK_INPUT_BG : LIGHT_INPUT_BG },
-              ]}
-              onPress={() => setNotifyEnabled(v => !v)}
-            >
-              <View
-                style={[
-                  styles.toggleCircle,
-                  notifyEnabled ? { alignSelf: 'flex-end' } : { alignSelf: 'flex-start' },
-                ]}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {notifyEnabled && (
-            <View style={styles.slotPickerRow}>
-              <View style={[styles.fieldWrapper, styles.slotPickerWrapper]}>
-                <Picker
-                  mode={Platform.OS === 'android' ? 'dropdown' : 'dialog'}
-                  selectedValue={customAmount}
-                  onValueChange={setCustomAmount}
-                  style={styles.slotPicker}
-                  dropdownIconColor={isDark ? '#fff' : '#000'}
-                >
-                  {getRange(customUnit).map(n => (
-                    <Picker.Item key={n} label={`${n}`} value={n} />
-                  ))}
-                </Picker>
-              </View>
-              <View style={[styles.fieldWrapper, styles.slotPickerWrapper]}>
-                <Picker
-                  mode={Platform.OS === 'android' ? 'dropdown' : 'dialog'}
-                  selectedValue={customUnit}
-                  onValueChange={v => {
-                    setCustomUnit(v);
-                    setCustomAmount(1);
-                  }}
-                  style={styles.slotPicker}
-                  dropdownIconColor={isDark ? '#fff' : '#000'}
-                >
-                  <Picker.Item label={t('edit_task.minutes_before')} value="minutes" />
-                  <Picker.Item label={t('edit_task.hours_before')} value="hours" />
-                  <Picker.Item label={t('edit_task.days_before')} value="days" />
-                </Picker>
-              </View>
+          </>
+        }
+        data={selectedUris}
+        renderItem={renderPhotoItem}
+        keyExtractor={item => item}
+        numColumns={numColumns}
+        key={numColumns}
+        style={{ paddingHorizontal:8 }}
+        contentContainerStyle={styles.photoPreviewContainer}
+        ListFooterComponent={
+          <>
+            {selectedUris.length > 0 && <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD', marginHorizontal:8, marginTop: IMAGE_MARGIN, marginBottom:12 }} />}
+            <View style={{
+              backgroundColor: isDark ? '#121212' : '#FFFFFF',
+              borderRadius:12,
+              overflow:'hidden',
+              marginHorizontal:8,
+              marginBottom:24,
+              marginTop: selectedUris.length > 0 ? 0 : -24,
+            }}>
+              <TouchableOpacity onPress={() => setShowFolderModal(true)} style={{ paddingVertical:14, paddingHorizontal:8 }}>
+                <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center' }}>
+                  <Text style={[styles.label, { color: subColor, marginBottom:0 }]}>{t('add_task.folder')}</Text>
+                  <View style={{ flexDirection:'row', alignItems:'center' }}>
+                    <Text style={{ color: isDark ? '#FFF' : '#000', fontSize: fontSizes[fsKey], fontWeight:'400', marginRight:4 }}>
+                      {folder || t('add_task.no_folder')}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={fontSizes[fsKey]} color={isDark ? '#A0A0A0' : '#555555'} />
+                  </View>
+                </View>
+              </TouchableOpacity>
+              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD', marginHorizontal:8 }} />
+              <TouchableOpacity onPress={() => setShowDeadlineModal(true)} style={{ paddingVertical:14, paddingHorizontal:8 }}>
+                <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center' }}>
+                  <Text style={[styles.label, { color: subColor, marginBottom:0 }]}>{t('add_task.deadline')}</Text>
+                  <View style={{ flexDirection:'row', alignItems:'center', flexShrink:1 }}>
+                    <Text style={{ color: isDark ? '#FFF' : '#000', fontSize: fontSizes[fsKey], fontWeight:'400', marginRight:4, textAlign:'right' }} numberOfLines={1} ellipsizeMode="tail">
+                      {currentDeadlineSettings ? t('add_task.task_deadline_prefix') + ' ' + (currentDeadlineSettings.taskDeadlineDate ?? '') : t('add_task.no_deadline_set')}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={fontSizes[fsKey]} color={isDark ? '#A0A0A0' : '#555555'} />
+                  </View>
+                </View>
+              </TouchableOpacity>
+              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD', marginHorizontal:8 }} />
+              <TouchableOpacity onPress={() => setShowWheelModal(true)} style={{ paddingVertical:14, paddingHorizontal:8 }} activeOpacity={0.7}>
+                <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center' }}>
+                  <Text style={[styles.label, { color: subColor, marginBottom:0 }]}>{t('edit_task.notification')}</Text>
+                  <View style={{ flexDirection:'row', alignItems:'center' }}>
+                    <Text style={{ color: isDark ? '#FFF' : '#000', fontSize: fontSizes[fsKey], fontWeight:'400', marginRight:4, maxWidth: screenWidth * 0.55 }} numberOfLines={1} ellipsizeMode="tail">
+                      {notificationActive ? `${customAmount} ${t(`add_task.${customUnit}_before` as const, { count: customAmount })}` : t('add_task.no_notification_display', '通知なし')}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={fontSizes[fsKey]} color={isDark ? '#A0A0A0' : '#555555'} />
+                  </View>
+                </View>
+              </TouchableOpacity>
             </View>
-          )}
-        </View>
+            <View style={{ paddingHorizontal:8, paddingBottom:100 }}>
+              <TouchableOpacity style={styles.saveButton} onPress={updateTask}>
+                <Text style={styles.saveButtonText}>{t('edit_task.save')}</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        }
+      />
 
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/(tabs)/tasks')}>
-            <Text style={styles.saveButtonText}>{t('edit_task.back')}</Text>
+      <PhotoPicker
+        visible={pickerVisible}
+        defaultSelected={selectedUris}
+        onCancel={() => setPickerVisible(false)}
+        onDone={uris => { setSelectedUris(uris); setPickerVisible(false); }}
+      />
+      <FolderSelectorModal
+        visible={showFolderModal}
+        onClose={() => setShowFolderModal(false)}
+        onSubmit={(name) => { setFolder(name); setShowFolderModal(false); }}
+        folders={folders}
+      />
+      <WheelPickerModal
+        visible={showWheelModal}
+        initialAmount={customAmount}
+        initialUnit={customUnit}
+        onConfirm={handleConfirmNotificationInModal}
+        onClose={() => setShowWheelModal(false)}
+        onSetNoNotification={handleSetNoNotificationInModal}
+      />
+      <DeadlineSettingModal
+        visible={showDeadlineModal}
+        onClose={() => setShowDeadlineModal(false)}
+        onSave={(newSettings) => { setCurrentDeadlineSettings(newSettings); setShowDeadlineModal(false); }}
+        initialSettings={currentDeadlineSettings}
+      />
+      <Modal visible={!!previewUri} transparent animationType="fade">
+        <Pressable style={{ flex:1, backgroundColor:'rgba(0,0,0,0.85)', justifyContent:'center', alignItems:'center' }} onPress={() => setPreviewUri(null)}>
+          {previewUri && (
+            <Image source={{ uri: previewUri }} style={{ width:'95%', height:'80%', resizeMode:'contain', borderRadius:8 }} />
+          )}
+          <TouchableOpacity style={{ position:'absolute', top: Platform.OS === 'ios' ? 50 : 20, right:20, padding:10 }} onPress={() => setPreviewUri(null)}>
+            <Ionicons name="close" size={32} color="#FFF" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>{t('edit_task.save')}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
