@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '@/hooks/ThemeContext';
@@ -54,8 +55,11 @@ type TaskDetailStyles = {
   field: TextStyle;
   countdown: TextStyle;
   image: ImageStyle;
-  actionBar: ViewStyle;
-  actionIcon: ViewStyle;
+  menuModalBlur: ViewStyle;
+  menuModalContainer: ViewStyle;
+  menuModalContent: ViewStyle;
+  menuOption: TextStyle;
+  appBarMenuButton: ViewStyle;
 };
 
 const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
@@ -80,9 +84,6 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
       textAlign: 'center',
     },
     backButton: { padding: 8, marginRight: 8 },
-    appBarActionPlaceholder: {
-      width: (Platform.OS === 'ios' ? 32 : 24) + 8,
-    },
     title: {
       fontSize: fontSizes[fsKey] + 8,
       fontWeight: 'bold',
@@ -115,21 +116,28 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
       height: '100%',
       borderRadius: 8,
     },
-    actionBar: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: isDark ? '#1E1E1E' : '#F8F8F8',
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderColor: isDark ? '#3A3A3C' : '#C6C6C8',
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      paddingVertical: 8,
-      height: 60,
+    menuModalBlur: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    menuModalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    menuModalContent: {
+      backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
+      borderRadius: 16,
+      padding: 24,
+      width: '80%',
+      maxWidth: 300,
+      alignItems: 'stretch',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
     },
-    actionIcon: { alignItems: 'center', paddingHorizontal: 8 },
+    menuOption: {
+      fontSize: fontSizes[fsKey] + 2,
+      paddingVertical: 12,
+      textAlign: 'center',
+      color: isDark ? '#E0E0E0' : '#222222',
+    },
+    appBarMenuButton: { padding: 8, marginLeft: 8 },
   });
 
   export default function TaskDetailScreen() {
@@ -148,6 +156,7 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
   const [tick, setTick] = useState(0);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   useEffect(() => {
       (async () => {
@@ -252,7 +261,9 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
             <Ionicons name="arrow-back" size={24} color={subColor} />
           </TouchableOpacity>
           <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
-          <View style={styles.appBarActionPlaceholder} />
+          <TouchableOpacity style={styles.appBarMenuButton} onPress={() => setIsMenuVisible(true)}>
+            <Ionicons name="ellipsis-vertical" size={24} color={subColor} />
+          </TouchableOpacity>
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={styles.memo}>{t('common.loading')}</Text>
@@ -280,7 +291,9 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
           <Ionicons name="arrow-back" size={24} color={subColor} />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
-        <View style={styles.appBarActionPlaceholder} />
+        <TouchableOpacity style={styles.appBarMenuButton} onPress={() => setIsMenuVisible(true)}>
+          <Ionicons name="ellipsis-vertical" size={24} color={subColor} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
@@ -316,20 +329,31 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
           </TouchableOpacity>
         </Modal>
       </ScrollView>
-      <View style={styles.actionBar}>
-        <TouchableOpacity style={styles.actionIcon} onPress={handleToggleDone}>
-          <Ionicons name={isDone ? 'checkbox' : 'square-outline'} size={28} color={subColor} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionIcon} onPress={handleDelete}>
-          <Ionicons name="trash" size={28} color="red" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionIcon} onPress={handleEdit}>
-          <Ionicons name="create-outline" size={28} color={subColor} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionIcon} onPress={handleShare}>
-          <Ionicons name="share-social-outline" size={28} color={subColor} />
-        </TouchableOpacity>
-      </View>
+      <Modal transparent visible={isMenuVisible} animationType="fade" onRequestClose={() => setIsMenuVisible(false)}>
+        <BlurView intensity={isDark ? 20 : 70} tint={isDark ? 'dark' : 'light'} style={styles.menuModalBlur}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setIsMenuVisible(false)} />
+          <View style={styles.menuModalContainer}>
+            <View style={styles.menuModalContent}>
+              <TouchableOpacity onPress={() => { setIsMenuVisible(false); handleToggleDone(); }} activeOpacity={0.7}>
+                <Text style={styles.menuOption}>□完了済みにする</Text>
+              </TouchableOpacity>
+              <View style={{height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD'}} />
+              <TouchableOpacity onPress={() => { setIsMenuVisible(false); handleShare(); }} activeOpacity={0.7}>
+                <Text style={styles.menuOption}>共有</Text>
+              </TouchableOpacity>
+              <View style={{height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD'}} />
+              <TouchableOpacity onPress={() => { setIsMenuVisible(false); handleEdit(); }} activeOpacity={0.7}>
+                <Text style={styles.menuOption}>編集</Text>
+              </TouchableOpacity>
+              <View style={{height: StyleSheet.hairlineWidth, backgroundColor: isDark ? '#444' : '#DDD'}} />
+              <TouchableOpacity onPress={() => { setIsMenuVisible(false); handleDelete(); }} activeOpacity={0.7}>
+                <Text style={[styles.menuOption, {color: 'red'}]}>消去</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </BlurView>
+      </Modal>
+      
       <ConfirmModal
         visible={isDeleteConfirmVisible}
         title={t('task_detail.delete_confirm_title')}
