@@ -78,7 +78,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         backgroundColor: dynamicSubColor,
     },
     calendarContainer: {
-        marginHorizontal: 8,
+        marginHorizontal: 4,
         borderWidth: 1,
         borderColor: isDark ? '#202020' : '#888888',
         borderRadius: 8,
