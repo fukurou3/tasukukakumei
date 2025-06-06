@@ -78,7 +78,10 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
       flex: 1,
       textAlign: 'center',
     },
-    backButton: { padding: 8 },
+    backButton: { padding: 8, marginRight: 8 },
+    appBarActionPlaceholder: {
+      width: 24 + 8,
+    },
     title: {
       fontSize: fontSizes[fsKey] + 8,
       fontWeight: 'bold',
@@ -94,7 +97,7 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
       color: subColor,
     },
     memo: {
-      fontSize: fontSizes[fsKey],
+      fontSize: fontSizes[fsKey] + 4,
       color: isDark ? '#ccc' : '#333',
     },
     field: {
@@ -250,7 +253,7 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
             <Ionicons name="arrow-back" size={24} color={subColor} />
           </TouchableOpacity>
           <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
-          <View style={{ width: 24 }} />
+          <View style={styles.appBarActionPlaceholder} />
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={styles.memo}>{t('common.loading')}</Text>
@@ -278,7 +281,7 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
           <Ionicons name="arrow-back" size={24} color={subColor} />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.appBarActionPlaceholder} />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
