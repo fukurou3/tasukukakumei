@@ -266,8 +266,8 @@ const WheelPickerModalComponent: React.FC<WheelPickerModalProps> = ({
   return (
     <Modal
       isVisible={visible}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
+      animationIn="fadeIn"
+      animationOut="fadeOut"
       style={styles.modal}
       backdropOpacity={BACKDROP_OPACITY}
       animationInTiming={ANIMATION_TIMING}

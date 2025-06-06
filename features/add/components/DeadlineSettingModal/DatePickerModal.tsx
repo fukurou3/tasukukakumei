@@ -252,8 +252,8 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = React.memo(({
   return (
     <Modal
       isVisible={visible}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
+      animationIn="fadeIn"
+      animationOut="fadeOut"
       animationInTiming={ANIMATION_TIMING}
       animationOutTiming={ANIMATION_TIMING}
       backdropTransitionInTiming={ANIMATION_TIMING}

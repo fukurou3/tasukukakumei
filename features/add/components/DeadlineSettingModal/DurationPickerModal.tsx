@@ -281,8 +281,8 @@ const DurationPickerModalComponent: React.FC<DurationPickerModalProps> = ({
   return (
     <Modal
       isVisible={visible}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
+      animationIn="fadeIn"
+      animationOut="fadeOut"
       style={styles.modal}
       backdropOpacity={BACKDROP_OPACITY}
       animationInTiming={ANIMATION_TIMING}
