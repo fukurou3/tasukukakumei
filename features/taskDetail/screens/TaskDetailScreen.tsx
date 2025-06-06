@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  Alert,
   Share,
   Modal,
   BackHandler,
@@ -28,6 +27,7 @@ import { fontSizes } from '@/constants/fontSizes';
 import dayjs from 'dayjs'; // dayjs をインポート
 import type { DeadlineSettings } from '@/features/add/components/DeadlineSettingModal/types'; // DeadlineSettings の型をインポート
 import { getTimeText } from '@/features/tasks/utils';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 const STORAGE_KEY = 'TASKS';
 
@@ -147,6 +147,7 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
   const [task, setTask] = useState<Task | null>(null);
   const [tick, setTick] = useState(0);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [isDeleteConfirmVisible, setIsDeleteConfirmVisible] = useState(false);
 
   useEffect(() => {
       (async () => {
@@ -172,30 +173,27 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
     return () => clearInterval(interval);
   }, []);
 
-  const handleDelete = async () => {
-      Alert.alert(
-        t('task_detail.delete_confirm_title'),
-        t('task_detail.delete_confirm'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('common.delete'),
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                const raw = await AsyncStorage.getItem(STORAGE_KEY);
-                if (!raw) return;
-                const list = JSON.parse(raw);
-                const updated = list.filter((t: Task) => t.id !== id);
-                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-                router.replace('/(tabs)/tasks'); // パスを修正 (tasks ディレクトリは通常不要)
-              } catch (error) {
-                console.error('Failed to delete task', error);
-              }
-            },
-          },
-        ]
-      );
+  const handleDelete = () => {
+    setIsDeleteConfirmVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const list = JSON.parse(raw);
+      const updated = list.filter((t: Task) => t.id !== id);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      router.replace('/(tabs)/tasks');
+    } catch (error) {
+      console.error('Failed to delete task', error);
+    } finally {
+      setIsDeleteConfirmVisible(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteConfirmVisible(false);
   };
 
   const handleToggleDone = async () => {
@@ -332,6 +330,16 @@ const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
           <Ionicons name="share-social-outline" size={28} color={subColor} />
         </TouchableOpacity>
       </View>
+      <ConfirmModal
+        visible={isDeleteConfirmVisible}
+        title={t('task_detail.delete_confirm_title')}
+        message={t('task_detail.delete_confirm')}
+        okText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        isOkDestructive
+      />
     </SafeAreaView>
   );
-  }
+}

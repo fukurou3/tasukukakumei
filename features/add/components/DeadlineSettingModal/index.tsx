@@ -20,7 +20,7 @@ import { createDeadlineModalStyles } from './styles';
 import { DeadlineModalHeader } from './DeadlineModalHeader';
 import { DateSelectionTab } from './DateSelectionTab';
 import { RepeatTab } from './RepeatTab';
-import { ConfirmModal } from './ConfirmModal';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 interface DeadlineSettingModalProps {
   visible: boolean;

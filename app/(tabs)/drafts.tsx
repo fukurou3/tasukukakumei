@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   ViewStyle,
   TextStyle,
@@ -17,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 const DRAFTS_KEY = 'TASK_DRAFTS';
 
@@ -93,6 +93,7 @@ const createStyles = (isDark: boolean, subColor: string) =>
   
     const [drafts, setDrafts] = useState<Draft[]>([]);
     const [loading, setLoading] = useState(true);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   
     const loadDrafts = useCallback(async () => {
       setLoading(true);
@@ -107,28 +108,26 @@ const createStyles = (isDark: boolean, subColor: string) =>
       }
     }, []);
   
-    const deleteDraft = useCallback(async (id: string) => {
-      Alert.alert(
-        t('draft_list.delete_confirm_title'),
-        t('draft_list.delete_confirm_message'),
-        [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('common.delete'),
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                const updated = drafts.filter((draft) => draft.id !== id);
-                await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(updated));
-                setDrafts(updated);
-              } catch (error) {
-                console.error('Failed to delete draft', error);
-              }
-            },
-          },
-        ]
-      );
-    }, [drafts, t]);
+    const requestDeleteDraft = useCallback((id: string) => {
+      setPendingDeleteId(id);
+    }, []);
+
+    const confirmDeleteDraft = useCallback(async () => {
+      if (!pendingDeleteId) return;
+      try {
+        const updated = drafts.filter((draft) => draft.id !== pendingDeleteId);
+        await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(updated));
+        setDrafts(updated);
+      } catch (error) {
+        console.error('Failed to delete draft', error);
+      } finally {
+        setPendingDeleteId(null);
+      }
+    }, [drafts, pendingDeleteId]);
+
+    const cancelDeleteDraft = () => {
+      setPendingDeleteId(null);
+    };
   
     useEffect(() => {
       loadDrafts();
@@ -138,7 +137,7 @@ const createStyles = (isDark: boolean, subColor: string) =>
       <TouchableOpacity
         style={styles.draftItem}
         onPress={() => router.push({ pathname: '/add_edit/edit-draft', params: { draftId: item.id } })}
-        onLongPress={() => deleteDraft(item.id)}
+        onLongPress={() => requestDeleteDraft(item.id)}
       >
         <Text style={styles.draftTitle}>{item.title}</Text>
         <Text style={styles.draftDeadline}>
@@ -165,6 +164,16 @@ const createStyles = (isDark: boolean, subColor: string) =>
             contentContainerStyle={{ paddingBottom: 100 }}
           />
         )}
+        <ConfirmModal
+          visible={pendingDeleteId !== null}
+          title={t('draft_list.delete_confirm_title')}
+          message={t('draft_list.delete_confirm_message')}
+          okText={t('common.delete')}
+          cancelText={t('common.cancel')}
+          onConfirm={confirmDeleteDraft}
+          onCancel={cancelDeleteDraft}
+          isOkDestructive
+        />
       </SafeAreaView>
     );
   }

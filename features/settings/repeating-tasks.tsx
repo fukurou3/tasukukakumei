@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { Task } from '@/features/tasks/types';
 import type { DeadlineSettings, RepeatFrequency, CustomIntervalUnit } from '@/features/add/components/DeadlineSettingModal/types';
 import { DeadlineSettingModal } from '@/features/add/components/DeadlineSettingModal';
-import { ConfirmModal } from '@/features/add/components/DeadlineSettingModal/ConfirmModal';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 
 const STORAGE_KEY = 'TASKS';

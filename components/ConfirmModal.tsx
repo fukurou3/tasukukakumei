@@ -1,4 +1,4 @@
-// app/features/add/components/DeadlineSettingModal/ConfirmModal.tsx
+// components/ConfirmModal.tsx
 import React, { useContext, useMemo } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useAppTheme } from '@/hooks/ThemeContext';
