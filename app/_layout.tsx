@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-import '@/lib/i18n';
+import i18n, { initI18n } from '@/lib/i18n';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ThemeProvider, useAppTheme } from '@/hooks/ThemeContext';
@@ -51,12 +51,17 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
   const [animationDone, setAnimationDone] = useState(false);
+  const [i18nReady, setI18nReady] = useState(false);
 
   useEffect(() => {
-    if (loaded) SplashScreen.hideAsync();
-  }, [loaded]);
+    initI18n().then(() => setI18nReady(true));
+  }, []);
 
-  if (!loaded) return null;
+  useEffect(() => {
+    if (loaded && i18nReady) SplashScreen.hideAsync();
+  }, [loaded, i18nReady]);
+
+  if (!loaded || !i18nReady) return null;
 
   return (
     <ThemeProvider>
