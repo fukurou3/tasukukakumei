@@ -12,6 +12,7 @@ import type { Task } from '@/features/tasks/types';
 import type { EventLayout } from '../utils';
 
 const FONT_PATH = require('@/assets/fonts/NotoSansJP-Regular.ttf');
+const BOLD_FONT_PATH = require('@/assets/fonts/NotoSansJP-Bold.ttf');
 // カレンダー表示用のパディング量（大表示時は0）
 // パディングなしで全幅表示
 const PADDING = 0;
@@ -61,6 +62,7 @@ export default function SkiaCalendar({
   const cellHeight = showTaskTitles ? cellWidth * 1.5 : cellWidth; // 大表示時は縦長に
 
   const font = useFont(FONT_PATH, 14);
+  const boldFont = useFont(BOLD_FONT_PATH, 14);
   const eventFont = useFont(FONT_PATH, 10);
   const skiaImage = backgroundImage ? useImage(backgroundImage) : null;
 
@@ -104,7 +106,7 @@ export default function SkiaCalendar({
     runOnJS(processTap)(e.x, e.y);
   });
 
-  if (!font || !eventFont) {
+  if (!font || !boldFont || !eventFont) {
     return null;
   }
 
@@ -138,10 +140,10 @@ export default function SkiaCalendar({
               return (
                 <Text
                   key={`weekday-${i}`}
-                  x={cellWidth * i + (cellWidth - font.getTextWidth(day)) / 2}
-                  y={HEADER_HEIGHT / 2 + font.getSize() / 2}
+                  x={cellWidth * i + (cellWidth - boldFont.getTextWidth(day)) / 2}
+                  y={HEADER_HEIGHT / 2 + boldFont.getSize() / 2}
                   text={day}
-                  font={font}
+                  font={boldFont}
                   color={weekdayColor}
                 />
               );
@@ -227,9 +229,9 @@ export default function SkiaCalendar({
 
                   <Text
                     x={cellX + 5}
-                    y={cellY + font.getSize() + 3}
+                    y={cellY + boldFont.getSize() + 3}
                     text={String(day)}
-                    font={font}
+                    font={boldFont}
                     color={dayColor}
                   />
 
