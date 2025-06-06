@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
   Image,
   Share,
@@ -12,10 +11,6 @@ import {
   BackHandler,
   useWindowDimensions,
   Platform,
-  ViewStyle,
-  TextStyle,
-  ImageStyle,
-  Pressable,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,129 +18,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { FontSizeContext, type FontSizeKey } from '@/context/FontSizeContext';
-import { fontSizes } from '@/constants/fontSizes';
+import { FontSizeContext } from '@/context/FontSizeContext';
 import dayjs from 'dayjs';
 import type { Task } from '@/features/add/types';
 import { getTimeText } from '@/features/tasks/utils';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { createTaskDetailStyles } from '../styles';
+import { TaskActionSheet } from '../components/TaskActionSheet';
 
 const STORAGE_KEY = 'TASKS';
-
-type TaskDetailStyles = {
-  container: ViewStyle;
-  appBar: ViewStyle;
-  appBarTitle: TextStyle;
-  backButton: ViewStyle;
-  headerAction: ViewStyle;
-  title: TextStyle;
-  label: TextStyle;
-  memo: TextStyle;
-  field: TextStyle;
-  countdown: TextStyle;
-  image: ImageStyle;
-  modalOverlay: ViewStyle;
-  actionSheetContainer: ViewStyle;
-  actionSheetItem: ViewStyle;
-  actionSheetIcon: TextStyle;
-  actionSheetText: TextStyle;
-  actionSheetDestructiveText: TextStyle;
-  actionSheetSeparator: ViewStyle;
-};
-
-const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
-  StyleSheet.create<TaskDetailStyles>({
-    container: {
-      flex: 1,
-      backgroundColor: isDark ? '#121212' : '#ffffff',
-    },
-    appBar: {
-      height: 56,
-      paddingHorizontal: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: isDark ? '#121212' : '#ffffff',
-    },
-    appBarTitle: {
-      fontSize: fontSizes[fsKey] + 4,
-      fontWeight: 'bold',
-      color: isDark ? '#fff' : '#000',
-      flex: 1,
-      textAlign: 'center',
-      marginHorizontal: 16,
-    },
-    backButton: { padding: 8 },
-    headerAction: {
-      padding: 8,
-    },
-    title: {
-      fontSize: fontSizes[fsKey] + 8,
-      fontWeight: 'bold',
-      marginBottom: 12,
-      textAlign: 'left',
-      color: isDark ? '#fff' : '#000',
-    },
-    label: {
-      fontSize: fontSizes[fsKey],
-      fontWeight: '600',
-      marginTop: 16,
-      marginBottom: 4,
-      color: subColor,
-    },
-    memo: {
-      fontSize: fontSizes[fsKey] + 4,
-      color: isDark ? '#ccc' : '#333',
-    },
-    field: {
-      fontSize: fontSizes[fsKey],
-      color: isDark ? '#ccc' : '#333',
-    },
-    countdown: {
-      fontSize: fontSizes[fsKey] + 2,
-      fontWeight: '600',
-      marginTop: 4,
-    },
-    image: {
-      width: '100%',
-      height: '100%',
-      borderRadius: 8,
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      justifyContent: 'flex-end',
-    },
-    actionSheetContainer: {
-      backgroundColor: isDark ? '#1E1E1E' : '#F8F8F8',
-      borderRadius: 12,
-      marginHorizontal: 10,
-      marginBottom: 30,
-      overflow: 'hidden',
-    },
-    actionSheetItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 16,
-      paddingHorizontal: 20,
-      backgroundColor: isDark ? '#2C2C2E' : '#FFFFFF',
-    },
-    actionSheetIcon: {
-      marginRight: 20,
-    },
-    actionSheetText: {
-      fontSize: fontSizes[fsKey] + 2,
-      color: isDark ? '#FFFFFF' : '#000000',
-    },
-    actionSheetDestructiveText: {
-      fontSize: fontSizes[fsKey] + 2,
-      color: '#FF3B30',
-    },
-    actionSheetSeparator: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: isDark ? '#3A3A3C' : '#C6C6C8',
-    },
-  });
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -153,7 +34,7 @@ export default function TaskDetailScreen() {
   const { colorScheme, subColor } = useAppTheme();
   const isDark = colorScheme === 'dark';
   const { fontSizeKey } = useContext(FontSizeContext);
-  const styles = createStyles(isDark, subColor, fontSizeKey);
+  const styles = createTaskDetailStyles(isDark, subColor, fontSizeKey);
   const { width: screenWidth } = useWindowDimensions();
   const imageMargin = 8;
   const imageSize = (screenWidth - 40 - imageMargin * 2) / 3;
@@ -340,45 +221,17 @@ export default function TaskDetailScreen() {
         </Modal>
       </ScrollView>
 
-      <Modal
-        animationType="slide"
-        transparent
+      <TaskActionSheet
         visible={isActionModalVisible}
-        onRequestClose={() => setIsActionModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setIsActionModalVisible(false)}>
-          <Pressable style={styles.actionSheetContainer}>
-            <View>
-              <TouchableOpacity style={styles.actionSheetItem} onPress={handleToggleDone}>
-                <Ionicons
-                  name={isDone ? 'checkbox' : 'square-outline'}
-                  size={24}
-                  color={subColor}
-                  style={styles.actionSheetIcon}
-                />
-                <Text style={styles.actionSheetText}>
-                  {isDone ? t('task_detail.mark_as_not_done') : t('task_detail.mark_as_done')}
-                </Text>
-              </TouchableOpacity>
-              <View style={styles.actionSheetSeparator} />
-              <TouchableOpacity style={styles.actionSheetItem} onPress={handleEdit}>
-                <Ionicons name="create-outline" size={24} color={subColor} style={styles.actionSheetIcon} />
-                <Text style={styles.actionSheetText}>{t('task_detail.edit')}</Text>
-              </TouchableOpacity>
-              <View style={styles.actionSheetSeparator} />
-              <TouchableOpacity style={styles.actionSheetItem} onPress={handleShare}>
-                <Ionicons name="share-social-outline" size={24} color={subColor} style={styles.actionSheetIcon} />
-                <Text style={styles.actionSheetText}>{t('task_detail.share')}</Text>
-              </TouchableOpacity>
-              <View style={styles.actionSheetSeparator} />
-              <TouchableOpacity style={styles.actionSheetItem} onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={24} color="#FF3B30" style={styles.actionSheetIcon} />
-                <Text style={styles.actionSheetDestructiveText}>{t('task_detail.delete')}</Text>
-              </TouchableOpacity>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onClose={() => setIsActionModalVisible(false)}
+        onToggleDone={handleToggleDone}
+        onEdit={handleEdit}
+        onShare={handleShare}
+        onDelete={handleDelete}
+        isDone={isDone}
+        styles={styles}
+        subColor={subColor}
+      />
 
       <ConfirmModal
         visible={isDeleteConfirmVisible}
