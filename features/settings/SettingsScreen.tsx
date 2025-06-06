@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
   Platform,
   Image,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme, ThemeChoice } from '@/hooks/ThemeContext';
@@ -41,7 +42,7 @@ export default function SettingsScreen() {
   const isTablet = width >= 768;
 
   // ★★★ ここで認証の状態とユーザー情報を取得します ★★★
-  const { isSignedIn, user } = useGoogleAuth();
+  const { isSignedIn, user, signIn, signOut } = useGoogleAuth();
 
   const [selectedBgId, setSelectedBgId] = useState<string | null>(null);
 
@@ -224,12 +225,24 @@ export default function SettingsScreen() {
           <Text style={styles.label}>{t('settings.google_calendar_integration', 'Googleカレンダー連携')}</Text>
           <TouchableOpacity
             style={styles.optionRowButton}
-            onPress={() => router.push('/settings/google-sync')}
+            onPress={() => {
+              if (isSignedIn) {
+                Alert.alert(
+                  t('settings.google_calendar_integration', 'Googleカレンダー連携'),
+                  t('settings.disconnect_confirm', '連携を解除しますか？'),
+                  [
+                    { text: t('common.cancel', 'キャンセル'), style: 'cancel' },
+                    { text: t('common.ok', 'OK'), onPress: signOut },
+                  ]
+                );
+              } else {
+                signIn();
+              }
+            }}
           >
             <Text style={styles.optionLabel} numberOfLines={1}>
-              {isSignedIn && user ? user.email : t('settings.not_connected', '未連携')}
+              {isSignedIn ? t('settings.connected', '連携済み') : t('settings.not_connected', '未連携')}
             </Text>
-            <Ionicons name="chevron-forward" size={fontSizes[fontSizeKey] + 2} color={isDark ? '#A0A0A0' : '#888'} />
           </TouchableOpacity>
         </View>
 

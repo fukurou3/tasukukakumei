@@ -18,6 +18,7 @@ type AuthState = {
 export const useGoogleAuth = () => {
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
@@ -89,10 +90,20 @@ export const useGoogleAuth = () => {
     setUser(null);
   };
 
+  const signIn = async () => {
+    setIsSigningIn(true);
+    try {
+      await promptAsync();
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
   return {
     user,
     isSignedIn: !!auth,
-    signIn: () => promptAsync(),
+    signIn,
     signOut,
+    isSigningIn,
   };
 };
