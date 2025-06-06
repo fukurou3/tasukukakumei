@@ -79,7 +79,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         backgroundColor: dynamicSubColor,
     },
     calendarContainer: {
-        marginHorizontal: 0,
+        marginHorizontal: 5,
         borderWidth: 0,
         borderRadius: 0,
         overflow: 'visible',
@@ -92,6 +92,7 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         backgroundColor: isDark ? '#000000' : '#FFFFFF',
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: isDark ? '#202020' : '#888888',
+        width: '100%',
     },
     list: {
         flex: 1,
