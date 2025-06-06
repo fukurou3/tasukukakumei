@@ -3,6 +3,10 @@
     "title": "Task Details",
     "memo": "Memo",
     "photo": "Photo",
+    "deadline": "Deadline",
+    "complete": "Complete",
+    "edit": "Edit",
+    "share": "Share",
     "delete_confirm_title": "Confirm Deletion",
     "delete_confirm": "Are you sure you want to delete this task?"
   },

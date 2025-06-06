@@ -8,6 +8,9 @@ import {
   ScrollView,
   Image,
   Alert,
+  Share,
+  Modal,
+  BackHandler,
   ViewStyle,
   TextStyle,
   ImageStyle,
@@ -20,6 +23,7 @@ import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs'; // dayjs をインポート
 import type { DeadlineSettings } from '@/features/add/components/DeadlineSettingModal/types'; // DeadlineSettings の型をインポート
+import { getTimeText, getTimeColor } from '@/features/tasks/utils';
 
 const STORAGE_KEY = 'TASKS';
 
@@ -40,13 +44,16 @@ type TaskDetailStyles = {
   appBar: ViewStyle;
   appBarTitle: TextStyle;
   backButton: ViewStyle;
+  completeButton: ViewStyle;
   title: TextStyle;
   label: TextStyle;
   memo: TextStyle;
   field: TextStyle;
+  countdown: TextStyle;
   image: ImageStyle;
-  deleteButton: ViewStyle;
-  deleteButtonText: TextStyle;
+  actionRow: ViewStyle;
+  actionButton: ViewStyle;
+  actionButtonText: TextStyle;
 };
 
 const createStyles = (isDark: boolean, subColor: string) =>
@@ -60,6 +67,7 @@ const createStyles = (isDark: boolean, subColor: string) =>
       paddingHorizontal: 16,
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       backgroundColor: isDark ? '#121212' : '#ffffff',
     },
     appBarTitle: {
@@ -68,9 +76,8 @@ const createStyles = (isDark: boolean, subColor: string) =>
       color: isDark ? '#fff' : '#000',
       marginLeft: 16,
     },
-    backButton: {
-      padding: 8,
-    },
+    backButton: { padding: 8 },
+    completeButton: { padding: 8 },
     title: {
       fontSize: 24,
       fontWeight: 'bold',
@@ -92,22 +99,32 @@ const createStyles = (isDark: boolean, subColor: string) =>
       fontSize: 16,
       color: isDark ? '#ccc' : '#333',
     },
+    countdown: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginTop: 4,
+    },
     image: {
       width: '100%',
       height: 200,
       borderRadius: 10,
       marginTop: 10,
     },
-    deleteButton: {
-      backgroundColor: 'red',
-      marginTop: 30,
+    actionRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginTop: 24,
+    },
+    actionButton: {
+      flex: 1,
+      marginHorizontal: 6,
       paddingVertical: 12,
       borderRadius: 10,
       alignItems: 'center',
     },
-    deleteButtonText: {
+    actionButtonText: {
       color: '#fff',
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: 'bold',
     },
   });
@@ -118,11 +135,13 @@ const createStyles = (isDark: boolean, subColor: string) =>
     const { colorScheme, subColor } = useAppTheme();
     const isDark = colorScheme === 'dark';
     const styles = createStyles(isDark, subColor);
-    const { t, i18n } = useTranslation(); // i18n を追加
+  const { t, i18n } = useTranslation(); // i18n を追加
 
-    const [task, setTask] = useState<Task | null>(null);
+  const [task, setTask] = useState<Task | null>(null);
+  const [tick, setTick] = useState(0);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
 
-    useEffect(() => {
+  useEffect(() => {
       (async () => {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (!raw) return;
@@ -130,9 +149,23 @@ const createStyles = (isDark: boolean, subColor: string) =>
         const found = list.find((t: Task) => t.id === id);
         if (found) setTask(found);
       })();
-    }, [id]);
+  }, [id]);
 
-    const handleDelete = async () => {
+  useEffect(() => {
+    const backAction = () => {
+      router.back();
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => BackHandler.removeEventListener('hardwareBackPress', backAction);
+  }, [router]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick((v) => v + 1), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleDelete = async () => {
       Alert.alert(
         t('task_detail.delete_confirm_title'),
         t('task_detail.delete_confirm'),
@@ -156,24 +189,38 @@ const createStyles = (isDark: boolean, subColor: string) =>
           },
         ]
       );
-    };
+  };
 
-    if (!task) {
-      return (
-        <SafeAreaView style={styles.container}>
-          <View style={styles.appBar}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={subColor} />
-            </TouchableOpacity>
-            <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
-          </View>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={styles.memo}>{t('common.loading')}</Text>
-          </View>
-        </SafeAreaView>
+  const handleComplete = async () => {
+    if (!task) return;
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const list: Task[] = JSON.parse(raw);
+      const updated = list.map((t) =>
+        t.id === task.id ? { ...t, completedAt: dayjs.utc().toISOString() } : t
       );
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      router.replace('/(tabs)/growth');
+    } catch (e) {
+      console.error('Failed to complete task', e);
     }
+  };
 
+  const handleEdit = () => {
+    router.push({ pathname: '/add_edit', params: { id } });
+  };
+
+  const handleShare = async () => {
+    if (!task) return;
+    try {
+      await Share.share({ message: `${task.title}\n${task.memo}` });
+    } catch (e) {
+      console.error('share error', e);
+    }
+  };
+
+  if (!task) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.appBar}>
@@ -181,35 +228,91 @@ const createStyles = (isDark: boolean, subColor: string) =>
             <Ionicons name="arrow-back" size={24} color={subColor} />
           </TouchableOpacity>
           <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
+          <View style={{ width: 24 }} />
         </View>
-
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
-          <Text style={styles.title}>{task.title}</Text>
-
-          <Text style={styles.label}>{t('task_detail.memo')}</Text>
-          <Text style={styles.memo}>{task.memo || '-'}</Text>
-
-          <Text style={styles.label}>{t('task_detail.deadline')}</Text>
-          <Text style={styles.field}>
-            {task.deadline ? dayjs(task.deadline).format(i18n.language.startsWith('ja') ? 'YYYY/MM/DD' : 'L') : t('common.not_set')}
-            {task.deadline && task.deadlineDetails?.isTaskDeadlineTimeEnabled ? (
-              ` ${dayjs(task.deadline).format('HH:mm')}`
-            ) : ''}
-          </Text>
-
-          {task.imageUris && task.imageUris.length > 0 && ( // task.imageUris が undefined でないかチェック
-            <>
-              <Text style={styles.label}>{t('task_detail.photo')}</Text>
-              {task.imageUris.map((uri) => (
-                <Image key={uri} source={{ uri }} style={styles.image} />
-              ))}
-            </>
-          )}
-
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>{t('common.delete')}</Text>
-          </TouchableOpacity>
-        </ScrollView>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={styles.memo}>{t('common.loading')}</Text>
+        </View>
       </SafeAreaView>
     );
+  }
+
+  const deadlineText = task.deadline
+    ? dayjs(task.deadline).format(i18n.language.startsWith('ja') ? 'YYYY/MM/DD' : 'L') +
+      (task.deadlineDetails?.isTaskDeadlineTimeEnabled ? ` ${dayjs(task.deadline).format('HH:mm')}` : '')
+    : t('common.not_set');
+
+  const effectiveDueDateUtc = task.deadline ? dayjs.utc(task.deadline) : null;
+  const countdownText = getTimeText(task as any, t, effectiveDueDateUtc ?? undefined);
+  const countdownColor = getTimeColor(task as any, isDark, effectiveDueDateUtc ?? undefined);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.appBar}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={subColor} />
+        </TouchableOpacity>
+        <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
+        <TouchableOpacity style={styles.completeButton} onPress={handleComplete}>
+          <Ionicons name="checkmark" size={24} color={subColor} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <Text style={styles.title}>{task.title}</Text>
+
+        <Text style={styles.label}>{t('task_detail.memo')}</Text>
+        <Text style={styles.memo}>{task.memo || '-'}</Text>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={styles.label}>{t('task_detail.deadline')}</Text>
+          <TouchableOpacity onPress={handleEdit}>
+            <Ionicons name="create-outline" size={20} color={subColor} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.field}>{deadlineText}</Text>
+        <Text style={[styles.countdown, { color: countdownColor }]}>{countdownText}</Text>
+
+        {task.imageUris && task.imageUris.length > 0 && (
+          <>
+            <Text style={styles.label}>{t('task_detail.photo')}</Text>
+            {task.imageUris.map((uri) => (
+              <TouchableOpacity key={uri} onPress={() => setPreviewUri(uri)}>
+                <Image source={{ uri }} style={styles.image} />
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: subColor }]}
+            onPress={handleEdit}
+          >
+            <Ionicons name="create-outline" size={20} color="#fff" />
+            <Text style={styles.actionButtonText}>{t('task_detail.edit')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: subColor }]}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-social-outline" size={20} color="#fff" />
+            <Text style={styles.actionButtonText}>{t('task_detail.share')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: 'red' }]}
+            onPress={handleDelete}
+          >
+            <Ionicons name="trash" size={20} color="#fff" />
+            <Text style={styles.actionButtonText}>{t('common.delete')}</Text>
+          </TouchableOpacity>
+        </View>
+        <Modal visible={!!previewUri} transparent onRequestClose={() => setPreviewUri(null)}>
+          <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' }} onPress={() => setPreviewUri(null)}>
+            {previewUri && <Image source={{ uri: previewUri }} style={{ width: '90%', height: '80%' }} resizeMode="contain" />}
+          </TouchableOpacity>
+        </Modal>
+      </ScrollView>
+    </SafeAreaView>
+  );
   }
