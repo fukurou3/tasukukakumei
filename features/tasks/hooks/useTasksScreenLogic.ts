@@ -53,8 +53,10 @@ export const useTasksScreenLogic = () => {
   
   // ★ ちらつきの原因となっていた currentContentPage を廃止し、新しい確定状態を導入
   const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const selectedTabIndexShared = useSharedValue(0);
 
   const pageScrollPosition = useSharedValue(0);
+
 
   const noFolderName = useMemo(() => t('common.no_folder_name', 'フォルダなし'), [t]);
 
@@ -139,6 +141,7 @@ export const useTasksScreenLogic = () => {
       // フォルダタブリストが変化したときのみページャーを同期させる
       pagerRef.current?.setPageWithoutAnimation(newIndex);
       pageScrollPosition.value = newIndex;
+      selectedTabIndexShared.value = newIndex;
     }
   }, [folderTabs]);
 
@@ -392,7 +395,9 @@ export const useTasksScreenLogic = () => {
   // ★ タブタップ時の処理を修正
   const handleFolderTabPress = useCallback((_folderName: string, index: number) => {
     if (selectedTabIndex !== index) {
-      // 確定状態を更新
+      // Remember the current index during the animation
+      selectedTabIndexShared.value = selectedTabIndex;
+      // 更新する確定状態
       setSelectedTabIndex(index);
       // PagerView をプログラムで操作
       pagerRef.current?.setPage(index);
@@ -409,11 +414,13 @@ export const useTasksScreenLogic = () => {
   // ★ ページ切り替え完了時の処理を修正
   const handlePageSelected = useCallback((event: PagerViewOnPageSelectedEvent) => {
     const newPageIndex = event.nativeEvent.position;
-    
+
     // 確定状態とUIを同期
     if (selectedTabIndex !== newPageIndex) {
       setSelectedTabIndex(newPageIndex);
     }
+
+    selectedTabIndexShared.value = newPageIndex;
     
     // 現在のタブを中央にスクロール
     scrollFolderTabsToCenter(newPageIndex);
@@ -644,6 +651,7 @@ export const useTasksScreenLogic = () => {
     isReordering, draggingFolder, renameModalVisible, renameTarget,
     selectionAnim, folderTabLayouts, selectedTabIndex, // ★ currentContentPage の代わりに selectedTabIndex を返す
     pageScrollPosition,
+    selectedTabIndexShared,
     noFolderName, folderTabs,
     pagerRef, folderTabsScrollViewRef,
     isSelecting: selectionHook.isSelecting,
