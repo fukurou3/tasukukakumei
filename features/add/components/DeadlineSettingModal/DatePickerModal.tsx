@@ -33,7 +33,7 @@ const WHEELY_VISIBLE_COUNT = 3;
 const PICKER_AREA_TOTAL_HEIGHT = WHEELY_ITEM_HEIGHT * WHEELY_VISIBLE_COUNT;
 
 const BACKDROP_OPACITY = 0.4;
-const ANIMATION_TIMING = 250;
+const ANIMATION_TIMING = 0;
 
 const createYearData = (currentYear: number): Array<{ label: string; value: number }> => {
   const years = [];

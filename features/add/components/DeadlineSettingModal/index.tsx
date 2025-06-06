@@ -30,7 +30,7 @@ interface DeadlineSettingModalProps {
 }
 
 const todayString = CalendarUtils.getCalendarDateString(new Date());
-const ANIMATION_TIMING = 250;
+const ANIMATION_TIMING = 0;
 const BACKDROP_OPACITY = 0.4;
 
 const getDefaultInitialSettings = (): DeadlineSettings => {

@@ -46,7 +46,7 @@ const ACCENT_LINE_LENGTH = 30;
 const ACCENT_LINE_BORDER_RADIUS = 2;
 const ACCENT_LINE_HORIZONTAL_OFFSET = 5;
 const BACKDROP_OPACITY = 0.4;
-const ANIMATION_TIMING = 300;
+const ANIMATION_TIMING = 0;
 const HORIZONTAL_SEPARATOR_PADDING = 24;
 
 type DurationPickerModalStyleSheet = ReturnType<typeof StyleSheet.create>;

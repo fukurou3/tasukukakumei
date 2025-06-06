@@ -12,7 +12,7 @@ import { fontSizes as appFontSizes } from '@/constants/fontSizes';
 import type { CustomIntervalUnit } from './types';
 import type { DeadlineModalStyles } from './types';
 
-const ANIMATION_TIMING = 250;
+const ANIMATION_TIMING = 0;
 const BACKDROP_OPACITY = 0.4;
 
 const WHEELY_ITEM_HEIGHT = Platform.OS === 'ios' ? 40 : 50;
