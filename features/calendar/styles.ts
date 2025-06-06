@@ -79,11 +79,10 @@ export const createCalendarStyles = (isDark: boolean, subColor: string): Calenda
         backgroundColor: dynamicSubColor,
     },
     calendarContainer: {
-        marginHorizontal: 4,
-        borderWidth: 1,
-        borderColor: isDark ? '#202020' : '#888888',
-        borderRadius: 8,
-        overflow: 'hidden',
+        marginHorizontal: 0,
+        borderWidth: 0,
+        borderRadius: 0,
+        overflow: 'visible',
     },
     todayButtonText: {
         fontWeight: 'bold',
