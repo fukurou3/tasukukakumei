@@ -1,5 +1,5 @@
 // app/(tabs)/task-detail.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Share,
   Modal,
   BackHandler,
+  useWindowDimensions,
   ViewStyle,
   TextStyle,
   ImageStyle,
@@ -21,6 +22,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import { FontSizeContext, type FontSizeKey } from '@/context/FontSizeContext';
+import { fontSizes } from '@/constants/fontSizes';
 import dayjs from 'dayjs'; // dayjs をインポート
 import type { DeadlineSettings } from '@/features/add/components/DeadlineSettingModal/types'; // DeadlineSettings の型をインポート
 import { getTimeText, getTimeColor } from '@/features/tasks/utils';
@@ -54,7 +57,7 @@ type TaskDetailStyles = {
   actionIcon: ViewStyle;
 };
 
-const createStyles = (isDark: boolean, subColor: string) =>
+const createStyles = (isDark: boolean, subColor: string, fsKey: FontSizeKey) =>
   StyleSheet.create<TaskDetailStyles>({
     container: {
       flex: 1,
@@ -69,7 +72,7 @@ const createStyles = (isDark: boolean, subColor: string) =>
       backgroundColor: isDark ? '#121212' : '#ffffff',
     },
     appBarTitle: {
-      fontSize: 20,
+      fontSize: fontSizes[fsKey] + 4,
       fontWeight: 'bold',
       color: isDark ? '#fff' : '#000',
       flex: 1,
@@ -77,36 +80,35 @@ const createStyles = (isDark: boolean, subColor: string) =>
     },
     backButton: { padding: 8 },
     title: {
-      fontSize: 24,
+      fontSize: fontSizes[fsKey] + 8,
       fontWeight: 'bold',
       marginBottom: 12,
+      textAlign: 'left',
       color: isDark ? '#fff' : '#000',
     },
     label: {
-      fontSize: 18,
+      fontSize: fontSizes[fsKey],
       fontWeight: '600',
       marginTop: 16,
       marginBottom: 4,
       color: subColor,
     },
     memo: {
-      fontSize: 16,
+      fontSize: fontSizes[fsKey],
       color: isDark ? '#ccc' : '#333',
     },
     field: {
-      fontSize: 16,
+      fontSize: fontSizes[fsKey],
       color: isDark ? '#ccc' : '#333',
     },
     countdown: {
-      fontSize: 18,
-      fontWeight: '600',
-      marginTop: 4,
+      fontSize: fontSizes[fsKey],
+      color: isDark ? '#ccc' : '#333',
     },
     image: {
       width: '100%',
-      height: 200,
-      borderRadius: 10,
-      marginTop: 10,
+      height: '100%',
+      borderRadius: 8,
     },
     actionBar: {
       position: 'absolute',
@@ -128,9 +130,13 @@ const createStyles = (isDark: boolean, subColor: string) =>
   export default function TaskDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
-    const { colorScheme, subColor } = useAppTheme();
-    const isDark = colorScheme === 'dark';
-    const styles = createStyles(isDark, subColor);
+  const { colorScheme, subColor } = useAppTheme();
+  const isDark = colorScheme === 'dark';
+  const { fontSizeKey } = useContext(FontSizeContext);
+  const styles = createStyles(isDark, subColor, fontSizeKey);
+  const { width: screenWidth } = useWindowDimensions();
+  const imageMargin = 8;
+  const imageSize = (screenWidth - 40 - imageMargin * 2) / 3;
   const { t, i18n } = useTranslation(); // i18n を追加
 
   const [task, setTask] = useState<Task | null>(null);
@@ -187,6 +193,40 @@ const createStyles = (isDark: boolean, subColor: string) =>
       );
   };
 
+  const handleToggleDone = async () => {
+    if (!task) return;
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const list: Task[] = JSON.parse(raw);
+      const dueDateUtc = task.deadline ? dayjs.utc(task.deadline) : null;
+      const newTasks = list.map(t => {
+        if (t.id === task.id) {
+          if (t.deadlineDetails?.repeatFrequency && dueDateUtc) {
+            const instanceDateStr = dueDateUtc.format('YYYY-MM-DD');
+            let dates = t.completedInstanceDates ? [...t.completedInstanceDates] : [];
+            if (dates.includes(instanceDateStr)) {
+              dates = dates.filter(d => d !== instanceDateStr);
+            } else {
+              dates.push(instanceDateStr);
+            }
+            const updated = { ...t, completedInstanceDates: dates } as Task;
+            setTask(updated);
+            return updated;
+          } else {
+            const updated = { ...t, completedAt: t.completedAt ? undefined : dayjs.utc().toISOString() } as Task;
+            setTask(updated);
+            return updated;
+          }
+        }
+        return t;
+      });
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newTasks));
+    } catch (e) {
+      console.error('toggle done error', e);
+    }
+  };
+
 
   const handleEdit = () => {
     router.push({ pathname: '/add_edit', params: { id } });
@@ -226,6 +266,11 @@ const createStyles = (isDark: boolean, subColor: string) =>
   const effectiveDueDateUtc = task.deadline ? dayjs.utc(task.deadline) : null;
   const countdownText = getTimeText(task as any, t, effectiveDueDateUtc ?? undefined);
   const countdownColor = getTimeColor(task as any, isDark, effectiveDueDateUtc ?? undefined);
+  const showCountdown = deadlineText !== t('common.not_set');
+
+  const isDone = task.deadlineDetails?.repeatFrequency && effectiveDueDateUtc
+    ? task.completedInstanceDates?.includes(effectiveDueDateUtc.format('YYYY-MM-DD')) ?? false
+    : !!task.completedAt;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -234,19 +279,18 @@ const createStyles = (isDark: boolean, subColor: string) =>
           <Ionicons name="arrow-back" size={24} color={subColor} />
         </TouchableOpacity>
         <Text style={styles.appBarTitle}>{t('task_detail.title')}</Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         <Text style={styles.title}>{task.title}</Text>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text style={styles.label}>{t('task_detail.deadline')}</Text>
-          <TouchableOpacity onPress={handleEdit}>
-            <Ionicons name="create-outline" size={20} color={subColor} />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.field}>{deadlineText}</Text>
-        <Text style={[styles.countdown, { color: countdownColor }]}>{countdownText}</Text>
+        <Text style={styles.field}>
+          {deadlineText}
+          {showCountdown && (
+            <Text style={[styles.countdown, { color: countdownColor }]}> {countdownText}</Text>
+          )}
+        </Text>
 
         <Text style={styles.label}>{t('task_detail.memo')}</Text>
         <Text style={styles.memo}>{task.memo || '-'}</Text>
@@ -254,11 +298,17 @@ const createStyles = (isDark: boolean, subColor: string) =>
         {task.imageUris && task.imageUris.length > 0 && (
           <>
             <Text style={styles.label}>{t('task_detail.photo')}</Text>
-            {task.imageUris.map((uri) => (
-              <TouchableOpacity key={uri} onPress={() => setPreviewUri(uri)}>
-                <Image source={{ uri }} style={styles.image} />
-              </TouchableOpacity>
-            ))}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+              {task.imageUris.map((uri, index) => (
+                <TouchableOpacity
+                  key={uri}
+                  onPress={() => setPreviewUri(uri)}
+                  style={{ width: imageSize, height: imageSize, marginBottom: imageMargin, marginRight: (index + 1) % 3 !== 0 ? imageMargin : 0 }}
+                >
+                  <Image source={{ uri }} style={styles.image} />
+                </TouchableOpacity>
+              ))}
+            </View>
           </>
         )}
 
@@ -269,6 +319,9 @@ const createStyles = (isDark: boolean, subColor: string) =>
         </Modal>
       </ScrollView>
       <View style={styles.actionBar}>
+        <TouchableOpacity style={styles.actionIcon} onPress={handleToggleDone}>
+          <Ionicons name={isDone ? 'checkbox' : 'square-outline'} size={28} color={subColor} />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.actionIcon} onPress={handleDelete}>
           <Ionicons name="trash" size={28} color="red" />
         </TouchableOpacity>
