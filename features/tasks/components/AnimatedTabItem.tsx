@@ -1,7 +1,7 @@
 // app/features/tasks/components/AnimatedTabItem.tsx
 import React from 'react';
 import { TouchableOpacity, type LayoutChangeEvent } from 'react-native';
-import Reanimated, { useAnimatedStyle, useDerivedValue, withTiming, interpolateColor } from 'react-native-reanimated';
+import Reanimated, { useAnimatedStyle, useSharedValue, withTiming, interpolateColor } from 'react-native-reanimated';
 import { TAB_MARGIN_RIGHT } from '../constants';
 
 type AnimatedTabItemProps = {
@@ -40,14 +40,11 @@ export const AnimatedTabItem: React.FC<AnimatedTabItemProps> = React.memo(({
     onTabLayout(index, event);
   };
 
-  const isActive = useDerivedValue(() => {
-    return selectedTabIndex === index ? 1 : 0;
-  }, [selectedTabIndex]);
+  const progress = useSharedValue(selectedTabIndex === index ? 1 : 0);
 
-  const progress = useDerivedValue(() => {
-    'worklet';
-    return withTiming(isActive.value, { duration: 100 });
-  });
+  React.useEffect(() => {
+    progress.value = withTiming(selectedTabIndex === index ? 1 : 0, { duration: 100 });
+  }, [selectedTabIndex, index, progress]);
 
   const animatedTextStyle = useAnimatedStyle(() => {
     'worklet';
