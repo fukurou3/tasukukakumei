@@ -1,7 +1,10 @@
 // app/features/tasks/components/FolderTabsBar.tsx
 import React, { useCallback, useEffect } from 'react';
-import { ScrollView, View, Platform, type LayoutChangeEvent } from 'react-native';
-import Reanimated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { ScrollView, View, type LayoutChangeEvent } from 'react-native';
+import type { SharedValue } from 'react-native-reanimated';
+import { useSharedValue, useDerivedValue, runOnJS } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Canvas, RoundedRect } from '@shopify/react-native-skia';
 import type { TaskScreenStyles } from '@/features/tasks/styles';
 import type { FolderTab, FolderTabLayout } from '@/features/tasks/hooks/useTasksScreenLogic';
 import { ACCENT_LINE_HEIGHT, FOLDER_TABS_CONTAINER_PADDING_HORIZONTAL } from '@/features/tasks/constants';
@@ -14,7 +17,7 @@ type FolderTabsBarProps = {
   folderTabLayouts: Record<number, FolderTabLayout>;
   setFolderTabLayouts: (updater: (prev: Record<number, FolderTabLayout>) => Record<number, FolderTabLayout>) => void;
   handleFolderTabPress: (folderName: string, index: number) => void;
-  pageScrollPosition: Reanimated.SharedValue<number>;
+  pageScrollPosition: SharedValue<number>;
   folderTabsScrollViewRef: React.RefObject<ScrollView>;
 };
 
@@ -74,39 +77,71 @@ export const FolderTabsBar: React.FC<FolderTabsBarProps> = React.memo(({
     });
   }, [setFolderTabLayouts]);
 
-  const animatedAccentLineStyle = useAnimatedStyle(() => {
+  const indicatorX = useDerivedValue(() => {
     'worklet';
-    if (outputX.value.length === 0 || outputWidth.value.length === 0) {
-      return {
-        width: 0,
-        transform: [{ translateX: FOLDER_TABS_CONTAINER_PADDING_HORIZONTAL }],
-      };
-    }
+    if (outputX.value.length === 0 || outputWidth.value.length === 0) return 0;
 
     const position = pageScrollPosition.value;
-    const threshold = 0.01;
-    const roundedPosition = Math.round(position);
-    const diff = position - roundedPosition;
+    const index = Math.floor(position);
+    const progress = position - index;
+    const nextIndex = Math.min(outputX.value.length - 1, index + 1);
 
-    let activeIndex;
-    if (diff > threshold) {
-      activeIndex = Math.ceil(position);
-    } else if (diff < -threshold) {
-      activeIndex = Math.floor(position);
-    } else {
-      activeIndex = roundedPosition;
-    }
+    const startX = outputX.value[index] ?? 0;
+    const endX = outputX.value[nextIndex] ?? startX;
 
-    const clampedIndex = Math.max(0, Math.min(activeIndex, outputX.value.length - 1));
-
-    const newWidth = outputWidth.value[clampedIndex] ?? 0;
-    const newTranslateX = outputX.value[clampedIndex] ?? 0;
-
-    return {
-      width: withTiming(newWidth, { duration: 250 }),
-      transform: [{ translateX: withTiming(newTranslateX, { duration: 250 }) }],
-    };
+    return startX + (endX - startX) * progress;
   });
+
+  const indicatorWidth = useDerivedValue(() => {
+    'worklet';
+    if (outputX.value.length === 0 || outputWidth.value.length === 0) return 0;
+
+    const position = pageScrollPosition.value;
+    const index = Math.floor(position);
+    const progress = position - index;
+    const nextIndex = Math.min(outputWidth.value.length - 1, index + 1);
+
+    const startW = outputWidth.value[index] ?? 0;
+    const endW = outputWidth.value[nextIndex] ?? startW;
+
+    return startW + (endW - startW) * progress;
+  });
+
+  const computePosition = (x: number) => {
+    'worklet';
+    const xs = outputX.value;
+    const ws = outputWidth.value;
+    if (xs.length === 0) return 0;
+
+    const minX = xs[0];
+    const lastX = xs[xs.length - 1] + ws[ws.length - 1];
+    const clampedX = Math.max(minX, Math.min(x, lastX));
+
+    for (let i = 0; i < xs.length - 1; i++) {
+      const start = xs[i];
+      const end = xs[i + 1];
+      if (clampedX >= start && clampedX <= end) {
+        const ratio = (clampedX - start) / (end - start);
+        return i + ratio;
+      }
+    }
+    return xs.length - 1;
+  };
+
+  const panGesture = Gesture.Pan()
+    .onBegin(() => {
+      'worklet';
+    })
+    .onUpdate((e) => {
+      'worklet';
+      const pos = computePosition(e.x - FOLDER_TABS_CONTAINER_PADDING_HORIZONTAL);
+      pageScrollPosition.value = pos;
+    })
+    .onEnd(() => {
+      'worklet';
+      const idx = Math.round(pageScrollPosition.value);
+      runOnJS(memoizedOnItemPress)(idx, folderTabs[idx]?.label || '');
+    });
 
   return (
     <View style={[styles.folderTabsContainer]}>
@@ -118,7 +153,8 @@ export const FolderTabsBar: React.FC<FolderTabsBarProps> = React.memo(({
           paddingHorizontal: FOLDER_TABS_CONTAINER_PADDING_HORIZONTAL,
         }}
       >
-        <View style={{ flexDirection: 'row', position: 'relative' }}>
+        <GestureDetector gesture={panGesture}>
+          <View style={{ flexDirection: 'row', position: 'relative' }}>
           {folderTabs.map((folder, index) => (
             <AnimatedTabItem
               key={`${folder.name}-${index}`}
@@ -137,20 +173,19 @@ export const FolderTabsBar: React.FC<FolderTabsBarProps> = React.memo(({
 
           ))}
           {folderTabs.length > 0 && (
-            <Reanimated.View
-              style={[
-                {
-                  height: ACCENT_LINE_HEIGHT,
-                  backgroundColor: subColor,
-                  position: 'absolute',
-                  bottom: 0,
-                  borderRadius: ACCENT_LINE_HEIGHT / 2,
-                },
-                animatedAccentLineStyle,
-              ]}
-            />
+            <Canvas style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: ACCENT_LINE_HEIGHT }}>
+              <RoundedRect
+                x={indicatorX}
+                y={0}
+                width={indicatorWidth}
+                height={ACCENT_LINE_HEIGHT}
+                r={ACCENT_LINE_HEIGHT / 2}
+                color={subColor}
+              />
+            </Canvas>
           )}
-        </View>
+          </View>
+        </GestureDetector>
       </ScrollView>
     </View>
   );
