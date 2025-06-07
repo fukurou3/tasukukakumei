@@ -11,7 +11,7 @@ import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { FontSizeContext } from '@/context/FontSizeContext';
 import { fontSizes } from '@/constants/fontSizes';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getItem } from '@/lib/Storage';
 
 import type { AddTaskStyles, Task } from './types'; // Task type from local types.ts
 import { createStyles } from './styles';
@@ -270,7 +270,7 @@ export default function AddTaskScreen() {
     const loadDraft = async () => {
       if (draftId) {
         try {
-          const storedDrafts = await AsyncStorage.getItem('TASK_DRAFTS');
+          const storedDrafts = await getItem('TASK_DRAFTS');
           if (storedDrafts) {
             const draftsArray: Task[] = JSON.parse(storedDrafts);
             const draftToLoad = draftsArray.find(d => d.id === draftId);

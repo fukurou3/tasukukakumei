@@ -1,7 +1,7 @@
 // app/features/tasks/hooks/useTasksScreenLogic.ts
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Alert, Dimensions, Platform, ScrollView } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getItem, setItem } from '@/lib/Storage';
 import TasksDatabase from '@/lib/TaskDatabase';
 import dayjs from 'dayjs';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -111,7 +111,7 @@ export const useTasksScreenLogic = () => {
           await TasksDatabase.initialize();
           const [taskRows, rawOrderData] = await Promise.all([
             TasksDatabase.getAllTasks(),
-            AsyncStorage.getItem(FOLDER_ORDER_KEY),
+            getItem(FOLDER_ORDER_KEY),
           ]);
           setTasks(taskRows.map(t => JSON.parse(t)));
           setFolderOrder(rawOrderData ? JSON.parse(rawOrderData) : []);
@@ -200,7 +200,7 @@ export const useTasksScreenLogic = () => {
 
   const saveFolderOrderToStorage = async (orderToSave: FolderOrder) => {
     try {
-      await AsyncStorage.setItem(FOLDER_ORDER_KEY, JSON.stringify(orderToSave));
+      await setItem(FOLDER_ORDER_KEY, JSON.stringify(orderToSave));
     } catch (e) {
       console.error('Failed to save folder order to storage:', e);
     }
@@ -640,7 +640,7 @@ export const useTasksScreenLogic = () => {
       const rawTasksData = await TasksDatabase.getAllTasks();
       setTasks(rawTasksData.map(t => JSON.parse(t)));
 
-      const rawOrderData = await AsyncStorage.getItem(FOLDER_ORDER_KEY);
+      const rawOrderData = await getItem(FOLDER_ORDER_KEY);
       setFolderOrder(rawOrderData ? JSON.parse(rawOrderData) : []);
     } catch (e) {
       console.error('Failed to refresh data:', e);
