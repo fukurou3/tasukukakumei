@@ -22,7 +22,7 @@ export default {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
-      package: "com.fukuroulu.app"
+      package: "com.fukuroulu.tasukuKAKUMEI"
     },
     plugins: [
       [
