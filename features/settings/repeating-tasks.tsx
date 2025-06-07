@@ -3,7 +3,7 @@ import React, { useState, useCallback, useContext } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import TasksDatabase from '@/lib/TaskDatabase';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { FontSizeContext, FontSizeKey } from '@/context/FontSizeContext';
@@ -63,10 +63,11 @@ export default function RepeatingTasksScreen() {
 
   const loadRepeatingTasks = useCallback(async () => {
     try {
-      const rawTasks = await AsyncStorage.getItem(STORAGE_KEY);
-      const allTasks: Task[] = rawTasks ? JSON.parse(rawTasks) : [];
+      await TasksDatabase.initialize();
+      const rawTasks = await TasksDatabase.getAllTasks();
+      const allTasks: Task[] = rawTasks.map(r => JSON.parse(r));
       const filteredTasks = allTasks.filter(
-        (task) => task.deadlineDetails && task.deadlineDetails.repeatFrequency
+        task => task.deadlineDetails && task.deadlineDetails.repeatFrequency
       );
       setRepeatingTasks(filteredTasks);
     } catch (e) {
@@ -120,8 +121,9 @@ export default function RepeatingTasksScreen() {
     }
 
     try {
-        const rawTasks = await AsyncStorage.getItem(STORAGE_KEY);
-        let allTasks: Task[] = rawTasks ? JSON.parse(rawTasks) : [];
+        await TasksDatabase.initialize();
+        const rawTasks = await TasksDatabase.getAllTasks();
+        let allTasks: Task[] = rawTasks.map(r => JSON.parse(r));
         const taskIndex = allTasks.findIndex(t => t.id === taskIdToUpdate);
 
         if (taskIndex !== -1) {
@@ -140,7 +142,7 @@ export default function RepeatingTasksScreen() {
                 updatedTask.deadline = undefined;
             }
             allTasks[taskIndex] = updatedTask;
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks));
+            await TasksDatabase.saveTask(updatedTask as any);
             loadRepeatingTasks();
         }
     } catch (error) {

@@ -15,7 +15,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import TasksDatabase from '@/lib/TaskDatabase';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { FontSizeContext } from '@/context/FontSizeContext';
@@ -48,10 +48,10 @@ export default function TaskDetailScreen() {
 
   useEffect(() => {
     (async () => {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const list = JSON.parse(raw);
-      const found = list.find((t: Task) => t.id === id);
+      await TasksDatabase.initialize();
+      const rows = await TasksDatabase.getAllTasks();
+      const list = rows.map(r => JSON.parse(r) as Task);
+      const found = list.find(t => t.id === id);
       if (found) setTask(found);
     })();
   }, [id]);
@@ -79,11 +79,8 @@ export default function TaskDetailScreen() {
 
   const confirmDelete = async () => {
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const list = JSON.parse(raw);
-      const updated = list.filter((t: Task) => t.id !== id);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      await TasksDatabase.initialize();
+      await TasksDatabase.deleteTask(id as string);
       router.replace('/(tabs)/tasks');
     } catch (error) {
       console.error('Failed to delete task', error);
@@ -99,32 +96,23 @@ export default function TaskDetailScreen() {
   const handleToggleDone = async () => {
     if (!task) return;
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const list: Task[] = JSON.parse(raw);
       const dueDateUtc = task.deadline ? dayjs.utc(task.deadline) : null;
-      const newTasks = list.map(t => {
-        if (t.id === task.id) {
-          if (t.deadlineDetails?.repeatFrequency && dueDateUtc) {
-            const instanceDateStr = dueDateUtc.format('YYYY-MM-DD');
-            let dates = t.completedInstanceDates ? [...t.completedInstanceDates] : [];
-            if (dates.includes(instanceDateStr)) {
-              dates = dates.filter(d => d !== instanceDateStr);
-            } else {
-              dates.push(instanceDateStr);
-            }
-            const updated = { ...t, completedInstanceDates: dates } as Task;
-            setTask(updated);
-            return updated;
-          } else {
-            const updated = { ...t, completedAt: t.completedAt ? undefined : dayjs.utc().toISOString() } as Task;
-            setTask(updated);
-            return updated;
-          }
+      let updated: Task;
+      if (task.deadlineDetails?.repeatFrequency && dueDateUtc) {
+        const instanceDateStr = dueDateUtc.format('YYYY-MM-DD');
+        let dates = task.completedInstanceDates ? [...task.completedInstanceDates] : [];
+        if (dates.includes(instanceDateStr)) {
+          dates = dates.filter(d => d !== instanceDateStr);
+        } else {
+          dates.push(instanceDateStr);
         }
-        return t;
-      });
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newTasks));
+        updated = { ...task, completedInstanceDates: dates } as Task;
+      } else {
+        updated = { ...task, completedAt: task.completedAt ? undefined : dayjs.utc().toISOString() } as Task;
+      }
+      await TasksDatabase.initialize();
+      await TasksDatabase.saveTask(updated as any);
+      setTask(updated);
     } catch (e) {
       console.error('toggle done error', e);
     }
