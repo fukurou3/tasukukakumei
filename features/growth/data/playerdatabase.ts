@@ -5,7 +5,15 @@ import { Award, Scene, PlayerItem } from '../型定義';
 const openDatabase = SQLite.openDatabase ?? (() => {
   console.warn('SQLite is not available in this environment');
   return {
-    transaction: () => {},
+    transaction: (callback: SQLite.SQLTransactionCallback, _err?: SQLite.SQLTransactionErrorCallback, success?: SQLite.SQLTransactionSuccessCallback) => {
+      const tx = {
+        executeSql: (_sql: string, _params?: any[], cb?: any) => {
+          cb?.(null, { rows: { length: 0, item: () => ({}) } });
+        },
+      } as unknown as SQLite.SQLTransaction;
+      callback(tx);
+      success?.();
+    },
   } as unknown as SQLite.SQLiteDatabase;
 });
 
