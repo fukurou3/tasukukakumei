@@ -1,7 +1,7 @@
 // lib/i18n.ts
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { getItem, setItem } from '@/lib/Storage'
 import * as Localization from 'expo-localization'
 import en from '../locales/en.json'
 import ja from '../locales/ja.json'
@@ -16,7 +16,7 @@ const resources = {
 }
 
 async function getInitialLanguage(): Promise<string> {
-  const saved = await AsyncStorage.getItem(LANGUAGE_KEY)
+  const saved = await getItem(LANGUAGE_KEY)
   if (saved) return saved
   const locale = Localization.locale ?? ''
   if (locale.startsWith('ko')) return 'ko'
@@ -37,7 +37,7 @@ export async function initI18n() {
 
 export async function changeAppLanguage(lng: string) {
   await i18n.changeLanguage(lng)
-  await AsyncStorage.setItem(LANGUAGE_KEY, lng)
+  await setItem(LANGUAGE_KEY, lng)
 }
 
 export default i18n

@@ -1,7 +1,7 @@
 // app/context/FontSizeContext.tsx
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getItem, setItem } from '@/lib/Storage';
 
 export type FontSizeKey = 'small' | 'normal' | 'medium' | 'large';
 
@@ -22,7 +22,7 @@ export const FontSizeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     (async () => {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const raw = await getItem(STORAGE_KEY);
       if (
         raw === 'small' ||
         raw === 'normal' ||
@@ -35,7 +35,7 @@ export const FontSizeProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const setFontSizeKey = async (key: FontSizeKey) => {
-    await AsyncStorage.setItem(STORAGE_KEY, key);
+    await setItem(STORAGE_KEY, key);
     setFontSizeKeyState(key);
   };
 
