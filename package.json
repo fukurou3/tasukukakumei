@@ -37,7 +37,7 @@
     "expo-screen-orientation": "~8.1.7",
     "expo-secure-store": "~14.2.3",
     "expo-splash-screen": "~0.30.9",
-    "expo-sqlite": "~11.1.1",
+    "expo-sqlite": "~15.2.11",
     "expo-status-bar": "~2.2.3",
     "expo-system-ui": "~5.0.8",
     "expo-task-manager": "~13.1.5",
