@@ -1,6 +1,6 @@
 // app/(tabs)/calendar/index.tsx
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { View, FlatList, Text, ActivityIndicator, Pressable, TouchableOpacity, Platform } from 'react-native';
+import { View, FlatList, Text, ActivityIndicator, Pressable, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handler';
@@ -22,10 +22,12 @@ import { STORAGE_KEY as TASKS_KEY } from '@/features/tasks/constants';
 import { TaskItem } from '@/features/tasks/components/TaskItem';
 import { createCalendarStyles } from '@/features/calendar/styles';
 import { Ionicons } from '@expo/vector-icons';
+
 const CALENDAR_BG_KEY = '@calendar_background_id';
 const WEEKDAY_COLOR = '#888888';
 const SUNDAY_COLOR = '#FF6666';
 const SATURDAY_COLOR = '#66B2FF';
+const HEADER_HEIGHT = 30;
 
 export default function CalendarPage() {
   const { t } = useTranslation();
@@ -35,6 +37,7 @@ export default function CalendarPage() {
   const router = useRouter();
 
   const { enabled: googleEnabled } = useGoogleCalendarSync();
+  const { width } = useWindowDimensions();
 
   const [displayMonth, setDisplayMonth] = useState(dayjs());
   const [backgroundImage, setBackgroundImage] = useState<number | null>(null);
@@ -48,6 +51,20 @@ export default function CalendarPage() {
   const nextMonth = useMemo(() => displayMonth.add(1, 'month'), [displayMonth]);
 
   const { events: googleAllEvents, loading: googleLoading } = useGoogleCalendarAllEvents(googleEnabled);
+
+  const calendarHeight = useMemo(() => {
+    const PADDING = 0;
+    const calendarWidth = width - PADDING * 2;
+    const cellWidth = calendarWidth / 7;
+    const cellHeight = viewType === 'full' ? cellWidth * 1.5 : cellWidth;
+
+    const firstDayOfMonth = displayMonth.startOf('month');
+    const daysInMonth = displayMonth.daysInMonth();
+    const startDayOfWeek = firstDayOfMonth.day();
+    const numRows = Math.ceil((startDayOfWeek + daysInMonth) / 7);
+
+    return HEADER_HEIGHT + cellHeight * numRows;
+  }, [width, viewType, displayMonth]);
 
   useFocusEffect(
     useCallback(() => {
@@ -108,9 +125,7 @@ export default function CalendarPage() {
     );
   }, []);
 
-  // 左右フリックによる月切り替えは廃止し、PagerView によるスクロールに変更
   const handleSwipe = useCallback((direction: 'next' | 'prev') => {
-    // 残しておくが利用しない
   }, []);
 
   const handlePageSelected = useCallback(
@@ -148,10 +163,6 @@ export default function CalendarPage() {
     runOnJS(toggleViewJs)();
   }, []);
 
-  // 上下フリックはそのまま使用
-  // 左右フリックは PagerView へ移行したためコメントアウト
-  // const flingRight = Gesture.Fling().direction(Directions.RIGHT).onEnd(() => handleSwipe('prev'));
-  // const flingLeft = Gesture.Fling().direction(Directions.LEFT).onEnd(() => handleSwipe('next'));
   const flingUp = Gesture.Fling().direction(Directions.UP).onEnd(() => toggleView());
   const flingDown = Gesture.Fling().direction(Directions.DOWN).onEnd(() => toggleView());
   const composedGesture = Gesture.Race(flingUp, flingDown);
@@ -214,7 +225,10 @@ export default function CalendarPage() {
         <GestureDetector gesture={composedGesture}>
           <PagerView
             ref={pagerRef}
-            style={[styles.calendarWrapper, viewType === 'full' && { flex: 1 }]}
+            style={[
+              styles.calendarWrapper,
+              viewType === 'full' ? { flex: 1 } : { height: calendarHeight }
+            ]}
             initialPage={1}
             onPageSelected={handlePageSelected}
             offscreenPageLimit={1}
