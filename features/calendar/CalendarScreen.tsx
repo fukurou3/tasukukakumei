@@ -12,8 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SkiaCalendar from '@/features/calendar/components/SkiaCalendar';
 import { BACKGROUND_IMAGES } from '@/constants/CalendarBackgrounds';
 import { useAppTheme } from '@/hooks/ThemeContext';
-import { useGoogleCalendarSync } from '@/context/GoogleCalendarContext';
-import { useGoogleCalendarAllEvents, GoogleEvent } from '@/features/calendar/useGoogleCalendar';
+// import { useGoogleCalendarSync } from '@/context/GoogleCalendarContext';
+// import { useGoogleCalendarAllEvents, GoogleEvent } from '@/features/calendar/useGoogleCalendar';
+import { useNativeCalendarEvents, NativeCalendarEvent } from '@/features/calendar/useNativeCalendarEvents';
 import { groupTasksByDate, processMultiDayEvents } from '@/features/calendar/utils';
 import type { Task } from '@/features/tasks/types';
 import { STORAGE_KEY as TASKS_KEY } from '@/features/tasks/constants';
@@ -32,7 +33,7 @@ export default function CalendarPage() {
   const styles = createCalendarStyles(isDark, subColor);
   const router = useRouter();
 
-  const { enabled: googleEnabled } = useGoogleCalendarSync();
+  // const { enabled: googleEnabled } = useGoogleCalendarSync();
 
   const [displayMonth, setDisplayMonth] = useState(dayjs());
   const [backgroundImage, setBackgroundImage] = useState<number | null>(null);
@@ -42,7 +43,8 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string>(dayjs().format('YYYY-MM-DD'));
   const [viewType, setViewType] = useState<'list' | 'full'>('list');
 
-  const { events: googleAllEvents, loading: googleLoading } = useGoogleCalendarAllEvents(googleEnabled);
+  // const { events: googleAllEvents, loading: googleLoading } = useGoogleCalendarAllEvents(googleEnabled);
+  const nativeEvents = useNativeCalendarEvents(displayMonth);
 
   useFocusEffect(
     useCallback(() => {
@@ -64,12 +66,18 @@ export default function CalendarPage() {
   );
 
   const groupedTasks = useMemo(() => groupTasksByDate(tasks), [tasks]);
-  const eventLayout = useMemo(() => processMultiDayEvents(googleAllEvents, displayMonth), [googleAllEvents, displayMonth]);
+  const eventLayout = useMemo(
+    () => processMultiDayEvents(nativeEvents, displayMonth),
+    [nativeEvents, displayMonth]
+  );
   const dayTasks = useMemo(() => groupedTasks[selectedDate] || [], [groupedTasks, selectedDate]);
-  const googleDayEvents = useMemo(() => {
-    if (!googleEnabled) return [];
-    return googleAllEvents.filter(ev => dayjs(ev.start).format('YYYY-MM-DD') === selectedDate);
-  }, [googleAllEvents, selectedDate, googleEnabled]);
+  const deviceDayEvents = useMemo(
+    () =>
+      nativeEvents.filter(
+        ev => dayjs(ev.start).format('YYYY-MM-DD') === selectedDate
+      ),
+    [nativeEvents, selectedDate]
+  );
 
   const changeMonthJs = useCallback((direction: 'next' | 'prev') => {
     setDisplayMonth(current =>
@@ -127,25 +135,31 @@ export default function CalendarPage() {
     />
   ), []);
   
-  const renderGoogleEvent = useCallback((event: GoogleEvent) => (
-     <View key={event.id} style={styles.googleEventContainer}>
+  // const renderGoogleEvent = useCallback((event: GoogleEvent) => (
+  //    <View key={event.id} style={styles.googleEventContainer}>
+  //       <Text style={styles.googleEvent}>{event.title}</Text>
+  //    </View>
+  // ), [styles]);
+
+  const renderDeviceEvent = useCallback(
+    (event: NativeCalendarEvent) => (
+      <View key={event.id} style={styles.googleEventContainer}>
         <Text style={styles.googleEvent}>{event.title}</Text>
-     </View>
-  ), [styles]);
+      </View>
+    ),
+    [styles]
+  );
 
   const renderListHeader = useCallback(() => {
-    if (googleLoading && googleDayEvents.length === 0) {
-      return <ActivityIndicator style={styles.headerItem} color={subColor} />;
-    }
-    if (googleDayEvents.length === 0) return null;
+    if (deviceDayEvents.length === 0) return null;
 
     return (
       <View style={styles.googleHeader}>
-        <Text style={styles.googleHeaderText}>Google Calendar</Text>
-        {googleDayEvents.map(renderGoogleEvent)}
+        <Text style={styles.googleHeaderText}>Device Calendar</Text>
+        {deviceDayEvents.map(renderDeviceEvent)}
       </View>
     );
-  }, [googleDayEvents, googleLoading, subColor, renderGoogleEvent, styles]);
+  }, [deviceDayEvents, renderDeviceEvent, styles]);
   
   const textColor = isDark ? '#FFFFFF' : '#000000';
 
