@@ -102,6 +102,7 @@ export const useGoogleAuth = () => {
   return {
     user,
     isSignedIn: !!auth,
+    accessToken: auth?.accessToken || null,
     signIn,
     signOut,
     isSigningIn,

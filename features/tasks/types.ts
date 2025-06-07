@@ -7,6 +7,7 @@ export type { DeadlineSettings } from '@/features/add/components/DeadlineSetting
 export type Task = {
   id: string;
   title: string;
+  googleEventId?: string;
   memo?: string;
   deadline?: string;
   folder?: string;

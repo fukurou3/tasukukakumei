@@ -1,6 +1,7 @@
 // features/calendar/useGoogleCalendar.ts
 import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
+import { useGoogleCalendarApi } from '@/lib/googleCalendarApi';
 
 export type GoogleEvent = {
   id: string;
@@ -13,25 +14,18 @@ export type GoogleEvent = {
 export const useGoogleCalendarAllEvents = (enabled: boolean) => {
   const [events, setEvents] = useState<GoogleEvent[]>([]);
   const [loading, setLoading] = useState(false);
+  const { syncEvents } = useGoogleCalendarApi();
 
   useEffect(() => {
     if (!enabled) {
       setEvents([]);
       return;
     }
-    const url = process.env.EXPO_PUBLIC_GOOGLE_CALENDAR_ICS_URL;
-    if (!url) {
-      setEvents([]);
-      return;
-    }
-
     const fetchEvents = async () => {
       setLoading(true);
       try {
-        const res = await fetch(url);
-        const text = await res.text();
-        const parsed = parseICal(text);
-        setEvents(parsed);
+        const ev = await syncEvents();
+        setEvents(ev);
       } catch {
         setEvents([]);
       } finally {
@@ -40,7 +34,7 @@ export const useGoogleCalendarAllEvents = (enabled: boolean) => {
     };
 
     fetchEvents();
-  }, [enabled]);
+  }, [enabled, syncEvents]);
 
   return { events, loading };
 };

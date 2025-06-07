@@ -8,6 +8,8 @@ import utc from 'dayjs/plugin/utc';
 import type { Task } from '../types';
 import { STORAGE_KEY } from '../constants';
 import type { DeadlineSettings, DeadlineTime } from '../components/DeadlineSettingModal/types';
+import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
+import { useGoogleCalendarApi } from '@/lib/googleCalendarApi';
 
 dayjs.extend(utc);
 
@@ -66,6 +68,8 @@ export const useUpdateTask = ({
   deadlineDetails,
 }: UpdateTaskParams) => {
   const router = useRouter();
+  const { isSignedIn } = useGoogleAuth();
+  const { createEvent, updateEvent } = useGoogleCalendarApi();
 
   const updateTask = useCallback(async () => {
     if (!title.trim()) {
@@ -98,13 +102,31 @@ export const useUpdateTask = ({
         deadlineDetails: finalDeadlineDetails,
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+
+      const updatedTask = tasks[index];
+      if (isSignedIn && updatedTask.deadline && !updatedTask.deadlineDetails?.repeatFrequency) {
+        try {
+          if (updatedTask.googleEventId) {
+            await updateEvent(updatedTask.googleEventId, updatedTask);
+          } else {
+            const eventId = await createEvent(updatedTask);
+            if (eventId) {
+              updatedTask.googleEventId = eventId;
+              tasks[index] = updatedTask;
+              await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+            }
+          }
+        } catch (e) {
+          console.error('Failed to sync google event', e);
+        }
+      }
       Toast.show({ type: 'success', text1: t('edit_task.save_success') });
       router.replace('/(tabs)/tasks');
     } catch (error) {
       console.error('Failed to update task:', error);
       Toast.show({ type: 'error', text1: t('add_task.error_saving_task', '保存に失敗しました') });
     }
-  }, [id, title, memo, imageUris, notifyEnabled, customUnit, customAmount, folder, t, deadlineDetails, router]);
+  }, [id, title, memo, imageUris, notifyEnabled, customUnit, customAmount, folder, t, deadlineDetails, router, isSignedIn, createEvent, updateEvent]);
 
   return { updateTask };
 };

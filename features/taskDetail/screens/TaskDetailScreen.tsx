@@ -18,6 +18,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
+import { useGoogleCalendarApi } from '@/lib/googleCalendarApi';
 import { FontSizeContext } from '@/context/FontSizeContext';
 import dayjs from 'dayjs';
 import type { Task } from '@/features/add/types';
@@ -39,6 +41,8 @@ export default function TaskDetailScreen() {
   const imageMargin = 8;
   const imageSize = (screenWidth - 40 - imageMargin * 2) / 3;
   const { t, i18n } = useTranslation();
+  const { isSignedIn } = useGoogleAuth();
+  const { deleteEvent } = useGoogleCalendarApi();
 
   const [task, setTask] = useState<Task | null>(null);
   const [tick, setTick] = useState(0);
@@ -82,8 +86,12 @@ export default function TaskDetailScreen() {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const list = JSON.parse(raw);
+      const target = list.find((t: Task) => t.id === id);
       const updated = list.filter((t: Task) => t.id !== id);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      if (isSignedIn && target?.googleEventId) {
+        try { await deleteEvent(target.googleEventId); } catch {}
+      }
       router.replace('/(tabs)/tasks');
     } catch (error) {
       console.error('Failed to delete task', error);

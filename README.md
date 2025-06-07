@@ -27,7 +27,7 @@ You can start developing by editing the files inside the **app** directory. This
 
 ### Google Calendar integration
 
-To display events from Google Calendar, set the environment variable `EXPO_PUBLIC_GOOGLE_CALENDAR_ICS_URL` to the public iCalendar URL of the calendar. When `Googleカレンダー連携` is enabled in the settings screen, events for the selected day will appear above the task list.
+Set `EXPO_PUBLIC_ANDROID_CLIENT_ID` and `EXPO_PUBLIC_IOS_CLIENT_ID` to your OAuth client IDs. After signing in from the settings screen, events are synced bidirectionally with Google Calendar using the Google Calendar API. The app stores a sync token to fetch only changed events.
 
 ## Get a fresh project
 

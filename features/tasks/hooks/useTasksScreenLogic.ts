@@ -13,6 +13,8 @@ import { calculateNextDisplayInstanceDate, calculateActualDueDate } from '@/feat
 import { useSelection } from '@/features/tasks/context';
 import { STORAGE_KEY, FOLDER_ORDER_KEY, SELECTION_BAR_HEIGHT, FOLDER_TABS_CONTAINER_PADDING_HORIZONTAL, TAB_MARGIN_RIGHT } from '@/features/tasks/constants';
 import i18n from '@/lib/i18n';
+import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
+import { useGoogleCalendarApi } from '@/lib/googleCalendarApi';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -31,6 +33,8 @@ export const useTasksScreenLogic = () => {
   const router = useRouter();
   const { t } = useTranslation();
   const selectionHook = useSelection();
+  const { isSignedIn } = useGoogleAuth();
+  const { deleteEvent } = useGoogleCalendarApi();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [folderOrder, setFolderOrder] = useState<FolderOrder>([]);
@@ -525,6 +529,15 @@ export const useTasksScreenLogic = () => {
     });
 
 
+    const tasksToDelete = tasks.filter(t => !finalTasks.some(ft => ft.id === t.id));
+    if (isSignedIn) {
+      for (const t of tasksToDelete) {
+        if (t.googleEventId) {
+          deleteEvent(t.googleEventId).catch(() => {});
+        }
+      }
+    }
+
     setTasks(finalTasks);
     const folderOrderActuallyChanged = JSON.stringify(folderOrder) !== JSON.stringify(finalFolderOrder);
     if (folderOrderActuallyChanged) {
@@ -538,7 +551,7 @@ export const useTasksScreenLogic = () => {
     await Promise.all(savePromises);
 
     selectionHook.clearSelection();
-  }, [tasks, folderOrder, selectionHook, noFolderName]);
+  }, [tasks, folderOrder, selectionHook, noFolderName, isSignedIn, deleteEvent]);
 
   const handleDeleteSelected = useCallback(() => {
     const folderToDelete = selectionHook.selectedItems.find(item => item.type === 'folder');

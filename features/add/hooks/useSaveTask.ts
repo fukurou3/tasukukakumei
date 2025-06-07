@@ -10,6 +10,8 @@ import utc from 'dayjs/plugin/utc';
 import type { Task, Draft } from '../types';
 import { STORAGE_KEY, DRAFTS_KEY } from '../constants';
 import type { DeadlineSettings, DeadlineTime } from '../components/DeadlineSettingModal/types';
+import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
+import { useGoogleCalendarApi } from '@/lib/googleCalendarApi';
 
 dayjs.extend(utc);
 
@@ -86,6 +88,8 @@ export const useSaveTask = ({
   deadlineDetails,
 }: SaveTaskParams) => {
   const router = useRouter();
+  const { isSignedIn } = useGoogleAuth();
+  const { createEvent } = useGoogleCalendarApi();
 
   const saveTask = useCallback(async () => {
     if (!title.trim()) {
@@ -122,10 +126,20 @@ export const useSaveTask = ({
     try {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       const tasks: Task[] = raw ? JSON.parse(raw) : [];
-      await AsyncStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify([...tasks, newTask])
-      );
+      tasks.push(newTask);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+
+      if (isSignedIn && newTask.deadline && !newTask.deadlineDetails?.repeatFrequency) {
+        try {
+          const eventId = await createEvent(newTask);
+          if (eventId) {
+            newTask.googleEventId = eventId;
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+          }
+        } catch (e) {
+          console.error('Failed to create google event', e);
+        }
+      }
       Toast.show({ type: 'success', text1: t('add_task.task_added_successfully', 'タスクを追加しました') });
       clearForm();
       router.replace('/(tabs)/tasks');
@@ -145,6 +159,8 @@ export const useSaveTask = ({
     router,
     t,
     deadlineDetails,
+    isSignedIn,
+    createEvent,
   ]);
 
   const saveDraft = useCallback(async () => {
