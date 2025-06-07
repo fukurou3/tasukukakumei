@@ -1,57 +1,49 @@
-import * as SQLite from 'expo-sqlite';
+import {
+  openDatabaseAsync,
+  type SQLiteDatabase,
+} from 'expo-sqlite';
 export type TaskRecord = {
   id: string;
   [key: string]: any;
 };
 
-const db = SQLite.openDatabase('tasks.db');
-    
-const run = <T>(
-  callback: (tx: SQLite.SQLTransaction) => void
-): Promise<T> =>
-  new Promise((resolve, reject) => {
-    db.transaction(
-      tx => callback(tx),
-      error => reject(error),
-      result => resolve(result as unknown as T)
-    );
-  });
+let db: SQLiteDatabase | null = null;
+
+const getDb = async (): Promise<SQLiteDatabase> => {
+  if (!db) {
+    db = await openDatabaseAsync('tasks.db');
+  }
+  return db;
+};
 
 const TasksDatabase = {
   async initialize() {
-    await run<void>(tx => {
-      tx.executeSql(
-        'CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY NOT NULL, data TEXT NOT NULL);'
-      );
-    });
+    const database = await getDb();
+    await database.execAsync(
+      'CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY NOT NULL, data TEXT NOT NULL);'
+    );
   },
 
   async saveTask(task: TaskRecord) {
+    const database = await getDb();
     const data = JSON.stringify(task);
-    await run<void>(tx => {
-      tx.executeSql(
-        'REPLACE INTO tasks (id, data) VALUES (?, ?);',
-        [task.id, data]
-      );
-    });
+    await database.runAsync(
+      'REPLACE INTO tasks (id, data) VALUES (?, ?);',
+      [task.id, data]
+    );
   },
 
   async getAllTasks(): Promise<string[]> {
-    const result = await run<SQLite.SQLResultSet>(tx => {
-      tx.executeSql('SELECT data FROM tasks;');
-    });
-    const rows = result.rows as unknown as SQLite.ResultSetRowList;
-    const data: string[] = [];
-    for (let i = 0; i < rows.length; i++) {
-      data.push((rows as any).item(i).data);
-    }
-    return data;
+    const database = await getDb();
+    const rows = await database.getAllAsync<{ data: string }>(
+      'SELECT data FROM tasks;'
+    );
+    return rows.map(r => r.data);
   },
 
   async deleteTask(id: string) {
-    await run<void>(tx => {
-      tx.executeSql('DELETE FROM tasks WHERE id = ?;', [id]);
-    });
+    const database = await getDb();
+    await database.runAsync('DELETE FROM tasks WHERE id = ?;', [id]);
   },
 };
 
