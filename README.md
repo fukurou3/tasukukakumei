@@ -55,4 +55,4 @@ Join our community of developers creating universal apps.
 
 ## Native database
 
-タスクデータは `AsyncStorage` の代わりに SQLite ベースのネイティブデータベースへ保存されます。新しく追加した `TasksDatabase` モジュールを利用して初期化・保存・取得を行います。
+タスクデータは SQLite ベースのデータベース `TasksDatabase` へ保存されます。アプリ起動時に初期化され、タスクの登録や取得に利用されます。

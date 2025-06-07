@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getItem, setItem } from '@/lib/Storage';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { ConfirmModal } from '@/components/ConfirmModal';
@@ -98,7 +98,7 @@ const createStyles = (isDark: boolean, subColor: string) =>
     const loadDrafts = useCallback(async () => {
       setLoading(true);
       try {
-        const raw = await AsyncStorage.getItem(DRAFTS_KEY);
+        const raw = await getItem(DRAFTS_KEY);
         const parsed = raw ? JSON.parse(raw) : [];
         setDrafts(parsed);
       } catch (error) {
@@ -116,7 +116,7 @@ const createStyles = (isDark: boolean, subColor: string) =>
       if (!pendingDeleteId) return;
       try {
         const updated = drafts.filter((draft) => draft.id !== pendingDeleteId);
-        await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(updated));
+        await setItem(DRAFTS_KEY, JSON.stringify(updated));
         setDrafts(updated);
       } catch (error) {
         console.error('Failed to delete draft', error);

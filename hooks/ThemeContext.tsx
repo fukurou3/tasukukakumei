@@ -7,7 +7,7 @@ import React, {
   useContext,
 } from 'react'
 import { Appearance } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { getItem, setItem } from '@/lib/Storage'
 
 // ユーザーが選べるモード
 export type ThemeChoice = 'system' | 'light' | 'dark'
@@ -48,24 +48,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    AsyncStorage.getItem('USER_THEME').then(val => {
+    getItem('USER_THEME').then(val => {
       if (val === 'system' || val === 'light' || val === 'dark') {
         setThemeChoiceState(val)
       }
     })
-    AsyncStorage.getItem('USER_SUBCOLOR').then(val => {
+    getItem('USER_SUBCOLOR').then(val => {
       if (val) setSubColorState(val)
     })
   }, [])
 
   const setThemeChoice = (t: ThemeChoice) => {
     setThemeChoiceState(t)
-    AsyncStorage.setItem('USER_THEME', t)
+    setItem('USER_THEME', t)
   }
 
   const setSubColor = (color: string) => {
     setSubColorState(color)
-    AsyncStorage.setItem('USER_SUBCOLOR', color)
+    setItem('USER_SUBCOLOR', color)
   }
 
   const colorScheme: 'light' | 'dark' =

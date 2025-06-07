@@ -21,7 +21,7 @@ import { FontSizeContext, FontSizeKey } from '@/context/FontSizeContext';
 import { fontSizes } from '@/constants/fontSizes';
 import { Ionicons } from '@expo/vector-icons';
 import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth'; // ★ 認証フックをインポート
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getItem, setItem } from '@/lib/Storage';
 import { BACKGROUND_IMAGES } from '@/constants/CalendarBackgrounds';
 
 const CALENDAR_BG_KEY = '@calendar_background_id';
@@ -49,7 +49,7 @@ export default function SettingsScreen() {
   useFocusEffect(
     useCallback(() => {
       const loadSetting = async () => {
-        const savedId = await AsyncStorage.getItem(CALENDAR_BG_KEY);
+        const savedId = await getItem(CALENDAR_BG_KEY);
         setSelectedBgId(savedId || BACKGROUND_IMAGES[0].id);
       };
       loadSetting();
@@ -183,7 +183,7 @@ export default function SettingsScreen() {
                 key={img.id}
                 onPress={async () => {
                   setSelectedBgId(img.id);
-                  await AsyncStorage.setItem(CALENDAR_BG_KEY, img.id);
+                  await setItem(CALENDAR_BG_KEY, img.id);
                 }}
               >
                 {img.source ? (

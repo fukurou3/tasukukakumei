@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import TasksDatabase from '@/lib/TaskDatabase';
+import { getItem, setItem } from '@/lib/Storage';
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
@@ -175,11 +176,11 @@ export const useSaveTask = ({
       completedAt: undefined,
     };
     try {
-      const raw = await AsyncStorage.getItem(DRAFTS_KEY);
+      const raw = await getItem(DRAFTS_KEY);
       const drafts: Draft[] = raw ? JSON.parse(raw) : [];
       const newDrafts = drafts.filter(d => d.id !== id);
       newDrafts.push(draftTask);
-      await AsyncStorage.setItem(
+      await setItem(
         DRAFTS_KEY,
         JSON.stringify(newDrafts)
       );
