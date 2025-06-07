@@ -1,18 +1,9 @@
-// expo-sqlite v15 以降で従来の API を利用するには "expo-sqlite/legacy"
-// からインポートする必要があります。これを行わないと openDatabase()
-// が未定義となり、db.transaction が実行できないエラーが発生します。
-// そのためここでは legacy モジュールからインポートします。
-import * as SQLite from 'expo-sqlite/legacy';
-
+import * as SQLite from 'expo-sqlite';
 export type TaskRecord = {
   id: string;
   [key: string]: any;
 };
 
-// expo-sqlite の openDatabaseSync は新しい API を返しますが
-// 既存コードでは transaction メソッドが必要な従来 API を利用しています。
-// openDatabaseSync を使うと `db.transaction` が存在せずエラーとなるため
-// 常に openDatabase を使用するように戻します。
 const db = SQLite.openDatabase('tasks.db');
     
 const run = <T>(
