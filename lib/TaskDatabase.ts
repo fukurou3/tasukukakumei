@@ -1,7 +1,7 @@
 // expo-sqlite v15 以降では旧 API を利用する場合、"expo-sqlite/legacy" を
 // インポートする必要がある。これを行わないと openDatabase() が未定義と
 // なり、db.transaction が実行できないエラーが発生する。
-import * as SQLite from 'expo-sqlite/legacy';
+import * as SQLite from 'expo-sqlite';
 
 export type TaskRecord = {
   id: string;
