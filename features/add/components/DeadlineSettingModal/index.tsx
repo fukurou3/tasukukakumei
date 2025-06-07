@@ -75,27 +75,10 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
   useEffect(() => {
     if (visible) {
       const setupContent = () => {
-        const defaults = getDefaultInitialSettings();
-        let effectiveInitialSettings = { ...defaults };
+        const newSettings = initialSettings || getDefaultInitialSettings();
+        setSettings(newSettings);
 
-        if (initialSettings) {
-           effectiveInitialSettings = {
-            ...defaults,
-            taskDeadlineDate: initialSettings.taskDeadlineDate,
-            taskDeadlineTime: initialSettings.taskDeadlineTime,
-            isTaskDeadlineTimeEnabled: initialSettings.isTaskDeadlineTimeEnabled,
-            repeatFrequency: initialSettings.repeatFrequency,
-            repeatStartDate: initialSettings.repeatStartDate || defaults.repeatStartDate,
-            repeatDaysOfWeek: initialSettings.repeatDaysOfWeek,
-            repeatEnds: initialSettings.repeatEnds,
-            isExcludeHolidays: initialSettings.isExcludeHolidays ?? defaults.isExcludeHolidays,
-            customIntervalValue: initialSettings.customIntervalValue || defaults.customIntervalValue,
-            customIntervalUnit: initialSettings.customIntervalUnit || defaults.customIntervalUnit,
-          };
-        }
-        setSettings(effectiveInitialSettings);
-
-        if (effectiveInitialSettings.repeatFrequency) {
+        if (newSettings.repeatFrequency) {
             setActiveTabIndex(1);
         } else {
             setActiveTabIndex(0);
@@ -108,15 +91,14 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
       } else {
         setupContent();
       }
-
-    } else {
-        setIsModalReady(false);
-        setSettings(getDefaultInitialSettings());
-        setActiveTabIndex(0);
-        setValidationErrorModalVisible(false);
-        setValidationErrorMessage('');
     }
   }, [visible, initialSettings]);
+
+  const onModalHide = useCallback(() => {
+    setIsModalReady(false);
+    setValidationErrorModalVisible(false);
+    setValidationErrorMessage('');
+  }, []);
 
   const updateSettingsCallback = useCallback(
     <K extends keyof DeadlineSettings>(key: K, value: DeadlineSettings[K]) => {
@@ -217,11 +199,8 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
 
   const handleConfirmUnset = useCallback(() => {
     setUnsetConfirmVisible(false);
-    const unsetSettings: DeadlineSettings = getDefaultInitialSettings();
-    setSettings(unsetSettings);
-    setActiveTabIndex(0);
     onSave(undefined);
-  }, [onSave, setSettings]);
+  }, [onSave]);
 
   const handleCancelUnset = useCallback(() => {
     setUnsetConfirmVisible(false);
@@ -363,6 +342,7 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
         onBackButtonPress={onClose}
         style={styles.modal}
         hideModalContentWhileAnimating
+        onModalHide={onModalHide}
       >
         <SafeAreaView edges={['bottom']} style={styles.container}>
           {renderContent()}
