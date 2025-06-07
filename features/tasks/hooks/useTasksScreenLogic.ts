@@ -180,11 +180,21 @@ export const useTasksScreenLogic = () => {
   }, [selectedTabIndex, folderTabLayouts, scrollFolderTabsToCenter]);
 
 
-  const saveTasksToStorage = async (tasksToSave: Task[]) => {
+  const syncTasksToDatabase = async (prevTasks: Task[], newTasks: Task[]) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasksToSave));
+      await TasksDatabase.initialize();
+      const prevIds = new Set(prevTasks.map(t => t.id));
+      const newIds = new Set(newTasks.map(t => t.id));
+      for (const task of newTasks) {
+        await TasksDatabase.saveTask(task as any);
+      }
+      for (const id of prevIds) {
+        if (!newIds.has(id)) {
+          await TasksDatabase.deleteTask(id);
+        }
+      }
     } catch (e) {
-      console.error('Failed to save tasks to storage:', e);
+      console.error('Failed to sync tasks with DB:', e);
     }
   };
 
@@ -217,7 +227,7 @@ export const useTasksScreenLogic = () => {
       return task;
     });
     setTasks(newTasks);
-    await saveTasksToStorage(newTasks);
+    await syncTasksToDatabase(tasks, newTasks);
   }, [tasks]);
 
   const moveFolderOrder = useCallback(async (folderName: string, direction: 'up' | 'down') => {
@@ -533,11 +543,10 @@ export const useTasksScreenLogic = () => {
       setFolderOrder(finalFolderOrder);
     }
 
-    const savePromises = [saveTasksToStorage(finalTasks)];
+    await syncTasksToDatabase(tasks, finalTasks);
     if (folderOrderActuallyChanged) {
-      savePromises.push(saveFolderOrderToStorage(finalFolderOrder));
+      await saveFolderOrderToStorage(finalFolderOrder);
     }
-    await Promise.all(savePromises);
 
     selectionHook.clearSelection();
   }, [tasks, folderOrder, selectionHook, noFolderName]);
@@ -595,10 +604,8 @@ export const useTasksScreenLogic = () => {
     setTasks(newTasks);
     setFolderOrder(newFolderOrder);
 
-    await Promise.all([
-        saveTasksToStorage(newTasks),
-        saveFolderOrderToStorage(newFolderOrder)
-    ]);
+    await syncTasksToDatabase(tasks, newTasks);
+    await saveFolderOrderToStorage(newFolderOrder);
     
     const oldSelectedFolderTabName = selectedFolderTabName;
 
@@ -629,13 +636,14 @@ export const useTasksScreenLogic = () => {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      const rawTasksData = await AsyncStorage.getItem(STORAGE_KEY);
-      setTasks(rawTasksData ? JSON.parse(rawTasksData) : []);
+      await TasksDatabase.initialize();
+      const rawTasksData = await TasksDatabase.getAllTasks();
+      setTasks(rawTasksData.map(t => JSON.parse(t)));
 
       const rawOrderData = await AsyncStorage.getItem(FOLDER_ORDER_KEY);
       setFolderOrder(rawOrderData ? JSON.parse(rawOrderData) : []);
     } catch (e) {
-      console.error('Failed to refresh data from AsyncStorage:', e);
+      console.error('Failed to refresh data:', e);
     } finally {
       setIsRefreshing(false);
     }

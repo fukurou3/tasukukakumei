@@ -1,7 +1,7 @@
 // app/features/add/hooks/useSaveTask.ts
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import TasksDatabase from '@/lib/TaskDatabase';
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
@@ -120,12 +120,8 @@ export const useSaveTask = ({
     };
 
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const tasks: Task[] = raw ? JSON.parse(raw) : [];
-      await AsyncStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify([...tasks, newTask])
-      );
+      await TasksDatabase.initialize();
+      await TasksDatabase.saveTask(newTask as any);
       Toast.show({ type: 'success', text1: t('add_task.task_added_successfully', 'タスクを追加しました') });
       clearForm();
       router.replace('/(tabs)/tasks');

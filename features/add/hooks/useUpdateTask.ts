@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import TasksDatabase from '@/lib/TaskDatabase';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
@@ -73,8 +73,9 @@ export const useUpdateTask = ({
       return;
     }
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const tasks: Task[] = raw ? JSON.parse(raw) : [];
+      await TasksDatabase.initialize();
+      const raw = await TasksDatabase.getAllTasks();
+      const tasks: Task[] = raw.map(r => JSON.parse(r));
       const index = tasks.findIndex(t => t.id === id);
       if (index === -1) {
         Toast.show({ type: 'error', text1: t('add_task.error_saving_task', '保存に失敗しました') });
@@ -85,7 +86,7 @@ export const useUpdateTask = ({
       if (finalDeadlineDetails?.repeatFrequency) {
         finalDeadlineDetails = { ...finalDeadlineDetails };
       }
-      tasks[index] = {
+      const updated = {
         ...tasks[index],
         title: title.trim(),
         memo,
@@ -96,8 +97,8 @@ export const useUpdateTask = ({
         customAmount: notifyEnabled ? (customAmount ?? 1) : 1,
         folder,
         deadlineDetails: finalDeadlineDetails,
-      };
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      } as Task;
+      await TasksDatabase.saveTask(updated as any);
       Toast.show({ type: 'success', text1: t('edit_task.save_success') });
       router.replace('/(tabs)/tasks');
     } catch (error) {
