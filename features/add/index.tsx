@@ -47,6 +47,8 @@ const PHOTO_LIST_HORIZONTAL_PADDING = 8 * 2;
 const MIN_IMAGE_SIZE = 120;
 const IMAGE_MARGIN = 8;
 const DESTRUCTIVE_ACTION_COLOR = '#FF3B30';
+// モーダルの閉じるアニメーション時間（ミリ秒）
+const MODAL_ANIMATION_DELAY = 300;
 
 const formatDateForDisplayInternal = (dateString: string | undefined, t: Function, i18nLanguage: string): string => {
     if (!dateString) return t('add_task.unselected_date_placeholder', '未選択');
@@ -318,17 +320,21 @@ export default function AddTaskScreen() {
 
 
   const handleSetNoNotificationInModal = () => {
-    setNotificationActive(false);
-    setCustomAmount(initialFormState.customAmount);
-    setCustomUnit(initialFormState.customUnit);
     setShowWheelModal(false);
+    setTimeout(() => {
+      setNotificationActive(false);
+      setCustomAmount(initialFormState.customAmount);
+      setCustomUnit(initialFormState.customUnit);
+    }, MODAL_ANIMATION_DELAY);
   };
 
   const handleConfirmNotificationInModal = (amount: number, unit: NotificationUnit) => {
-    setNotificationActive(true);
-    setCustomAmount(amount);
-    setCustomUnit(unit);
     setShowWheelModal(false);
+    setTimeout(() => {
+      setNotificationActive(true);
+      setCustomAmount(amount);
+      setCustomUnit(unit);
+    }, MODAL_ANIMATION_DELAY);
   };
 
   const renderPhotoItem = ({ item, index }: { item: string; index: number }) => {
@@ -524,8 +530,10 @@ export default function AddTaskScreen() {
           visible={showFolderModal}
           onClose={() => setShowFolderModal(false)}
           onSubmit={(name) => {
-            setFolder(name);
             setShowFolderModal(false);
+            setTimeout(() => {
+              setFolder(name);
+            }, MODAL_ANIMATION_DELAY);
           }}
           folders={folders}
         />
@@ -542,18 +550,16 @@ export default function AddTaskScreen() {
           onClose={() => setShowDeadlineModal(false)}
           onSave={(newSettings) => {
             let processedSettings = newSettings;
-            // newSettings (つまり processedSettings) が null または undefined でないことを確認してから
-            // repeatFrequency プロパティにアクセスします。
             if (processedSettings && processedSettings.repeatFrequency) {
                 const {
-                    // taskStartTime, // 廃止
-                    // isTaskStartTimeEnabled, // 廃止
                     ...restOfDetails
                 } = processedSettings;
                 processedSettings = restOfDetails;
             }
-            setCurrentDeadlineSettings(processedSettings);
             setShowDeadlineModal(false);
+            setTimeout(() => {
+              setCurrentDeadlineSettings(processedSettings);
+            }, MODAL_ANIMATION_DELAY);
           }}
           initialSettings={currentDeadlineSettings}
         />

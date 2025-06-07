@@ -29,6 +29,8 @@ const PHOTO_LIST_HORIZONTAL_PADDING = 8 * 2;
 const MIN_IMAGE_SIZE = 120;
 const IMAGE_MARGIN = 8;
 const DESTRUCTIVE_ACTION_COLOR = '#FF3B30';
+// モーダルの閉じるアニメーション時間（ミリ秒）
+const MODAL_ANIMATION_DELAY = 300;
 
 export default function EditTaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -153,17 +155,21 @@ export default function EditTaskScreen() {
   });
 
   const handleSetNoNotificationInModal = () => {
-    setNotificationActive(false);
-    setCustomAmount(1);
-    setCustomUnit('hours');
     setShowWheelModal(false);
+    setTimeout(() => {
+      setNotificationActive(false);
+      setCustomAmount(1);
+      setCustomUnit('hours');
+    }, MODAL_ANIMATION_DELAY);
   };
 
   const handleConfirmNotificationInModal = (amount:number, unit:'minutes'|'hours'|'days') => {
-    setNotificationActive(true);
-    setCustomAmount(amount);
-    setCustomUnit(unit);
     setShowWheelModal(false);
+    setTimeout(() => {
+      setNotificationActive(true);
+      setCustomAmount(amount);
+      setCustomUnit(unit);
+    }, MODAL_ANIMATION_DELAY);
   };
 
   const renderPhotoItem = ({ item, index }: { item: string; index: number }) => (
@@ -329,7 +335,12 @@ export default function EditTaskScreen() {
       <FolderSelectorModal
         visible={showFolderModal}
         onClose={() => setShowFolderModal(false)}
-        onSubmit={(name) => { setFolder(name); setShowFolderModal(false); }}
+        onSubmit={(name) => {
+          setShowFolderModal(false);
+          setTimeout(() => {
+            setFolder(name);
+          }, MODAL_ANIMATION_DELAY);
+        }}
         folders={folders}
       />
       <WheelPickerModal
@@ -343,7 +354,12 @@ export default function EditTaskScreen() {
       <DeadlineSettingModal
         visible={showDeadlineModal}
         onClose={() => setShowDeadlineModal(false)}
-        onSave={(newSettings) => { setCurrentDeadlineSettings(newSettings); setShowDeadlineModal(false); }}
+        onSave={(newSettings) => {
+          setShowDeadlineModal(false);
+          setTimeout(() => {
+            setCurrentDeadlineSettings(newSettings);
+          }, MODAL_ANIMATION_DELAY);
+        }}
         initialSettings={currentDeadlineSettings}
       />
       <Modal visible={!!previewUri} transparent animationType="fade">
