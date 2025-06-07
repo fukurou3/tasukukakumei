@@ -6,7 +6,15 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest --watchAll"
+  },
+    "jest": {
+    "preset": "jest-expo/universal",
+    "setupFiles": ["<rootDir>/jest.setup.js"],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)"
+    ]
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -63,8 +71,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.0.10",
     "babel-plugin-module-resolver": "^5.0.2",
+    "jest": "~29.7.0",
+    "jest-expo": "~53.0.7",
     "typescript": "~5.8.3"
   },
   "private": true
