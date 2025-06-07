@@ -16,7 +16,8 @@ const FONT_PATH_REGULAR = require('@/assets/fonts/NotoSansJP-Regular.ttf');
 // カレンダー表示用のパディング量（大表示時は0）
 // パディングなしで全幅表示
 const PADDING = 0;
-const HEADER_HEIGHT = 30; // 曜日表示欄を少し細くする
+// 曜日欄の高さをさらにコンパクトに
+const HEADER_HEIGHT = 24;
 const TASK_BAR_HEIGHT = 5;
 const TASK_BAR_MARGIN = 3;
 const EVENT_BAR_HEIGHT = 20;
