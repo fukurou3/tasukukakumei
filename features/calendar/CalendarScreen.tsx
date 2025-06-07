@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { View, FlatList, Text, ActivityIndicator, Pressable, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllTasksFromDB, initTasksDB } from '@/lib/tasksNative';
 import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handler';
 import { useSharedValue, withTiming, runOnJS } from 'react-native-reanimated';
 import PagerView, { type PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
@@ -71,12 +72,13 @@ export default function CalendarPage() {
       const loadData = async () => {
         const savedId = await AsyncStorage.getItem(CALENDAR_BG_KEY);
         const selectedImage = BACKGROUND_IMAGES.find(img => img.id === savedId);
-        
+
         setBackgroundImage(selectedImage ? selectedImage.source : null);
 
         try {
-          const rawTasks = await AsyncStorage.getItem(TASKS_KEY);
-          setTasks(rawTasks ? JSON.parse(rawTasks) : []);
+          await initTasksDB();
+          const tasks = await getAllTasksFromDB();
+          setTasks(tasks);
         } catch {
           setTasks([]);
         }

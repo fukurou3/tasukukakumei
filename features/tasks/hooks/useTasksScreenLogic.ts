@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Alert, Dimensions, Platform, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllTasksFromDB, saveTaskToDB, deleteTaskFromDB, initTasksDB } from '@/lib/tasksNative';
 import dayjs from 'dayjs';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -107,14 +108,15 @@ export const useTasksScreenLogic = () => {
           setLoading(true);
         }
         try {
-          const [rawTasksData, rawOrderData] = await Promise.all([
-            AsyncStorage.getItem(STORAGE_KEY),
+          await initTasksDB();
+          const [tasksFromDb, rawOrderData] = await Promise.all([
+            getAllTasksFromDB(),
             AsyncStorage.getItem(FOLDER_ORDER_KEY),
           ]);
-          setTasks(rawTasksData ? JSON.parse(rawTasksData) : []);
+          setTasks(tasksFromDb);
           setFolderOrder(rawOrderData ? JSON.parse(rawOrderData) : []);
         } catch (e) {
-          console.error('Failed to load data from storage on focus:', e);
+          console.error('Failed to load data from DB:', e);
           setTasks([]);
           setFolderOrder([]);
         } finally {
@@ -180,9 +182,10 @@ export const useTasksScreenLogic = () => {
 
   const saveTasksToStorage = async (tasksToSave: Task[]) => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasksToSave));
+      await initTasksDB();
+      await Promise.all(tasksToSave.map(t => saveTaskToDB(t)));
     } catch (e) {
-      console.error('Failed to save tasks to storage:', e);
+      console.error('Failed to save tasks to DB:', e);
     }
   };
 
@@ -627,13 +630,15 @@ export const useTasksScreenLogic = () => {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      const rawTasksData = await AsyncStorage.getItem(STORAGE_KEY);
-      setTasks(rawTasksData ? JSON.parse(rawTasksData) : []);
-
-      const rawOrderData = await AsyncStorage.getItem(FOLDER_ORDER_KEY);
+      await initTasksDB();
+      const [tasksFromDb, rawOrderData] = await Promise.all([
+        getAllTasksFromDB(),
+        AsyncStorage.getItem(FOLDER_ORDER_KEY),
+      ]);
+      setTasks(tasksFromDb);
       setFolderOrder(rawOrderData ? JSON.parse(rawOrderData) : []);
     } catch (e) {
-      console.error('Failed to refresh data from AsyncStorage:', e);
+      console.error('Failed to refresh data from DB:', e);
     } finally {
       setIsRefreshing(false);
     }

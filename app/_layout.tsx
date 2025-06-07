@@ -15,6 +15,7 @@ import { FontSizeProvider } from '@/context/FontSizeContext';
 import { GoogleCalendarProvider } from '@/context/GoogleCalendarContext';
 import Toast from 'react-native-toast-message';
 import StartupAnimation from '@/components/StartupAnimation';
+import { migrateToNativeDB } from '@/lib/migrateNativeDB';
 
 import * as NavigationBar from 'expo-navigation-bar';
 import { Platform } from 'react-native';
@@ -59,6 +60,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded && i18nReady) SplashScreen.hideAsync();
+    if (loaded && i18nReady) migrateToNativeDB().then();
   }, [loaded, i18nReady]);
 
   if (!loaded || !i18nReady) return null;

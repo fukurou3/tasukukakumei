@@ -16,6 +16,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllTasksFromDB, saveTaskToDB, initTasksDB, deleteTaskFromDB } from '@/lib/tasksNative';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { FontSizeContext } from '@/context/FontSizeContext';
@@ -48,9 +49,8 @@ export default function TaskDetailScreen() {
 
   useEffect(() => {
     (async () => {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const list = JSON.parse(raw);
+      await initTasksDB();
+      const list = await getAllTasksFromDB();
       const found = list.find((t: Task) => t.id === id);
       if (found) setTask(found);
     })();
@@ -79,11 +79,8 @@ export default function TaskDetailScreen() {
 
   const confirmDelete = async () => {
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const list = JSON.parse(raw);
-      const updated = list.filter((t: Task) => t.id !== id);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      await initTasksDB();
+      await deleteTaskFromDB(id);
       router.replace('/(tabs)/tasks');
     } catch (error) {
       console.error('Failed to delete task', error);
@@ -99,9 +96,8 @@ export default function TaskDetailScreen() {
   const handleToggleDone = async () => {
     if (!task) return;
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const list: Task[] = JSON.parse(raw);
+      await initTasksDB();
+      const list: Task[] = await getAllTasksFromDB();
       const dueDateUtc = task.deadline ? dayjs.utc(task.deadline) : null;
       const newTasks = list.map(t => {
         if (t.id === task.id) {
@@ -124,7 +120,7 @@ export default function TaskDetailScreen() {
         }
         return t;
       });
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newTasks));
+      await Promise.all(newTasks.map(t => saveTaskToDB(t)));
     } catch (e) {
       console.error('toggle done error', e);
     }

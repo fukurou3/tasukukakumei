@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllTasksFromDB, saveTaskToDB, initTasksDB } from '@/lib/tasksNative';
 import uuid from 'react-native-uuid';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
@@ -120,12 +121,9 @@ export const useSaveTask = ({
     };
 
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const tasks: Task[] = raw ? JSON.parse(raw) : [];
-      await AsyncStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify([...tasks, newTask])
-      );
+      await initTasksDB();
+      const tasks: Task[] = await getAllTasksFromDB();
+      await Promise.all([...tasks, newTask].map(t => saveTaskToDB(t)));
       Toast.show({ type: 'success', text1: t('add_task.task_added_successfully', 'タスクを追加しました') });
       clearForm();
       router.replace('/(tabs)/tasks');

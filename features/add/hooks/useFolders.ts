@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Task } from '../types';
 import { STORAGE_KEY } from '../constants';
+import { getAllTasksFromDB, initTasksDB } from '@/lib/tasksNative';
 
 export const useFolders = (trigger?: unknown): string[] => {
   const [folders, setFolders] = useState<string[]>([]);
 
   useEffect(() => {
     const load = async () => {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      // JSON.parse の結果を Task[] として扱う
-      const tasks: Task[] = raw ? (JSON.parse(raw) as Task[]) : [];
+      await initTasksDB();
+      const tasks: Task[] = await getAllTasksFromDB();
       const unique = Array.from(
         new Set(
           tasks

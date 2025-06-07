@@ -29,6 +29,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllTasksFromDB, saveTaskToDB, initTasksDB } from '@/lib/tasksNative';
 import uuid from 'react-native-uuid';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
@@ -435,9 +436,9 @@ export default function EditDraftScreen() {
       customUnit,
       customAmount,
     };
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    const tasks = raw ? JSON.parse(raw) : [];
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify([newTask, ...tasks]));
+    await initTasksDB();
+    const tasks = await getAllTasksFromDB();
+    await Promise.all([newTask, ...tasks].map(t => saveTaskToDB(t)));
 
     const draftsRaw = await AsyncStorage.getItem(DRAFTS_KEY);
     const drafts = draftsRaw ? JSON.parse(draftsRaw) : [];

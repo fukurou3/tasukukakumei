@@ -4,6 +4,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllTasksFromDB, saveTaskToDB, initTasksDB } from '@/lib/tasksNative';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { FontSizeContext, FontSizeKey } from '@/context/FontSizeContext';
@@ -63,8 +64,8 @@ export default function RepeatingTasksScreen() {
 
   const loadRepeatingTasks = useCallback(async () => {
     try {
-      const rawTasks = await AsyncStorage.getItem(STORAGE_KEY);
-      const allTasks: Task[] = rawTasks ? JSON.parse(rawTasks) : [];
+      await initTasksDB();
+      const allTasks: Task[] = await getAllTasksFromDB();
       const filteredTasks = allTasks.filter(
         (task) => task.deadlineDetails && task.deadlineDetails.repeatFrequency
       );
@@ -120,8 +121,8 @@ export default function RepeatingTasksScreen() {
     }
 
     try {
-        const rawTasks = await AsyncStorage.getItem(STORAGE_KEY);
-        let allTasks: Task[] = rawTasks ? JSON.parse(rawTasks) : [];
+        await initTasksDB();
+        let allTasks: Task[] = await getAllTasksFromDB();
         const taskIndex = allTasks.findIndex(t => t.id === taskIdToUpdate);
 
         if (taskIndex !== -1) {
@@ -140,7 +141,7 @@ export default function RepeatingTasksScreen() {
                 updatedTask.deadline = undefined;
             }
             allTasks[taskIndex] = updatedTask;
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(allTasks));
+            await Promise.all(allTasks.map(t => saveTaskToDB(t)));
             loadRepeatingTasks();
         }
     } catch (error) {

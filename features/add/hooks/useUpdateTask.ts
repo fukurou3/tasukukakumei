@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllTasksFromDB, saveTaskToDB, initTasksDB } from '@/lib/tasksNative';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
@@ -73,8 +74,8 @@ export const useUpdateTask = ({
       return;
     }
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      const tasks: Task[] = raw ? JSON.parse(raw) : [];
+      await initTasksDB();
+      const tasks: Task[] = await getAllTasksFromDB();
       const index = tasks.findIndex(t => t.id === id);
       if (index === -1) {
         Toast.show({ type: 'error', text1: t('add_task.error_saving_task', '保存に失敗しました') });
@@ -97,7 +98,7 @@ export const useUpdateTask = ({
         folder,
         deadlineDetails: finalDeadlineDetails,
       };
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      await Promise.all(tasks.map(t => saveTaskToDB(t)));
       Toast.show({ type: 'success', text1: t('edit_task.save_success') });
       router.replace('/(tabs)/tasks');
     } catch (error) {

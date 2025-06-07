@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAllTasksFromDB, initTasksDB } from '@/lib/tasksNative';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { FontSizeContext } from '@/context/FontSizeContext';
@@ -20,8 +21,8 @@ export default function GrowthScreen() {
   useEffect(() => {
     const load = async () => {
       try {
-        const raw = await AsyncStorage.getItem(TASKS_KEY);
-        const tasks: Task[] = raw ? JSON.parse(raw) : [];
+        await initTasksDB();
+        const tasks: Task[] = await getAllTasksFromDB();
         setCompletedCount(tasks.filter(t => t.completedAt).length);
       } catch {
         setCompletedCount(0);
