@@ -52,3 +52,7 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Native database
+
+タスクデータは `AsyncStorage` の代わりに SQLite ベースのネイティブデータベースへ保存されます。新しく追加した `TasksDatabase` モジュールを利用して初期化・保存・取得を行います。
