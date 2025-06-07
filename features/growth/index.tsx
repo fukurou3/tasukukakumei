@@ -1,5 +1,5 @@
-// app/(tabs)/growth/index.tsx
-import GrowthScreen from '@/features/growth/GrowthScreen';
+//C:\Users\fukur\task-app\app\app\(tabs)\growth\index.tsx
+import GrowthScreen from '@/features/growth';
 
 export default function GrowthTab() {
   return <GrowthScreen />;

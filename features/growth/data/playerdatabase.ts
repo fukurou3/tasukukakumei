@@ -2,7 +2,14 @@
 import * as SQLite from 'expo-sqlite';
 import { Award, Scene, PlayerItem } from '../型定義';
 
-const db = SQLite.openDatabase('PlayerData.db');
+const openDatabase = SQLite.openDatabase ?? (() => {
+  console.warn('SQLite is not available in this environment');
+  return {
+    transaction: () => {},
+  } as unknown as SQLite.SQLiteDatabase;
+});
+
+const db = openDatabase('PlayerData.db');
 
 const initializeDatabase = (): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -24,6 +31,7 @@ const initializeDatabase = (): Promise<void> => {
     );
   });
 };
+
 
 const getCurrency = (id: string): Promise<number> => {
   return new Promise((resolve) => {
