@@ -16,6 +16,7 @@ import com.facebook.soloader.SoLoader
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 import com.fukuroulu.app.db.TasksDatabasePackage
+import com.fukuroulu.app.calendar.EventsDatabasePackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -26,6 +27,7 @@ class MainApplication : Application(), ReactApplication {
             val packages = PackageList(this).packages
             // Packages that cannot be autolinked yet can be added manually here, for example:
             packages.add(TasksDatabasePackage())
+            packages.add(EventsDatabasePackage())
             return packages
           }
 
