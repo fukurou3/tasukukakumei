@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Alert, Dimensions, Platform, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import TasksDatabase from '@/lib/TaskDatabase';
 import dayjs from 'dayjs';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -107,11 +108,12 @@ export const useTasksScreenLogic = () => {
           setLoading(true);
         }
         try {
-          const [rawTasksData, rawOrderData] = await Promise.all([
-            AsyncStorage.getItem(STORAGE_KEY),
+          await TasksDatabase.initialize();
+          const [taskRows, rawOrderData] = await Promise.all([
+            TasksDatabase.getAllTasks(),
             AsyncStorage.getItem(FOLDER_ORDER_KEY),
           ]);
-          setTasks(rawTasksData ? JSON.parse(rawTasksData) : []);
+          setTasks(taskRows.map(t => JSON.parse(t)));
           setFolderOrder(rawOrderData ? JSON.parse(rawOrderData) : []);
         } catch (e) {
           console.error('Failed to load data from storage on focus:', e);
