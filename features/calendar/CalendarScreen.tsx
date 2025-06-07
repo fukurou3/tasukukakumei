@@ -28,7 +28,8 @@ const CALENDAR_BG_KEY = '@calendar_background_id';
 const WEEKDAY_COLOR = '#888888';
 const SUNDAY_COLOR = '#FF6666';
 const SATURDAY_COLOR = '#66B2FF';
-const HEADER_HEIGHT = 30;
+// 曜日欄の高さに合わせて短くする
+const HEADER_HEIGHT = 24;
 
 export default function CalendarPage() {
   const { t } = useTranslation();
@@ -220,7 +221,7 @@ export default function CalendarPage() {
                      <Text style={styles.todayButtonText}>{t('common.today')}</Text>
                  </Pressable>
                  <Pressable onPress={toggleView} style={styles.toggleButton}>
-                     <Ionicons name={viewType === 'list' ? 'calendar' : 'list'} size={20} color="#fff" />
+                     <Ionicons name={viewType === 'list' ? 'list' : 'calendar'} size={20} color="#fff" />
                  </Pressable>
              </View>
         </View>
