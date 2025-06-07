@@ -5,11 +5,10 @@ export type TaskRecord = {
   [key: string]: any;
 };
 
-// expo-sqlite の openDatabaseSync は新しい API を返しますが
-// 既存コードでは transaction メソッドが必要な従来 API を利用しています。
-// openDatabaseSync を使うと `db.transaction` が存在せずエラーとなるため
-// 常に openDatabase を使用するように戻します。
-const db = SQLite.openDatabase('tasks.db');
+const db =
+  'openDatabaseSync' in SQLite
+    ? (SQLite as any).openDatabaseSync('tasks.db')
+    : (SQLite as any).openDatabase('tasks.db');
     
 const run = <T>(
   callback: (tx: SQLite.SQLTransaction) => void
