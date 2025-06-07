@@ -1,17 +1,26 @@
 import * as SQLite from 'expo-sqlite';
 
+let db: SQLite.SQLiteDatabase | null = null;
+
+const ensureDb = (): SQLite.SQLiteDatabase => {
+  if (!db) {
+    db = SQLite.openDatabase('tasks.db');
+  }
+  if (!db) {
+    throw new Error('SQLite not available');
+  }
+  return db;
+};
+
 export type TaskRecord = {
   id: string;
   [key: string]: any;
 };
 
-const db = SQLite.openDatabase('tasks.db');
-
-const run = <T>(
-  callback: (tx: SQLite.SQLTransaction) => void
-): Promise<T> =>
+const run = <T>(callback: (tx: SQLite.SQLTransaction) => void): Promise<T> =>
   new Promise((resolve, reject) => {
-    db.transaction(
+    const database = ensureDb();
+    database.transaction(
       tx => callback(tx),
       error => reject(error),
       result => resolve(result as unknown as T)
