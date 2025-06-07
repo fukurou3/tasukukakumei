@@ -1,6 +1,6 @@
 // features/growth/フック/useプレイヤーデータ.ts
 import { useState, useEffect, useCallback } from 'react';
-import { initializeDatabase, getCurrency, updateCurrency } from '../データ/プレイヤーデータベース';
+import { initializeDatabase, getCurrency, updateCurrency } from '../data/playerdatabase';
 
 export const useプレイヤーデータ = () => {
   const [isReady, setIsReady] = useState(false);
