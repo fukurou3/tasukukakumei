@@ -3,10 +3,10 @@ import React from 'react';
 import { View, StyleSheet, Button } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { useUseplayerdata } from '@/features/growth/hooks/Useplayerdata';
+import { usePlayerData } from '@/features/growth/hooks/usePlayerData';
 
 export default function GrowthScreen() {
-  const { isReady, gold, addGold } = useUseplayerdata();
+  const { isReady, gold, addGold } = usePlayerData();
 
   if (!isReady) {
     return (
@@ -24,7 +24,6 @@ export default function GrowthScreen() {
         <ThemedText style={styles.goldText}>所持ゴールド: {gold} G</ThemedText>
       </View>
 
-      {/* テスト用のボタン */}
       <Button title="ゴールドを10増やす" onPress={() => addGold(10)} />
 
     </ThemedView>

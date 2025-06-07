@@ -1,71 +1,43 @@
-// features/growth/data/playerdatabase.ts
-import * as SQLite from 'expo-sqlite';
-import { Award, Scene, PlayerItem } from '@/features/growth/types';
+// features/growth/data/playerDatabase.ts
+import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
+import type { Award, Scene, PlayerItem } from '@/features/growth/types';
 
-const openDatabase = SQLite.openDatabase ?? (() => {
-  console.warn('SQLite is not available in this environment');
-  return {
-    transaction: () => {},
-  } as unknown as SQLite.SQLiteDatabase;
-});
+let db: SQLiteDatabase | null = null;
 
-const db = openDatabase('PlayerData.db');
-
-const initializeDatabase = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    db.transaction(
-      tx => {
-        tx.executeSql('CREATE TABLE IF NOT EXISTS unlocked_scenes (id TEXT PRIMARY KEY NOT NULL);');
-        tx.executeSql('CREATE TABLE IF NOT EXISTS unlocked_awards (id TEXT PRIMARY KEY NOT NULL, unlocked_at INTEGER);');
-        tx.executeSql('CREATE TABLE IF NOT EXISTS player_items (id TEXT PRIMARY KEY NOT NULL, quantity INTEGER);');
-        tx.executeSql('CREATE TABLE IF NOT EXISTS player_currency (id TEXT PRIMARY KEY NOT NULL, amount INTEGER);',
-          [],
-          () => {
-             // 初期データとして通貨'gold'を0で登録
-            tx.executeSql('INSERT OR IGNORE INTO player_currency (id, amount) VALUES (?, ?);', ['gold', 0]);
-          }
-        );
-      },
-      reject,
-      resolve
-    );
-  });
+const getDb = async (): Promise<SQLiteDatabase> => {
+  if (!db) {
+    db = await openDatabaseAsync('PlayerData.db');
+  }
+  return db;
 };
 
+const initializeDatabase = async (): Promise<void> => {
+    const database = await getDb();
+    await database.execAsync(`
+      PRAGMA journal_mode = WAL;
+      CREATE TABLE IF NOT EXISTS unlocked_scenes (id TEXT PRIMARY KEY NOT NULL);
+      CREATE TABLE IF NOT EXISTS unlocked_awards (id TEXT PRIMARY KEY NOT NULL, unlocked_at INTEGER);
+      CREATE TABLE IF NOT EXISTS player_items (id TEXT PRIMARY KEY NOT NULL, quantity INTEGER);
+      CREATE TABLE IF NOT EXISTS player_currency (id TEXT PRIMARY KEY NOT NULL, amount INTEGER);
+      INSERT OR IGNORE INTO player_currency (id, amount) VALUES ('gold', 0);
+    `);
+};
 
-const getCurrency = (id: string): Promise<number> => {
-  return new Promise((resolve) => {
-    db.transaction(tx => {
-      tx.executeSql(
+const getCurrency = async (id: string): Promise<number> => {
+    const database = await getDb();
+    const result = await database.getFirstAsync<{ amount: number }>(
         'SELECT amount FROM player_currency WHERE id = ?;',
-        [id],
-        (_, { rows }) => {
-          resolve(rows.length > 0 ? rows.item(0).amount : 0);
-        },
-        () => {
-          resolve(0); // エラー時は0を返す
-          return false;
-        }
-      );
-    });
-  });
+        [id]
+    );
+    return result?.amount ?? 0;
 };
 
-const updateCurrency = (id: string, newAmount: number): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        db.transaction(tx => {
-            tx.executeSql(
-                'UPDATE player_currency SET amount = ? WHERE id = ?;',
-                [newAmount, id],
-                () => resolve(),
-                (_, error) => {
-                    reject(error);
-                    return false;
-                }
-            );
-        });
-    });
+const updateCurrency = async (id: string, newAmount: number): Promise<void> => {
+    const database = await getDb();
+    await database.runAsync(
+        'UPDATE player_currency SET amount = ? WHERE id = ?;',
+        [newAmount, id]
+    );
 };
-
 
 export { initializeDatabase, getCurrency, updateCurrency };

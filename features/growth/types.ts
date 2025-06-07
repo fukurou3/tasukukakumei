@@ -1,4 +1,4 @@
-// features\growth\type.ts
+// features\growth\types.ts
 
 export interface Scene {
   id: string;
