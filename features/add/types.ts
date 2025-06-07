@@ -5,6 +5,7 @@ import type { DeadlineSettings } from './components/DeadlineSettingModal/types';
 export interface Task {
   id: string;
   title: string;
+  googleEventId?: string;
   memo: string;
   deadline: string | undefined; // UTC ISO8601 string or undefined
   imageUris: string[];

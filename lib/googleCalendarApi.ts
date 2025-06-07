@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
+import { useCallback, useMemo } from 'react';
 import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
 import type { Task } from '@/features/tasks/types';
 import type { GoogleEvent } from '@/features/calendar/useGoogleCalendar';
@@ -11,7 +12,7 @@ const API_BASE = 'https://www.googleapis.com/calendar/v3';
 export const useGoogleCalendarApi = () => {
   const { accessToken } = useGoogleAuth();
 
-  const callApi = async <T>(method: string, path: string, body?: any): Promise<T> => {
+  const callApi = useCallback(async <T>(method: string, path: string, body?: any): Promise<T> => {
     if (!accessToken) {
       throw new Error('No access token');
     }
@@ -28,9 +29,9 @@ export const useGoogleCalendarApi = () => {
       throw new Error(`Google API error: ${text}`);
     }
     return res.status === 204 ? ({} as T) : await res.json();
-  };
+  }, [accessToken]);
 
-  const syncEvents = async (): Promise<GoogleEvent[]> => {
+  const syncEvents = useCallback(async (): Promise<GoogleEvent[]> => {
     if (!accessToken) return [];
     let syncToken = await AsyncStorage.getItem(SYNC_TOKEN_KEY);
     const events: GoogleEvent[] = [];
@@ -62,7 +63,7 @@ export const useGoogleCalendarApi = () => {
       }
     } while (pageToken);
     return events;
-  };
+  }, [accessToken, callApi]);
 
   const buildEventBody = (task: Task) => {
     if (!task.deadline) return null;
@@ -77,22 +78,25 @@ export const useGoogleCalendarApi = () => {
     };
   };
 
-  const createEvent = async (task: Task): Promise<string | null> => {
+  const createEvent = useCallback(async (task: Task): Promise<string | null> => {
     const body = buildEventBody(task);
     if (!body) return null;
     const res = await callApi<any>('POST', `calendars/${CALENDAR_ID}/events`, body);
     return res.id as string;
-  };
+  }, [callApi]);
 
-  const updateEvent = async (eventId: string, task: Task): Promise<void> => {
+  const updateEvent = useCallback(async (eventId: string, task: Task): Promise<void> => {
     const body = buildEventBody(task);
     if (!body) return;
     await callApi('PUT', `calendars/${CALENDAR_ID}/events/${eventId}`, body);
-  };
+  }, [callApi]);
 
-  const deleteEvent = async (eventId: string): Promise<void> => {
+  const deleteEvent = useCallback(async (eventId: string): Promise<void> => {
     await callApi('DELETE', `calendars/${CALENDAR_ID}/events/${eventId}`);
-  };
+  }, [callApi]);
 
-  return { syncEvents, createEvent, updateEvent, deleteEvent };
+  return useMemo(
+    () => ({ syncEvents, createEvent, updateEvent, deleteEvent }),
+    [syncEvents, createEvent, updateEvent, deleteEvent]
+  );
 };
