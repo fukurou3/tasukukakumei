@@ -3,10 +3,10 @@ import React from 'react';
 import { View, StyleSheet, Button } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { useプレイヤーデータ } from './フック/useプレイヤーデータ';
+import { useUseplayerdata } from '@/features/growth/hooks/Useplayerdata';
 
 export default function GrowthScreen() {
-  const { isReady, gold, addGold } = useプレイヤーデータ();
+  const { isReady, gold, addGold } = useUseplayerdata();
 
   if (!isReady) {
     return (

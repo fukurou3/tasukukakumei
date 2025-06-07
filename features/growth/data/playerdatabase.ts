@@ -1,6 +1,6 @@
-// features/growth/データ/プレイヤーデータベース.ts
+// features/growth/data/playerdatabase.ts
 import * as SQLite from 'expo-sqlite';
-import { Award, Scene, PlayerItem } from '../型定義';
+import { Award, Scene, PlayerItem } from '@/features/growth/types';
 
 const openDatabase = SQLite.openDatabase ?? (() => {
   console.warn('SQLite is not available in this environment');
