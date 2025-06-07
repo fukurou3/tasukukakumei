@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAllTasksFromDB, saveTaskToDB, initTasksDB } from '@/lib/tasksNative';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnsavedStore } from '@/hooks/useUnsavedStore';

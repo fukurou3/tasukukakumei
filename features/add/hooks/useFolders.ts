@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Task } from '../types';
-import { STORAGE_KEY } from '../constants';
 import { getAllTasksFromDB, initTasksDB } from '@/lib/tasksNative';
 
 export const useFolders = (trigger?: unknown): string[] => {

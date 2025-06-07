@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAllTasksFromDB, saveTaskToDB, initTasksDB } from '@/lib/tasksNative';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';

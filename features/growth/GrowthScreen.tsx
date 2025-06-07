@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAllTasksFromDB, initTasksDB } from '@/lib/tasksNative';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/hooks/ThemeContext';
