@@ -1,4 +1,4 @@
-package com.fukuroulu.app
+package com.fukuroulu.tasukuKAKUMEI
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

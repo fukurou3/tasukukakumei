@@ -5,8 +5,11 @@ export type TaskRecord = {
   [key: string]: any;
 };
 
-const db = SQLite.openDatabase('tasks.db');
-
+const db =
+  'openDatabaseSync' in SQLite
+    ? (SQLite as any).openDatabaseSync('tasks.db')
+    : (SQLite as any).openDatabase('tasks.db');
+    
 const run = <T>(
   callback: (tx: SQLite.SQLTransaction) => void
 ): Promise<T> =>

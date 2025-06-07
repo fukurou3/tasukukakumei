@@ -1,4 +1,4 @@
-package com.fukuroulu.app.db
+package com.fukuroulu.tasukuKAKUMEI.db
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule

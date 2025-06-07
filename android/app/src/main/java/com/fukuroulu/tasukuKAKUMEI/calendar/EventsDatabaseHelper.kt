@@ -1,4 +1,4 @@
-package com.fukuroulu.app.calendar
+package com.fukuroulu.tasukuKAKUMEI.calendar
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase

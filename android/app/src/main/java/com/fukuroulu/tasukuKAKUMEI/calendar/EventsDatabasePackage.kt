@@ -1,4 +1,4 @@
-package com.fukuroulu.app.calendar
+package com.fukuroulu.tasukuKAKUMEI.calendar
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule

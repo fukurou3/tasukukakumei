@@ -1,4 +1,4 @@
-package com.fukuroulu.app
+package com.fukuroulu.tasukuKAKUMEI
 
 import android.app.Application
 import android.content.res.Configuration
@@ -15,8 +15,8 @@ import com.facebook.soloader.SoLoader
 
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
-import com.fukuroulu.app.db.TasksDatabasePackage
-import com.fukuroulu.app.calendar.EventsDatabasePackage
+import com.fukuroulu.tasukuKAKUMEI.db.TasksDatabasePackage
+import com.fukuroulu.tasukuKAKUMEI.calendar.EventsDatabasePackage
 
 class MainApplication : Application(), ReactApplication {
 

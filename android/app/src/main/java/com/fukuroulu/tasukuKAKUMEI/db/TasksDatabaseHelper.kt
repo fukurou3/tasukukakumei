@@ -1,4 +1,4 @@
-package com.fukuroulu.app.db
+package com.fukuroulu.tasukuKAKUMEI.db
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase

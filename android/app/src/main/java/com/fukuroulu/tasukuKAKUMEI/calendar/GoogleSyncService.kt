@@ -1,4 +1,4 @@
-package com.fukuroulu.app.calendar
+package com.fukuroulu.tasukuKAKUMEI.calendar
 
 import android.content.Intent
 import com.facebook.react.HeadlessJsTaskService
