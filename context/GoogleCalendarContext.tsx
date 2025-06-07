@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { registerBackgroundSync, unregisterBackgroundSync } from '../background/GoogleSyncScheduler';
 
 interface CalendarSyncContextType {
   enabled: boolean;
@@ -16,13 +17,22 @@ export const GoogleCalendarProvider = ({ children }: { children: ReactNode }) =>
   useEffect(() => {
     (async () => {
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      setEnabledState(raw === 'true');
+      const init = raw === 'true';
+      setEnabledState(init);
+      if (init) {
+        registerBackgroundSync();
+      }
     })();
   }, []);
 
   const setEnabled = async (v: boolean) => {
     setEnabledState(v);
     await AsyncStorage.setItem(STORAGE_KEY, v ? 'true' : 'false');
+    if (v) {
+      await registerBackgroundSync();
+    } else {
+      await unregisterBackgroundSync();
+    }
   };
 
   return (

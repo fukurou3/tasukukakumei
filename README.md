@@ -27,7 +27,7 @@ You can start developing by editing the files inside the **app** directory. This
 
 ### Google Calendar integration
 
-Events are now synced using the Google Calendar API. Set `EXPO_PUBLIC_GOOGLE_CLIENT_ID` to your OAuth client ID. The app performs background synchronization using a headless task and caches events in a native SQLite database. Only changes since the last sync are fetched by utilizing the API sync token mechanism. When `Googleカレンダー連携` is enabled in the settings screen, events for the selected day will appear above the task list.
+Events are now synced using the Google Calendar API. Set `EXPO_PUBLIC_GOOGLE_CLIENT_ID` to your OAuth client ID. Background synchronization runs automatically via WorkManager (Android) and BGTaskScheduler (iOS) through Expo's background fetch API. Logs are written when the task starts and ends, and errors are reported to the console. Only changes since the last sync are fetched using the API sync token. When `Googleカレンダー連携` is enabled in the settings screen, events for the selected day will appear above the task list.
 
 ## Get a fresh project
 
