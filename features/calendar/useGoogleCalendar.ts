@@ -1,6 +1,12 @@
 // features/calendar/useGoogleCalendar.ts
-import { useState, useEffect } from 'react';
-import dayjs from 'dayjs';
+import { useState, useEffect, useCallback } from 'react'
+import {
+  fetchEvents,
+  insertEvent,
+  updateEvent as apiUpdateEvent,
+  deleteEvent as apiDeleteEvent,
+  type GoogleEventInput,
+} from '@/lib/GoogleCalendarApi'
 
 export type GoogleEvent = {
   id: string;
@@ -11,76 +17,60 @@ export type GoogleEvent = {
 };
 
 export const useGoogleCalendarAllEvents = (enabled: boolean) => {
-  const [events, setEvents] = useState<GoogleEvent[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState<GoogleEvent[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const mapApiEvent = useCallback((item: any): GoogleEvent => {
+    const start = item.start.dateTime || item.start.date
+    const end = item.end.dateTime || item.end.date
+    return {
+      id: item.id,
+      title: item.summary ?? '',
+      start,
+      end,
+      isAllDay: !!item.start.date,
+    }
+  }, [])
+
+  const loadEvents = useCallback(async () => {
+    if (!enabled) {
+      setEvents([])
+      return
+    }
+    setLoading(true)
+    try {
+      const result = await fetchEvents()
+      const parsed = Array.isArray(result.items) ? result.items.map(mapApiEvent) : []
+      setEvents(parsed)
+    } catch {
+      setEvents([])
+    } finally {
+      setLoading(false)
+    }
+  }, [enabled, mapApiEvent])
 
   useEffect(() => {
-    if (!enabled) {
-      setEvents([]);
-      return;
-    }
-    const url = process.env.EXPO_PUBLIC_GOOGLE_CALENDAR_ICS_URL;
-    if (!url) {
-      setEvents([]);
-      return;
-    }
+    loadEvents()
+  }, [loadEvents])
 
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(url);
-        const text = await res.text();
-        const parsed = parseICal(text);
-        setEvents(parsed);
-      } catch {
-        setEvents([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const createEvent = useCallback(async (input: GoogleEventInput) => {
+    const created = await insertEvent(input)
+    const event = mapApiEvent(created)
+    setEvents(prev => [...prev, event])
+    return event
+  }, [mapApiEvent])
 
-    fetchEvents();
-  }, [enabled]);
+  const updateEvent = useCallback(async (id: string, input: GoogleEventInput) => {
+    const updated = await apiUpdateEvent(id, input)
+    const event = mapApiEvent(updated)
+    setEvents(prev => prev.map(e => (e.id === id ? event : e)))
+    return event
+  }, [mapApiEvent])
 
-  return { events, loading };
-};
+  const deleteEvent = useCallback(async (id: string) => {
+    await apiDeleteEvent(id)
+    setEvents(prev => prev.filter(e => e.id !== id))
+  }, [])
 
-export const parseICal = (ics: string): GoogleEvent[] => {
-  const events: GoogleEvent[] = [];
-  const lines = ics.split(/\r?\n/);
-  let current: Partial<GoogleEvent> | null = null;
-  for (const line of lines) {
-    if (line === 'BEGIN:VEVENT') {
-      current = { isAllDay: false };
-    } else if (line === 'END:VEVENT') {
-      if (current && current.id && current.start && current.end && current.title) {
-        events.push(current as GoogleEvent);
-      }
-      current = null;
-    } else if (current) {
-      if (line.startsWith('UID')) {
-        current.id = line.substring(line.indexOf(':') + 1);
-      } else if (line.startsWith('SUMMARY')) {
-        current.title = line.substring(line.indexOf(':') + 1);
-      } else if (line.startsWith('DTSTART')) {
-        const value = line.substring(line.indexOf(':') + 1);
-        current.start = icsDateToISO(value);
-        if (line.includes('VALUE=DATE')) {
-            current.isAllDay = true;
-        }
-      } else if (line.startsWith('DTEND')) {
-        const value = line.substring(line.indexOf(':') + 1);
-        current.end = icsDateToISO(value, current.isAllDay);
-      }
-    }
-  }
-  return events;
-};
-
-const icsDateToISO = (str: string, isAllDayEnd: boolean = false): string => {
-  if (str.length === 8) {
-    const d = dayjs(str, 'YYYYMMDD');
-    return isAllDayEnd ? d.subtract(1, 'day').endOf('day').toISOString() : d.startOf('day').toISOString();
-  }
-  return dayjs(str.replace(/Z$/, ''), 'YYYYMMDDTHHmmss').toISOString();
-};
+  return { events, loading, reload: loadEvents, createEvent, updateEvent, deleteEvent }
+}
