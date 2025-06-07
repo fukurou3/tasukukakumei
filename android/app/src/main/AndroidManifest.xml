@@ -30,5 +30,6 @@
         <data android:scheme="myapp"/>
       </intent-filter>
     </activity>
+    <service android:name="com.fukuroulu.app.calendar.GoogleSyncService" android:exported="false" />
   </application>
 </manifest>
