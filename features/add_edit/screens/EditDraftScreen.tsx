@@ -28,7 +28,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getItem, setItem } from '@/lib/Storage';
 import TasksDatabase from '@/lib/TaskDatabase';
 import uuid from 'react-native-uuid';
 import { Ionicons } from '@expo/vector-icons';
@@ -317,7 +317,7 @@ export default function EditDraftScreen() {
 
   useEffect(() => {
     (async () => {
-      const raw = await AsyncStorage.getItem(DRAFTS_KEY);
+      const raw = await getItem(DRAFTS_KEY);
       if (!raw) return;
       const list = JSON.parse(raw);
       const draft = list.find((d: any) => d.id === draftId);
@@ -412,10 +412,10 @@ export default function EditDraftScreen() {
       customUnit,
       customAmount,
     };
-    const raw = await AsyncStorage.getItem(DRAFTS_KEY);
+    const raw = await getItem(DRAFTS_KEY);
     const drafts = raw ? JSON.parse(raw) : [];
     const filtered = drafts.filter((d: any) => d.id !== draftId);
-    await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify([updatedDraft, ...filtered]));
+    await setItem(DRAFTS_KEY, JSON.stringify([updatedDraft, ...filtered]));
     Toast.show({ type: 'success', text1: t('edit_draft.save_success') });
     resetUnsaved();
     router.replace('/(tabs)/drafts');
@@ -439,10 +439,10 @@ export default function EditDraftScreen() {
     await TasksDatabase.initialize();
     await TasksDatabase.saveTask(newTask as any);
 
-    const draftsRaw = await AsyncStorage.getItem(DRAFTS_KEY);
+    const draftsRaw = await getItem(DRAFTS_KEY);
     const drafts = draftsRaw ? JSON.parse(draftsRaw) : [];
     const kept = drafts.filter((d: any) => d.id !== draftId);
-    await AsyncStorage.setItem(DRAFTS_KEY, JSON.stringify(kept));
+    await setItem(DRAFTS_KEY, JSON.stringify(kept));
 
     Toast.show({ type: 'success', text1: t('edit_draft.convert_success') });
     resetUnsaved();
