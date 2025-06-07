@@ -1,6 +1,6 @@
 // app/features/add/components/DeadlineSettingModal/index.tsx
 import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
-import { View, TouchableOpacity, Text, useWindowDimensions, Platform, InteractionManager } from 'react-native';
+import { View, TouchableOpacity, Text, useWindowDimensions, Platform } from 'react-native';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TabView, SceneRendererProps, TabBarProps } from 'react-native-tab-view';
@@ -72,39 +72,35 @@ export const DeadlineSettingModal: React.FC<DeadlineSettingModalProps> = ({
 
 
   useEffect(() => {
-    if (visible) {
-      InteractionManager.runAfterInteractions(() => {
-        const defaults = getDefaultInitialSettings();
-        let effectiveInitialSettings = { ...defaults };
+    const defaults = getDefaultInitialSettings();
+    let effectiveInitialSettings = { ...defaults };
 
-        if (initialSettings) {
-           effectiveInitialSettings = {
-            ...defaults,
-            taskDeadlineDate: initialSettings.taskDeadlineDate,
-            taskDeadlineTime: initialSettings.taskDeadlineTime,
-            isTaskDeadlineTimeEnabled: initialSettings.isTaskDeadlineTimeEnabled,
-            repeatFrequency: initialSettings.repeatFrequency,
-            repeatStartDate: initialSettings.repeatStartDate || defaults.repeatStartDate,
-            repeatDaysOfWeek: initialSettings.repeatDaysOfWeek,
-            repeatEnds: initialSettings.repeatEnds,
-            isExcludeHolidays: initialSettings.isExcludeHolidays ?? defaults.isExcludeHolidays,
-            customIntervalValue: initialSettings.customIntervalValue || defaults.customIntervalValue,
-            customIntervalUnit: initialSettings.customIntervalUnit || defaults.customIntervalUnit,
-          };
-        }
-        setSettings(effectiveInitialSettings);
-
-        if (effectiveInitialSettings.repeatFrequency) {
-            setActiveTabIndex(1);
-        } else {
-            setActiveTabIndex(0);
-        }
-      });
-    } else {
-        setValidationErrorModalVisible(false);
-        setValidationErrorMessage('');
+    if (initialSettings) {
+      effectiveInitialSettings = {
+        ...defaults,
+        taskDeadlineDate: initialSettings.taskDeadlineDate,
+        taskDeadlineTime: initialSettings.taskDeadlineTime,
+        isTaskDeadlineTimeEnabled: initialSettings.isTaskDeadlineTimeEnabled,
+        repeatFrequency: initialSettings.repeatFrequency,
+        repeatStartDate: initialSettings.repeatStartDate || defaults.repeatStartDate,
+        repeatDaysOfWeek: initialSettings.repeatDaysOfWeek,
+        repeatEnds: initialSettings.repeatEnds,
+        isExcludeHolidays: initialSettings.isExcludeHolidays ?? defaults.isExcludeHolidays,
+        customIntervalValue: initialSettings.customIntervalValue || defaults.customIntervalValue,
+        customIntervalUnit: initialSettings.customIntervalUnit || defaults.customIntervalUnit,
+      };
     }
-  }, [visible, initialSettings]);
+
+    setSettings(effectiveInitialSettings);
+    setActiveTabIndex(effectiveInitialSettings.repeatFrequency ? 1 : 0);
+  }, [initialSettings]);
+
+  useEffect(() => {
+    if (!visible) {
+      setValidationErrorModalVisible(false);
+      setValidationErrorMessage('');
+    }
+  }, [visible]);
 
   const updateSettingsCallback = useCallback(
     <K extends keyof DeadlineSettings>(key: K, value: DeadlineSettings[K]) => {
