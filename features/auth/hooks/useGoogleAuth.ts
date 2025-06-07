@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google'; // ここはそのまま
 import * as SecureStore from 'expo-secure-store';
+import { makeRedirectUri } from 'expo-auth-session';
 
 // Webブラウザの結果をAuthSessionが処理できるようにします
 WebBrowser.maybeCompleteAuthSession();
@@ -20,10 +21,16 @@ export const useGoogleAuth = () => {
   const [user, setUser] = useState<any>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
+const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_EXPO_CLIENT_ID, // Expo Go用
+    androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID, // Android実機ビルド用
     scopes: ['https://www.googleapis.com/auth/calendar'],
+    redirectUri: makeRedirectUri({
+      scheme: 'myapp', // app.config.js の scheme と合わせる
+      path: 'auth',    // 任意のパス
+    }),
   });
+
 
   useEffect(() => {
     // 保存された認証情報を読み込む
