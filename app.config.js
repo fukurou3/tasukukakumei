@@ -46,7 +46,8 @@ export default {
           backgroundColor: "#ffffff"
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-sqlite"
     ],
     web: {
       bundler: "metro",
