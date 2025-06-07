@@ -1,7 +1,7 @@
 // features/auth/hooks/useGoogleAuth.ts
 import { useState, useEffect } from 'react';
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+import * as Google from 'expo-auth-session/providers/google'; // ここはそのまま
 import * as SecureStore from 'expo-secure-store';
 
 // Webブラウザの結果をAuthSessionが処理できるようにします
@@ -21,8 +21,8 @@ export const useGoogleAuth = () => {
   const [isSigningIn, setIsSigningIn] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
-    iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
+    // ★ ここを expoClientId から clientId に変更します ★
+    clientId: process.env.EXPO_PUBLIC_EXPO_CLIENT_ID, // ウェブアプリケーションのクライアントIDを設定
     scopes: ['https://www.googleapis.com/auth/calendar'],
   });
 
