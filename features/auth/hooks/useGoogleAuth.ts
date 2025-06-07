@@ -21,8 +21,7 @@ export const useGoogleAuth = () => {
   const [isSigningIn, setIsSigningIn] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    // ★ ここを expoClientId から clientId に変更します ★
-    clientId: process.env.EXPO_PUBLIC_EXPO_CLIENT_ID, // ウェブアプリケーションのクライアントIDを設定
+    androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
     scopes: ['https://www.googleapis.com/auth/calendar'],
   });
 
