@@ -390,6 +390,25 @@
   "growth": {
     "title": "成長",
     "description": "タスクを完了すると木が育ちます",
-    "completed": "完了タスク数: {{count}}"
+    "completed": "完了タスク数: {{count}}",
+    "select_theme": "テーマを選択",
+    "current_theme": "現在のテーマ",
+    "current_points": "現在の成長ポイント",
+    "progress_to_next_stage": "次の段階まであと {{pointsNeeded}} ポイント ({{nextStage}})",
+    "max_stage_reached": "最大成長段階に到達しました！",
+    "stage_seed": "種",
+    "stage_sprout": "芽生え",
+    "stage_young": "若木",
+    "stage_mature": "成木",
+    "stage_ancient": "老木",
+    "focus_mode_duration": "集中モード時間",
+    "start_focus_mode": "集中モード開始",
+    "stop_focus_mode_title": "集中モードを終了しますか？",
+    "stop_focus_mode_message": "集中モードを途中で終了すると、今回の集中時間は成長ポイントになりません。",
+    "focus_mode_completed_title": "集中モード完了！",
+    "focus_mode_completed_message": "{{minutes}}分の集中モードが完了し、{{points}}ポイント獲得しました！",
+    "store": "ストア",
+    "gacha": "ガチャ",
+    "gallery": "図鑑"
   }
 }
