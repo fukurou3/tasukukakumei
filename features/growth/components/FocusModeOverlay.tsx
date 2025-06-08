@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   visible: boolean;
@@ -36,6 +37,7 @@ export default function FocusModeOverlay({
   onToggleMute,
 }: Props) {
   if (!visible) return null;
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const size = width * 0.6;
   const strokeWidth = 10;
@@ -78,15 +80,15 @@ export default function FocusModeOverlay({
         <View style={styles.controls}>
           {focusModeStatus === 'running' ? (
             <TouchableOpacity onPress={onPause} style={styles.controlButton}>
-              <Ionicons name="pause-circle-outline" size={50} color={subColor} />
+              <Text style={styles.controlText}>{t('growth.pause')}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={onResume} style={styles.controlButton}>
-              <Ionicons name="play-circle-outline" size={50} color={subColor} />
+              <Text style={styles.controlText}>{t('growth.resume')}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={onStop} style={styles.controlButton}>
-            <Ionicons name="stop-circle-outline" size={50} color={isDark ? '#FF6B6B' : '#D32F2F'} />
+            <Text style={styles.controlText}>{t('growth.end')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -118,6 +120,11 @@ const styles = StyleSheet.create({
   },
   controlButton: {
     padding: 10,
+  },
+  controlText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   audioButton: {
     position: 'absolute',
