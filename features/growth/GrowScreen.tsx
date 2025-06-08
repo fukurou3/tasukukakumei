@@ -171,7 +171,7 @@ export default function GrowthScreen() {
     );
   }
 
-  const PLACEHOLDER_IMAGE_FALLBACK = require('../../../assets/images/growth/placeholder.png');
+  const PLACEHOLDER_IMAGE_FALLBACK = require('../../assets/images/growth/placeholder.png');
   const currentThemeImage = currentThemeAsset?.image || PLACEHOLDER_IMAGE_FALLBACK;
 
   return (
