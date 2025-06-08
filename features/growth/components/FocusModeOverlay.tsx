@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Canvas, Rect } from '@shopify/react-native-skia';
+import { Canvas, Path, Skia } from '@shopify/react-native-skia';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
@@ -35,14 +35,26 @@ export default function FocusModeOverlay({
   onToggleMute,
 }: Props) {
   if (!visible) return null;
+  const size = width * 0.6;
+  const strokeWidth = 10;
+  const radius = size / 2 - strokeWidth / 2;
+  const progress = timeRemaining / focusDurationSec;
+  const progressPath = React.useMemo(() => {
+    const start = -Math.PI / 2;
+    const sweep = 2 * Math.PI * progress;
+    const rect = Skia.XYWHRect(strokeWidth / 2, strokeWidth / 2, radius * 2, radius * 2);
+    const path = Skia.Path.Make();
+    path.addArc(rect, (start * 180) / Math.PI, (sweep * 180) / Math.PI);
+    return path;
+  }, [progress, radius]);
   return (
     <View style={styles.overlay}>
       <TouchableOpacity onPress={onToggleMute} style={styles.audioButton}>
         <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color="#fff" />
       </TouchableOpacity>
       <View style={styles.timerContainer}>
-        <Canvas style={{ width: width * 0.6, height: 10, marginBottom: 20 }}>
-          <Rect x={0} y={0} width={width * 0.6 * (timeRemaining / focusDurationSec)} height={10} color={subColor} />
+        <Canvas style={[styles.progressCircle, { width: size, height: size }] }>
+          <Path path={progressPath} color="#fff" style="stroke" strokeWidth={strokeWidth} strokeCap="round" />
         </Canvas>
         <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
         <View style={styles.controls}>
@@ -73,20 +85,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   timerContainer: {
-    backgroundColor: '#fff',
-    padding: 30,
-    borderRadius: 15,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 10,
+    padding: 30,
   },
   timerText: {
     fontSize: 60,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#fff',
     marginBottom: 20,
   },
   controls: {
@@ -100,5 +105,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 20,
     left: 20,
+  },
+  progressCircle: {
+    marginBottom: 20,
   },
 });
