@@ -39,7 +39,7 @@ export default function DurationPickerModal({
         <WheelPicker options={MINUTE_SECOND_OPTIONS} selectedIndex={seconds} onChange={onChangeSeconds} itemHeight={40} visibleRest={1} />
         <Text style={styles.label}>{t('common.seconds_label')}</Text>
       </View>
-      <Pressable style={[styles.button, styles.confirmButton]} onPress={onConfirm}>
+      <Pressable style={styles.button} onPress={onConfirm}>
         <Text style={styles.buttonText}>{t('growth.start_focus_mode')}</Text>
       </Pressable>
     </View>
@@ -50,7 +50,6 @@ const styles = StyleSheet.create({
   container: { padding: 20, backgroundColor: '#fff', borderRadius: 10 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 10 },
   label: { marginHorizontal: 5, fontSize: 16 },
-  button: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, alignItems: 'center', marginTop: 10 },
-  confirmButton: { backgroundColor: '#4CAF50' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  button: { paddingVertical: 12, paddingHorizontal: 20, alignItems: 'center', marginTop: 10 },
+  buttonText: { color: '#4CAF50', fontSize: 16, fontWeight: 'bold' },
 });

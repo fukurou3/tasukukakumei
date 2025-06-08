@@ -13,6 +13,7 @@ export const THEMES: Theme[] = [
     name: '森の精霊',
     description: '森の穏やかな精霊が宿るテーマです。',
     locked: false,
+    actionTabBackground: 'black',
     growthStages: {
       seed: { image: PLACEHOLDER_IMAGE },
       sprout: { image: PLACEHOLDER_IMAGE },
@@ -26,6 +27,7 @@ export const THEMES: Theme[] = [
     name: '海の守護者',
     description: '深海の力が宿るテーマです。',
     locked: true,
+    actionTabBackground: 'black',
     growthStages: {
       seed: { image: PLACEHOLDER_IMAGE },
       sprout: { image: PLACEHOLDER_IMAGE },
@@ -39,6 +41,7 @@ export const THEMES: Theme[] = [
     name: 'デフォルトテーマ',
     description: '画像がまだ設定されていないテーマです。',
     locked: false,
+    actionTabBackground: 'white',
     growthStages: {
       seed: { image: PLACEHOLDER_IMAGE },
       sprout: { image: PLACEHOLDER_IMAGE },
