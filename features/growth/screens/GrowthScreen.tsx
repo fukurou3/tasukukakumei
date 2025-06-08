@@ -170,8 +170,9 @@ export default function GrowthScreen() {
     setFocusDurationSec(totalSec);
     setTimeRemaining(totalSec);
     setDurationPickerVisible(false);
-    startFocusMode();
-  }, [tempHours, tempMinutes, tempSeconds, startFocusMode]);
+    setFocusModeActive(true);
+    setFocusModeStatus('idle');
+  }, [tempHours, tempMinutes, tempSeconds]);
 
   const pauseFocusMode = useCallback(() => {
     if (timerIntervalRef.current !== null) {
@@ -282,6 +283,7 @@ export default function GrowthScreen() {
         timeRemaining={timeRemaining}
         focusDurationSec={focusDurationSec}
         formatTime={formatTime}
+        onStart={startFocusMode}
         onPause={pauseFocusMode}
         onResume={resumeFocusMode}
         onStop={stopFocusMode}
