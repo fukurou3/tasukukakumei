@@ -1,0 +1,15 @@
+{
+  "themeId": "plateau",
+  "nameKey": "growth.themes.plateau",
+  "growth": [
+    {
+      "level": 1,
+      "image": "image_1.png"
+    },
+    {
+      "level": 2,
+      "image": "image_2.png"
+    }
+  ],
+  "bgm": "BGM.mp3"
+}

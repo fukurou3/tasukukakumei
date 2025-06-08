@@ -1,4 +1,6 @@
-// features\growth\types.ts
+// features/growth/types.ts
+
+import { ThemeId } from '@/features/growth/theme.config';
 
 export interface Scene {
   id: string;
@@ -20,4 +22,12 @@ export interface PlayerItem {
   name: string;
   description: string;
   quantity: number;
+}
+
+// プレイヤーのテーマごとの進行状況
+export interface PlayerThemeState {
+  id: ThemeId;
+  level: number;
+  exp: number;
+  expToNextLevel: number;
 }

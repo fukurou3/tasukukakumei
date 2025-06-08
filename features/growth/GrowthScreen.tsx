@@ -1,49 +1,89 @@
 // features/growth/GrowthScreen.tsx
+
 import React from 'react';
-import { View, StyleSheet, Button } from 'react-native';
+import { View, StyleSheet, Button, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { usePlayerData } from '@/features/growth/hooks/UsePlayerData';
+import { useTheme } from '@/features/growth/hooks/useTheme';
+import { AVAILABLE_THEMES } from '@/features/growth/theme.config';
+import { useTranslation } from 'react-i18next';
+import { SceneViewer } from './component/SceneViewer';
 
 export default function GrowthScreen() {
-  const { isReady, gold, addGold } = usePlayerData();
+  const { t } = useTranslation();
+  const { isReady: isPlayerDataReady, themes, selectedThemeId, setSelectedThemeId, addExp } = usePlayerData();
+  const { config: themeConfig, loading: isThemeLoading, error: themeError } = useTheme(selectedThemeId);
 
-  if (!isReady) {
+  const playerData = themes[selectedThemeId];
+
+  if (!isPlayerDataReady || isThemeLoading) {
     return (
-      <ThemedView style={styles.container}>
-        <ThemedText>読み込み中...</ThemedText>
+      <ThemedView style={styles.center}>
+        <ActivityIndicator />
+        <ThemedText>{t('common.loading')}</ThemedText>
       </ThemedView>
     );
   }
 
+  if (themeError || !playerData || !themeConfig) {
+    return (
+      <ThemedView style={styles.center}>
+        <ThemedText>Error loading theme.</ThemedText>
+        {themeError && <Text>{themeError.message}</Text>}
+      </ThemedView>
+    );
+  }
+  
+  const expPercentage = (playerData.exp / playerData.expToNextLevel) * 100;
+
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">成長の世界</ThemedText>
+      <View style={styles.themeSelector}>
+        {AVAILABLE_THEMES.map(id => (
+            <TouchableOpacity 
+              key={id} 
+              onPress={() => setSelectedThemeId(id)} 
+              style={[styles.themeButton, id === selectedThemeId && styles.themeButtonSelected]}
+            >
+                <Text style={id === selectedThemeId ? styles.themeButtonTextSelected : styles.themeButtonText}>
+                  {t(themeConfig.nameKey)}
+                </Text>
+            </TouchableOpacity>
+        ))}
+      </View>
+      
+      <SceneViewer themeConfig={themeConfig} playerThemeState={playerData} />
 
       <View style={styles.statusContainer}>
-        <ThemedText style={styles.goldText}>所持ゴールド: {gold} G</ThemedText>
+        <ThemedText type="title">{t(themeConfig.nameKey)}</ThemedText>
+        <ThemedText style={styles.levelText}>
+          {t('growth.level', { level: playerData.level })}
+        </ThemedText>
+        <View style={styles.expBarContainer}>
+          <View style={[styles.expBar, { width: `${expPercentage}%` }]} />
+        </View>
+        <ThemedText style={styles.expText}>
+          {playerData.exp} / {playerData.expToNextLevel} EXP
+        </ThemedText>
       </View>
-
-      <Button title="ゴールドを10増やす" onPress={() => addGold(10)} />
-
+      
+      <Button title={t('growth.add_exp_button', { amount: 25 })} onPress={() => addExp(selectedThemeId, 25)} />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 20,
-  },
-  statusContainer: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
-  goldText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  }
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center'},
+    container: { flex: 1, alignItems: 'center', justifyContent: 'space-between', padding: 20 },
+    themeSelector: { flexDirection: 'row', gap: 10, paddingBottom: 20 },
+    themeButton: { padding: 10, borderRadius: 5, backgroundColor: '#eee' },
+    themeButtonSelected: { backgroundColor: '#ccc' },
+    themeButtonText: { color: '#333' },
+    themeButtonTextSelected: { color: '#000', fontWeight: 'bold' },
+    statusContainer: { width: '100%', alignItems: 'center', gap: 10, paddingVertical: 20 },
+    levelText: { fontSize: 24, fontWeight: 'bold' },
+    expBarContainer: { width: '80%', height: 20, backgroundColor: '#e0e0e0', borderRadius: 10, overflow: 'hidden' },
+    expBar: { height: '100%', backgroundColor: '#4caf50', borderRadius: 10 },
+    expText: { fontSize: 16 }
 });
