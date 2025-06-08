@@ -103,13 +103,14 @@ export default function CalendarPage() {
     return eventCache[key] || processMultiDayEvents(allMonthEvents, displayMonth);
   }, [eventCache, allMonthEvents, displayMonth]);
 
+  // キャッシュに存在しない月のレイアウトのみを生成
   useEffect(() => {
     const key = displayMonth.format('YYYY-MM');
     if (!eventCache[key]) {
       const layout = processMultiDayEvents(allMonthEvents, displayMonth);
       setEventCache(prev => ({ ...prev, [key]: layout }));
     }
-  }, [eventCache, allMonthEvents, displayMonth]);
+  }, [allMonthEvents, displayMonth]);
 
   useEffect(() => {
     const prev = displayMonth.subtract(1, 'month');
