@@ -1,5 +1,5 @@
 // features/calendar/components/SkiaCalendar.tsx
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, useWindowDimensions, StyleSheet } from 'react-native';
 import { Canvas, Path, Text, useFont, Image, useImage, Group, Rect, RoundedRect, Skia } from '@shopify/react-native-skia';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import type { Task } from '@/features/tasks/types';
 import type { EventLayout } from '../utils';
+import { FontSizeContext, type FontSizeKey } from '@/context/FontSizeContext';
 
 const FONT_PATH_MEDIUM = require('@/assets/fonts/NotoSansJP-Medium.ttf');
 const FONT_PATH_REGULAR = require('@/assets/fonts/NotoSansJP-Regular.ttf');
@@ -23,6 +24,12 @@ const TASK_BAR_MARGIN = 3;
 const EVENT_BAR_HEIGHT = 20;
 const EVENT_BAR_Y_OFFSET = 24;
 const TASK_TITLE_BOX_HEIGHT = 16;
+const CALENDAR_FONT_SIZES: Record<FontSizeKey, number> = {
+  small: 12,
+  normal: 14,
+  medium: 16,
+  large: 18,
+};
 
 interface SkiaCalendarProps {
   date: dayjs.Dayjs;
@@ -57,12 +64,13 @@ export default function SkiaCalendar({
   theme,
 }: SkiaCalendarProps) {
   const { t, i18n } = useTranslation();
+  const { fontSizeKey } = useContext(FontSizeContext);
   const { width } = useWindowDimensions();
   const calendarWidth = width - PADDING * 2;
   const cellWidth = calendarWidth / 7;
   const cellHeight = showTaskTitles ? cellWidth * 1.5 : cellWidth; // 大表示時は縦長に
 
-  const font = useFont(FONT_PATH_MEDIUM, 14);
+  const font = useFont(FONT_PATH_MEDIUM, CALENDAR_FONT_SIZES[fontSizeKey]);
   const eventFont = useFont(FONT_PATH_REGULAR, 10);
   const skiaImage = backgroundImage ? useImage(backgroundImage) : null;
 
