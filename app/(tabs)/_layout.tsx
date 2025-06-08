@@ -1,7 +1,9 @@
 // app/(tabs)/_layout.tsx
 
-import React, { useContext } from 'react';
+import React, { useContext, useCallback } from 'react';
 import { Tabs } from 'expo-router';
+import { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
+import { RouteProp, ParamListBase } from '@react-navigation/native'; // 1. この行を追加
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SelectionProvider, useSelection } from '../../features/tasks/context';
@@ -25,72 +27,75 @@ function InnerTabs() {
   };
 
   const inactiveColor = isDark ? '#CCCCCC' : '#000000';
+  
+  // 2. screenOptionsに渡す関数をuseCallbackでラップします
+  const screenOptions = useCallback(({ route }) => {
+    return {
+      headerShown: false,
+      tabBarStyle: {
+        height: isSelecting ? 0 : TAB_HEIGHT + (insets.bottom > 0 ? insets.bottom : 0),
+        paddingBottom: isSelecting ? 0 : insets.bottom,
+        paddingTop: isSelecting ? 0 : 0,
+        backgroundColor: isDark ? '#121212' : '#f2f2f2',
+        borderTopWidth: 1,
+        borderColor: isDark ? '#555' : '#CCC',
+        overflow: 'hidden' as 'hidden',
+        width: '100%' as const,
+      },
+      tabBarLabelPosition: 'below-icon' as const,
+      tabBarIcon: ({ focused }: { focused: boolean }) => {
+        let iconName: keyof typeof Ionicons.glyphMap = 'ellipse-outline';
+        if (route.name === 'calendar/index') {
+          iconName = 'calendar-outline';
+        } else if (route.name === 'tasks/index') {
+          iconName = 'list-outline';
+        } else if (route.name === 'growth/index') {
+          iconName = 'leaf-outline';
+        } else if (route.name === 'settings/index') {
+          iconName = 'settings-outline';
+        }
+        return (
+          <Ionicons
+            name={iconName}
+            size={26}
+            color={focused ? subColor : inactiveColor}
+          />
+        );
+      },
+      tabBarLabel: ({ focused }: { focused: boolean }) => {
+        let label = '';
+        if (route.name === 'calendar/index') {
+          label = 'カレンダー';
+        } else if (route.name === 'tasks/index') {
+          label = 'タスク一覧';
+        } else if (route.name === 'growth/index') {
+          label = '成長';
+        } else if (route.name === 'settings/index') {
+          label = '設定';
+        }
+        return (
+          <Text
+            style={{
+              fontSize: fontSizeMap[fontSizeKey] ?? 12,
+              color: focused ? subColor : inactiveColor,
+              textAlign: 'center',
+              marginTop: 2,
+            }}
+          >
+            {label}
+          </Text>
+        );
+      },
+    };
+  // 3. 依存配列に関数が依存している全ての変数を入れます
+  }, [isSelecting, insets.bottom, isDark, subColor, inactiveColor, fontSizeKey]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Tabs
-          screenOptions={({ route }) => {
-            return {
-              headerShown: false,
-              tabBarStyle: {
-                height: isSelecting
-                  ? 0
-                  : TAB_HEIGHT + (insets.bottom > 0 ? insets.bottom : 0),
-                paddingBottom: isSelecting ? 0 : insets.bottom,                
-                paddingTop: isSelecting ? 0 : 0,
-                backgroundColor: isDark ? '#121212' : '#f2f2f2',
-                borderTopWidth: 1,
-                borderColor: isDark ? '#555' : '#CCC',
-                overflow: 'hidden',
-                width: '100%',
-              },
-              tabBarLabelPosition: 'below-icon',
-              tabBarIcon: ({ focused }) => {
-                let iconName: keyof typeof Ionicons.glyphMap = 'ellipse-outline';
-                if (route.name === 'calendar/index') {
-                  iconName = 'calendar-outline';
-                } else if (route.name === 'tasks/index') {
-                  iconName = 'list-outline';
-                } else if (route.name === 'growth/index') {
-                  iconName = 'leaf-outline';
-                } else if (route.name === 'settings/index') {
-                  iconName = 'settings-outline';
-                }
-                return (
-                  <Ionicons
-                    name={iconName}
-                    size={26}
-                    color={focused ? subColor : inactiveColor}
-                  />
-                );
-              },
-              tabBarLabel: ({ focused }) => {
-                let label = '';
-                if (route.name === 'calendar/index') {
-                  label = 'カレンダー';
-                } else if (route.name === 'tasks/index') {
-                  label = 'タスク一覧';
-                } else if (route.name === 'growth/index') {
-                  label = '成長';
-                } else if (route.name === 'settings/index') {
-                  label = '設定';
-                }
-                return (
-                  <Text
-                    style={{
-                      fontSize: fontSizeMap[fontSizeKey] ?? 12,
-                      color: focused ? subColor : inactiveColor,
-                      textAlign: 'center',
-                      marginTop: 2,
-                    }}
-                  >
-                    {label}
-                  </Text>
-                );
-              },
-            };
-          }}
+          // 4. 作成したscreenOptions関数を渡します
+          screenOptions={screenOptions}
         >
           {/* ✅ 表示するメインタブ */}
           <Tabs.Screen name="calendar/index" />
@@ -99,7 +104,7 @@ function InnerTabs() {
           <Tabs.Screen name="settings/index" />
 
           {/* ✅ 非表示にしたいルートたち */}
-          {[ 
+          {[
             'settings/repeating-tasks',
             'settings/language',
             'add/index',
