@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Image } from 'react-native';
-import { useSceneState } from '../hooks/useSceneState';
+import { useSceneState } from '../hooks/sceneState';
 
 const scenes: Record<string, any> = {
   'Silent Forest': require('../assets/scene/Silent Forest/画像.png'),
