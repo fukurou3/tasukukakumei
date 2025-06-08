@@ -27,6 +27,13 @@ jest.mock('expo-network', () => ({
   getNetworkStateAsync: jest.fn().mockResolvedValue({ isConnected: true }),
 }));
 
+jest.mock('expo-background-timer', () => ({
+  bgSetInterval: jest.fn(() => 1),
+  bgClearInterval: jest.fn(),
+  enableBackgroundExecution: jest.fn(),
+  disableBackgroundExecution: jest.fn(),
+}));
+
 jest.mock('@shopify/react-native-skia', () => ({
   Canvas: () => null,
   Image: () => null,
