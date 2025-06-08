@@ -220,8 +220,7 @@ export default function GrowthScreen() {
     setFocusModeStatus('idle');
     setFocusModeActive(false);
     setTimeRemaining(focusDurationSec);
-    showDurationPicker();
-  }, [focusDurationSec, showDurationPicker]);
+  }, [focusDurationSec]);
 
   const handleFocusModeCompletion = useCallback(() => {
     if (notificationIdRef.current) {
