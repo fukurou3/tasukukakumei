@@ -14,7 +14,7 @@ import TasksDatabase from '@/lib/TaskDatabase';
 import { useFocusEffect, useRouter } from 'expo-router';
 import WheelPicker from 'react-native-wheely';
 import { Canvas, Rect } from '@shopify/react-native-skia';
-import { bgSetInterval, bgClearInterval, enableBackgroundExecution, disableBackgroundExecution } from 'expo-background-timer';
+import * as Notifications from 'expo-notifications';
 
 
 type FocusModeStatus = 'idle' | 'running' | 'paused';
@@ -62,6 +62,8 @@ export default function GrowthScreen() {
   
   // ここを修正: NodeJS.Timeoutの代わりに ReturnType<typeof setInterval> を使用
   const timerIntervalRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const notificationIdRef = useRef<string | null>(null);
 
   // GrowthScreenにフォーカスされた時にタスクを再読み込み
   useFocusEffect(
@@ -100,15 +102,13 @@ export default function GrowthScreen() {
   // 集中モード関連のロジック
   useEffect(() => {
     if (focusModeStatus === 'running') {
-      enableBackgroundExecution();
-      timerIntervalRef.current = bgSetInterval(() => {
+      timerIntervalRef.current = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
             if (timerIntervalRef.current !== null) {
-              bgClearInterval(timerIntervalRef.current);
+              clearInterval(timerIntervalRef.current);
               timerIntervalRef.current = null;
             }
-            disableBackgroundExecution();
             setFocusModeStatus('idle');
             setFocusModeActive(false);
             handleFocusModeCompletion();
@@ -119,17 +119,15 @@ export default function GrowthScreen() {
       }, 1000);
     } else {
       if (timerIntervalRef.current !== null) {
-        bgClearInterval(timerIntervalRef.current);
+        clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
       }
-      disableBackgroundExecution();
     }
     return () => {
       if (timerIntervalRef.current !== null) {
-        bgClearInterval(timerIntervalRef.current);
+        clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
       }
-      disableBackgroundExecution();
     };
   }, [focusModeStatus, focusDuration, selectedThemeId, addGrowthPoints, t]);
 
@@ -143,10 +141,27 @@ export default function GrowthScreen() {
 
 
   const startFocusMode = useCallback(() => {
+    startTimeRef.current = Date.now();
+    if (notificationIdRef.current) {
+      Notifications.cancelScheduledNotificationAsync(notificationIdRef.current).catch(() => {});
+      notificationIdRef.current = null;
+    }
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: t('growth.focus_mode_completed_title'),
+        body: t('growth.focus_mode_completed_message', {
+          minutes: focusDuration,
+          points: focusDuration * GROWTH_POINTS_PER_FOCUS_MINUTE,
+        }),
+      },
+      trigger: { seconds: focusDuration * 60 },
+    }).then((id) => {
+      notificationIdRef.current = id;
+    });
     setFocusModeActive(true);
     setFocusModeStatus('running');
     setTimeRemaining(focusDuration * 60);
-  }, [focusDuration]);
+  }, [focusDuration, t]);
 
   const showDurationPicker = useCallback(() => {
     if (FOCUS_DURATION_OPTIONS.some(o => o.value === focusDuration)) {
@@ -164,25 +179,55 @@ export default function GrowthScreen() {
   }, [tempFocusDuration, startFocusMode]);
 
   const pauseFocusMode = useCallback(() => {
+    if (timerIntervalRef.current !== null) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    if (notificationIdRef.current) {
+      Notifications.cancelScheduledNotificationAsync(notificationIdRef.current).catch(() => {});
+      notificationIdRef.current = null;
+    }
     setFocusModeStatus('paused');
   }, []);
 
   const resumeFocusMode = useCallback(() => {
+    startTimeRef.current = Date.now();
+    if (notificationIdRef.current) {
+      Notifications.cancelScheduledNotificationAsync(notificationIdRef.current).catch(() => {});
+      notificationIdRef.current = null;
+    }
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: t('growth.focus_mode_completed_title'),
+        body: t('growth.focus_mode_completed_message', {
+          minutes: Math.ceil(timeRemaining / 60),
+          points: focusDuration * GROWTH_POINTS_PER_FOCUS_MINUTE,
+        }),
+      },
+      trigger: { seconds: timeRemaining },
+    }).then((id) => { notificationIdRef.current = id; });
     setFocusModeStatus('running');
-  }, []);
+  }, [timeRemaining, focusDuration, t]);
 
   const toggleMute = useCallback(() => {
     setMuted(prev => !prev);
   }, []);
 
-   const stopFocusMode = useCallback(() => {
+  const stopFocusMode = useCallback(() => {
     Alert.alert( // Alertが正しくインポートされたので使用可能
       t('growth.stop_focus_mode_title'),
       t('growth.stop_focus_mode_message'),
       [
         { text: t('common.cancel'), style: 'cancel' },
         { text: t('common.ok'), onPress: () => {
-          if (timerIntervalRef.current) clearInterval(timerIntervalRef.current); // 型アサーションを削除
+          if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+          }
+          if (notificationIdRef.current) {
+            Notifications.cancelScheduledNotificationAsync(notificationIdRef.current).catch(() => {});
+            notificationIdRef.current = null;
+          }
           setFocusModeStatus('idle');
           setFocusModeActive(false);
           setTimeRemaining(focusDuration * 60); // Reset timer
@@ -192,6 +237,10 @@ export default function GrowthScreen() {
   }, [focusDuration, t]);
 
   const handleFocusModeCompletion = useCallback(() => {
+    if (notificationIdRef.current) {
+      Notifications.cancelScheduledNotificationAsync(notificationIdRef.current).catch(() => {});
+      notificationIdRef.current = null;
+    }
     Vibration.vibrate();
     const pointsEarned = focusDuration * GROWTH_POINTS_PER_FOCUS_MINUTE; // 正しくアクセスできる
     addGrowthPoints(selectedThemeId!, pointsEarned);
