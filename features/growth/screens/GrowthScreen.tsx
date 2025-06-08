@@ -1,7 +1,7 @@
 // features/growth/GrowthScreen.tsx
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Modal, Pressable, Animated as RNAnimated, Vibration, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated as RNAnimated, Vibration, Alert, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -9,26 +9,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useGrowth } from './hooks/useGrowth';
 import { GROWTH_THRESHOLDS, GROWTH_POINTS_PER_FOCUS_MINUTE } from './themes'; // GROWTH_POINTS_PER_FOCUS_MINUTE を追加
 import { Theme, GrowthStage } from './themes/types'; // types.tsからThemeとGrowthStageを直接インポート
-import { Task } from '@/features/add/types';
-import TasksDatabase from '@/lib/TaskDatabase';
-import { useFocusEffect } from 'expo-router';
-import WheelPicker from 'react-native-wheely';
-import { Canvas, Rect } from '@shopify/react-native-skia';
+import { useFocusEffect, useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
+import GrowthDisplay from '../components/GrowthDisplay';
+import ThemeSelectionModal from '../components/ThemeSelectionModal';
+import MenuModal from '../components/MenuModal';
+import DurationPickerModal from '../components/DurationPickerModal';
+import FocusModeOverlay from '../components/FocusModeOverlay';
 
 
 type FocusModeStatus = 'idle' | 'running' | 'paused';
-
-const HOURS_OPTIONS = Array.from({ length: 24 }, (_, i) => `${i}`);
-const MINUTE_SECOND_OPTIONS = Array.from({ length: 60 }, (_, i) => `${i}`);
-
-const START_GROWTH_POINT = 0; // 開始時の成長ポイント
 
 export default function GrowthScreen() {
   const { colorScheme, subColor } = useAppTheme();
   const isDark = colorScheme === 'dark';
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
+  const router = useRouter();
 
   const {
     loading,
@@ -270,176 +267,65 @@ export default function GrowthScreen() {
 
   // 画像アセットへの参照は `@` エイリアスを利用
   const PLACEHOLDER_IMAGE_FALLBACK = require('@/assets/images/growth/placeholder.png');
-  const currentThemeImage = currentThemeAsset?.image || PLACEHOLDER_IMAGE_FALLBACK;
 
   return (
     <SafeAreaView style={styles.container}>
 
       {/* 成長表示エリア */}
-      <View style={styles.growthDisplayArea}>
-        {currentThemeImage && (
-          <Image
-            source={currentThemeImage}
-            style={styles.themeImage}
-            resizeMode="contain"
-          />
-        )}
-        <Text style={styles.growthInfoText}>
-          {t('growth.current_theme')}: {currentTheme?.name || t('common.none')}
-        </Text>
-        <Text style={styles.growthPointsText}>
-          {t('growth.current_points')}: {currentThemeProgress?.totalGrowthPoints ?? 0}
-        </Text>
-        <Text style={styles.growthProgressText}>
-          {getGrowthProgressText()}
-        </Text>
-      </View>
+      <GrowthDisplay
+        theme={currentTheme}
+        progress={currentThemeProgress}
+        asset={currentThemeAsset || { image: PLACEHOLDER_IMAGE_FALLBACK }}
+        getProgressText={getGrowthProgressText}
+      />
 
 
 
 
-      {/* 集中モードUI (鑑賞モードUIの上に重ねて描画) */}
-      {isFocusModeActive && (
-        <View style={styles.focusModeOverlay}>
-          <TouchableOpacity onPress={toggleMute} style={styles.audioButton}>
-            <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color="#fff" />
-          </TouchableOpacity>
-          <View style={styles.focusModeTimerContainer}>
-            <Canvas style={{ width: width * 0.6, height: 10, marginBottom: 20 }}>
-              <Rect x={0} y={0} width={width * 0.6 * (timeRemaining / focusDurationSec)} height={10} color={subColor} />
-            </Canvas>
-            <Text style={styles.focusModeTimerText}>
-              {formatTime(timeRemaining)}
-            </Text>
-            <View style={styles.focusModeControls}>
-              {focusModeStatus === 'running' ? (
-                <TouchableOpacity onPress={pauseFocusMode} style={styles.focusControlButton}>
-                  <Ionicons name="pause-circle-outline" size={50} color={subColor} />
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity onPress={resumeFocusMode} style={styles.focusControlButton}>
-                  <Ionicons name="play-circle-outline" size={50} color={subColor} />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity onPress={stopFocusMode} style={styles.focusControlButton}>
-                <Ionicons name="stop-circle-outline" size={50} color={isDark ? '#FF6B6B' : '#D32F2F'} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      )}
+      <FocusModeOverlay
+        visible={isFocusModeActive}
+        width={width}
+        subColor={subColor}
+        isDark={isDark}
+        isMuted={isMuted}
+        focusModeStatus={focusModeStatus}
+        timeRemaining={timeRemaining}
+        focusDurationSec={focusDurationSec}
+        formatTime={formatTime}
+        onPause={pauseFocusMode}
+        onResume={resumeFocusMode}
+        onStop={stopFocusMode}
+        onToggleMute={toggleMute}
+      />
 
-      {/* テーマ選択モーダル */}
-      <Modal
+      <ThemeSelectionModal
         visible={isThemeSelectionModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setThemeSelectionModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setThemeSelectionModalVisible(false)}>
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalTitle}>{t('growth.select_theme')}</Text>
-            <FlatList
-              data={themes}
-              keyExtractor={item => item.id}
-              numColumns={2}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.themeOption,
-                    selectedThemeId === item.id && styles.themeOptionSelected,
-                    item.locked && styles.themeOptionLocked,
-                  ]}
-                  onPress={() => changeSelectedTheme(item.id)}
-                  disabled={item.locked}
-                >
-                  <Image source={item.growthStages.seed.image} style={styles.themeOptionImage} />
-                  <Text style={[styles.themeOptionName, item.locked && styles.themeOptionNameLocked]}>
-                    {item.name}
-                  </Text>
-                  {item.locked && (
-                    <View style={styles.lockedOverlay}>
-                      <Ionicons name="lock-closed" size={30} color="#FFF" />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )}
-              contentContainerStyle={styles.themeOptionsContainer}
-            />
-            <TouchableOpacity
-              style={[styles.button, styles.modalCloseButton]}
-              onPress={() => setThemeSelectionModalVisible(false)}
-            >
-              <Text style={styles.buttonText}>{t('common.close')}</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        themes={themes}
+        selectedId={selectedThemeId}
+        onSelect={changeSelectedTheme}
+        onClose={() => setThemeSelectionModalVisible(false)}
+      />
 
-      <Modal
+      <MenuModal
         visible={isMenuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); setThemeSelectionModalVisible(true); }}>
-              <Text style={styles.menuItemText}>{t('growth.select_theme')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('growth.gallery')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('growth.gacha')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('growth.store')}</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onSelectTheme={() => { setMenuVisible(false); setThemeSelectionModalVisible(true); }}
+        onSelectDictionary={() => { setMenuVisible(false); router.push('/(tabs)/growth/dictionary'); }}
+        onSelectGacha={() => { setMenuVisible(false); router.push('/(tabs)/growth/gacha'); }}
+        onSelectStore={() => { setMenuVisible(false); router.push('/(tabs)/growth/store'); }}
+        onClose={() => setMenuVisible(false)}
+      />
 
-      <Modal
+      <DurationPickerModal
         visible={isDurationPickerVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDurationPickerVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setDurationPickerVisible(false)}>
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.timePickerRow}>
-              <WheelPicker
-                options={HOURS_OPTIONS}
-                selectedIndex={tempHours}
-                onChange={setTempHours}
-                itemHeight={40}
-                visibleRest={1}
-              />
-              <Text style={styles.timePickerLabel}>{t('common.hours_label')}</Text>
-              <WheelPicker
-                options={MINUTE_SECOND_OPTIONS}
-                selectedIndex={tempMinutes}
-                onChange={setTempMinutes}
-                itemHeight={40}
-                visibleRest={1}
-              />
-              <Text style={styles.timePickerLabel}>{t('common.minutes_label')}</Text>
-              <WheelPicker
-                options={MINUTE_SECOND_OPTIONS}
-                selectedIndex={tempSeconds}
-                onChange={setTempSeconds}
-                itemHeight={40}
-                visibleRest={1}
-              />
-              <Text style={styles.timePickerLabel}>{t('common.seconds_label')}</Text>
-            </View>
-            <TouchableOpacity style={[styles.button, styles.modalCloseButton]} onPress={confirmDurationPicker}>
-              <Text style={styles.buttonText}>{t('growth.start_focus_mode')}</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        hours={tempHours}
+        minutes={tempMinutes}
+        seconds={tempSeconds}
+        onChangeHours={setTempHours}
+        onChangeMinutes={setTempMinutes}
+        onChangeSeconds={setTempSeconds}
+        onConfirm={confirmDurationPicker}
+        onClose={() => setDurationPickerVisible(false)}
+      />
 
       <RNAnimated.View style={[styles.bottomActions, { opacity: fadeAnim }]}>
         <TouchableOpacity onPress={toggleMute} style={styles.bottomActionButton}>
@@ -472,35 +358,6 @@ const styles = StyleSheet.create({
     marginTop: 50,
     fontSize: 16,
   },
-  growthDisplayArea: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#e8e8e8', // 鑑賞モードの背景色
-  },
-  themeImage: {
-    width: 200,
-    height: 200,
-    marginBottom: 20,
-  },
-  growthInfoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-  },
-  growthPointsText: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 10,
-  },
-  growthProgressText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
   button: {
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -514,112 +371,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  focusModeOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)', // 半透明のオーバーレイ
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10, // 他のUIの上に表示
-  },
-  focusModeTimerContainer: {
-    backgroundColor: '#fff', // 集中モードUIの背景色
-    padding: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 10,
-  },
-  focusModeTimerText: {
-    fontSize: 60,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  focusModeControls: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  focusControlButton: {
-    padding: 10,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    width: '90%',
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#333',
-  },
-  themeOptionsContainer: {
-    justifyContent: 'space-around',
-    paddingBottom: 20,
-  },
-  themeOption: {
-    width: '45%', // 2列表示
-    aspectRatio: 1, // 正方形を維持
-    margin: '2.5%', // 列間のスペース
-    borderWidth: 2,
-    borderColor: 'transparent',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    backgroundColor: '#f9f9f9',
-    position: 'relative',
-  },
-  themeOptionSelected: {
-    borderColor: '#4CAF50', // サブカラー
-  },
-  themeOptionLocked: {
-    opacity: 0.5,
-  },
-  themeOptionImage: {
-    width: '80%',
-    height: '80%',
-    marginBottom: 5,
-  },
-  themeOptionName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
-  themeOptionNameLocked: {
-    color: '#888',
-  },
-  lockedOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalCloseButton: {
-    marginTop: 20,
-  },
-  menuItem: {
-    paddingVertical: 10,
-  },
-  menuItemText: {
-    fontSize: 16,
-    textAlign: 'center',
-    paddingVertical: 5,
-  },
   bottomActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -632,10 +383,6 @@ const styles = StyleSheet.create({
   bottomActionButton: {
     alignItems: 'center',
   },
-  focusButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   focusModeToggleButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -644,20 +391,5 @@ const styles = StyleSheet.create({
   focusModeToggleText: {
     color: '#fff',
     fontWeight: 'bold',
-  },
-  timePickerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 10,
-  },
-  timePickerLabel: {
-    marginHorizontal: 5,
-    fontSize: 16,
-  },
-  audioButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
   },
 });
