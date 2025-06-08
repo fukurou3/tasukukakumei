@@ -322,16 +322,25 @@ export default function GrowthScreen() {
         <TouchableOpacity onPress={toggleMute} style={styles.bottomActionButton}>
           <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color={tabIconColor} />
         </TouchableOpacity>
-        {focusModeStatus === 'idle' ? (
+        {focusModeStatus === 'idle' && (
           <TouchableOpacity onPress={showDurationPicker} style={styles.focusModeToggleButton}>
             <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.start_focus_mode')}</Text>
           </TouchableOpacity>
-        ) : (
-          !isViewMode && (
-            <TouchableOpacity onPress={stopFocusMode} style={styles.focusModeToggleButton}>
-              <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.focus_mode_button_stop')}</Text>
-            </TouchableOpacity>
-          )
+        )}
+        {focusModeStatus === 'running' && (
+          <TouchableOpacity onPress={pauseFocusMode} style={styles.focusModeToggleButton}>
+            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.pause')}</Text>
+          </TouchableOpacity>
+        )}
+        {focusModeStatus === 'paused' && (
+          <TouchableOpacity onPress={resumeFocusMode} style={styles.focusModeToggleButton}>
+            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.resume')}</Text>
+          </TouchableOpacity>
+        )}
+        {focusModeStatus !== 'idle' && !isViewMode && (
+          <TouchableOpacity onPress={stopFocusMode} style={styles.focusModeToggleButton}>
+            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.end')}</Text>
+          </TouchableOpacity>
         )}
         <TouchableOpacity
           onPress={() => setMenuVisible(true)}
