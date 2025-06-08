@@ -1,7 +1,7 @@
 // features/growth/GrowthScreen.tsx
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Modal, Pressable, Animated as RNAnimated, Easing, Vibration, Alert } from 'react-native'; // Alertをインポート
+import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList, Modal, Pressable, Animated as RNAnimated, Vibration, Alert, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,8 @@ import { Theme, GrowthStage } from './themes/types'; // types.tsからThemeとGr
 import { Task } from '@/features/add/types';
 import TasksDatabase from '@/lib/TaskDatabase';
 import { useFocusEffect, useRouter } from 'expo-router';
+import WheelPicker from 'react-native-wheely';
+import { Canvas, Rect } from '@shopify/react-native-skia';
 
 
 type FocusModeStatus = 'idle' | 'running' | 'paused';
@@ -31,6 +33,7 @@ export default function GrowthScreen() {
   const isDark = colorScheme === 'dark';
   const { t } = useTranslation();
   const router = useRouter(); // ここでuseRouterを初期化
+  const { width } = useWindowDimensions();
 
   const {
     loading,
@@ -49,6 +52,11 @@ export default function GrowthScreen() {
   const [focusModeStatus, setFocusModeStatus] = useState<FocusModeStatus>('idle');
   const [focusDuration, setFocusDuration] = useState(25); // minutes
   const [timeRemaining, setTimeRemaining] = useState(focusDuration * 60); // seconds
+  const [isMenuVisible, setMenuVisible] = useState(false);
+  const [isDurationPickerVisible, setDurationPickerVisible] = useState(false);
+  const [tempFocusDuration, setTempFocusDuration] = useState(focusDuration);
+  const [isMuted, setMuted] = useState(false);
+  const fadeAnim = useRef(new RNAnimated.Value(1)).current;
   
   // ここを修正: NodeJS.Timeoutの代わりに ReturnType<typeof setInterval> を使用
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -115,6 +123,14 @@ export default function GrowthScreen() {
     };
   }, [focusModeStatus, focusDuration, selectedThemeId, addGrowthPoints, t]); // 依存配列にtを追加
 
+  useEffect(() => {
+    RNAnimated.timing(fadeAnim, {
+      toValue: isFocusModeActive ? 0 : 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isFocusModeActive, fadeAnim]);
+
 
   const startFocusMode = useCallback(() => {
     setFocusModeActive(true);
@@ -122,12 +138,27 @@ export default function GrowthScreen() {
     setTimeRemaining(focusDuration * 60);
   }, [focusDuration]);
 
+  const showDurationPicker = useCallback(() => {
+    setTempFocusDuration(focusDuration);
+    setDurationPickerVisible(true);
+  }, [focusDuration]);
+
+  const confirmDurationPicker = useCallback(() => {
+    setFocusDuration(tempFocusDuration);
+    setDurationPickerVisible(false);
+    startFocusMode();
+  }, [tempFocusDuration, startFocusMode]);
+
   const pauseFocusMode = useCallback(() => {
     setFocusModeStatus('paused');
   }, []);
 
   const resumeFocusMode = useCallback(() => {
     setFocusModeStatus('running');
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setMuted(prev => !prev);
   }, []);
 
    const stopFocusMode = useCallback(() => {
@@ -177,13 +208,6 @@ export default function GrowthScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.appBar}>
-        <Text style={styles.title}>{t('growth.title')}</Text>
-        {/* router.pushでパスを修正 */}
-        <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}>
-          <Ionicons name="settings-outline" size={24} color={subColor} />
-        </TouchableOpacity>
-      </View>
 
       {/* 成長表示エリア */}
       <View style={styles.growthDisplayArea}>
@@ -213,45 +237,18 @@ export default function GrowthScreen() {
         <Text style={styles.buttonText}>{t('growth.select_theme')}</Text>
       </TouchableOpacity>
 
-      {/* 集中モード開始ボタン */}
-      {!isFocusModeActive && (
-        <View style={styles.focusModeSetupContainer}>
-          <Text style={styles.focusModeLabel}>{t('growth.focus_mode_duration')}</Text>
-          <FlatList
-            data={FOCUS_DURATION_OPTIONS}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={item => item.value.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.durationOption,
-                  focusDuration === item.value && styles.durationOptionSelected,
-                ]}
-                onPress={() => setFocusDuration(item.value)}
-              >
-                <Text style={[styles.durationOptionText, focusDuration === item.value && styles.durationOptionTextSelected]}>
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            )}
-            contentContainerStyle={styles.durationOptionsContainer}
-          />
-          <TouchableOpacity
-            style={[styles.button, styles.startButton, { backgroundColor: subColor }]}
-            onPress={startFocusMode}
-          >
-            <Text style={styles.buttonText}>{t('growth.start_focus_mode')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+
 
       {/* 集中モードUI (鑑賞モードUIの上に重ねて描画) */}
       {isFocusModeActive && (
         <View style={styles.focusModeOverlay}>
-          {/* ここに鑑賞モードのUI（テーマ画像など）が表示されていると想定 */}
-          {/* タイマーや集中モード用のUI */}
+          <TouchableOpacity onPress={toggleMute} style={styles.audioButton}>
+            <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color="#fff" />
+          </TouchableOpacity>
           <View style={styles.focusModeTimerContainer}>
+            <Canvas style={{ width: width * 0.6, height: 10, marginBottom: 20 }}>
+              <Rect x={0} y={0} width={width * 0.6 * (timeRemaining / (focusDuration * 60))} height={10} color={subColor} />
+            </Canvas>
             <Text style={styles.focusModeTimerText}>
               {formatTime(timeRemaining)}
             </Text>
@@ -320,21 +317,63 @@ export default function GrowthScreen() {
         </Pressable>
       </Modal>
 
-      {/* 将来的な拡張用のボタン（例: ストア、ガチャ、図鑑）*/}
-      <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.bottomActionButton}>
-          <Ionicons name="cart-outline" size={24} color={isDark ? '#fff' : '#000'} />
-          <Text style={styles.bottomActionButtonText}>{t('growth.store')}</Text>
+      <Modal
+        visible={isMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); setThemeSelectionModalVisible(true); }}>
+              <Text style={styles.menuItemText}>{t('growth.select_theme')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>{t('growth.gallery')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>{t('growth.gacha')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuItemText}>{t('growth.store')}</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={isDurationPickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDurationPickerVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setDurationPickerVisible(false)}>
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+            <WheelPicker
+              options={FOCUS_DURATION_OPTIONS.map(o => o.label)}
+              selectedIndex={FOCUS_DURATION_OPTIONS.findIndex(o => o.value === tempFocusDuration)}
+              onChange={index => setTempFocusDuration(FOCUS_DURATION_OPTIONS[index].value)}
+              itemHeight={40}
+              visibleRest={1}
+            />
+            <TouchableOpacity style={[styles.button, styles.modalCloseButton]} onPress={confirmDurationPicker}>
+              <Text style={styles.buttonText}>{t('growth.start_focus_mode')}</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <RNAnimated.View style={[styles.bottomActions, { opacity: fadeAnim }]}>
+        <TouchableOpacity onPress={toggleMute} style={styles.bottomActionButton}>
+          <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color={isDark ? '#fff' : '#000'} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomActionButton}>
-          <Ionicons name="gift-outline" size={24} color={isDark ? '#fff' : '#000'} />
-          <Text style={styles.bottomActionButtonText}>{t('growth.gacha')}</Text>
+        <TouchableOpacity onPress={showDurationPicker} style={styles.focusButton}>
+          <Ionicons name="timer-outline" size={40} color={isDark ? '#fff' : '#000'} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomActionButton}>
-          <Ionicons name="book-outline" size={24} color={isDark ? '#fff' : '#000'} />
-          <Text style={styles.bottomActionButtonText}>{t('growth.gallery')}</Text>
+        <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.bottomActionButton}>
+          <Ionicons name="menu" size={24} color={isDark ? '#fff' : '#000'} />
         </TouchableOpacity>
-      </View>
+      </RNAnimated.View>
     </SafeAreaView>
   );
 }
@@ -343,24 +382,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0', // ライトモードの背景色
-  },
-  appBar: {
-    height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  settingsButton: {
-    padding: 8,
   },
   loadingText: {
     flex: 1,
@@ -405,45 +426,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 15,
   },
-  startButton: {
-    marginTop: 10,
-  },
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
-  },
-  focusModeSetupContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  focusModeLabel: {
-    fontSize: 16,
-    marginBottom: 10,
-    color: '#333',
-  },
-  durationOptionsContainer: {
-    paddingVertical: 5,
-  },
-  durationOption: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginHorizontal: 5,
-  },
-  durationOptionSelected: {
-    backgroundColor: '#4CAF50', // サブカラー
-    borderColor: '#4CAF50',
-  },
-  durationOptionText: {
-    color: '#555',
-    fontSize: 15,
-  },
-  durationOptionTextSelected: {
-    color: '#fff',
     fontWeight: 'bold',
   },
   focusModeOverlay: {
@@ -544,20 +529,33 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     marginTop: 20,
   },
+  menuItem: {
+    paddingVertical: 10,
+  },
+  menuItemText: {
+    fontSize: 16,
+    textAlign: 'center',
+    paddingVertical: 5,
+  },
   bottomActions: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     paddingVertical: 15,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: '#ddd',
     backgroundColor: '#fff',
+    paddingHorizontal: 40,
   },
   bottomActionButton: {
     alignItems: 'center',
   },
-  bottomActionButtonText: {
-    fontSize: 12,
-    color: '#555',
-    marginTop: 5,
+  focusButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  audioButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
   },
 });
