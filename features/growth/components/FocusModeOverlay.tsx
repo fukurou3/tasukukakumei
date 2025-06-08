@@ -38,7 +38,8 @@ export default function FocusModeOverlay({
   if (!visible) return null;
   const insets = useSafeAreaInsets();
   const size = width * 0.6;
-  const radius = size / 2;
+  const strokeWidth = 10;
+  const radius = size / 2 - strokeWidth / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = timeRemaining / focusDurationSec;
   return (
@@ -63,13 +64,14 @@ export default function FocusModeOverlay({
             cy={radius}
             r={radius}
             stroke="#fff"
-            strokeWidth={10}
+            strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={`${circumference}`}
             strokeDashoffset={circumference * (1 - progress)}
             rotation={-90}
             originX={radius}
             originY={radius}
+            strokeLinecap="round"
           />
         </Svg>
         <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
