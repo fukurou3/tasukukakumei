@@ -3,7 +3,7 @@
 import { Theme, GrowthStage, UserThemeProgress } from './types'; // Theme, GrowthStage, UserThemeProgressをtypes.tsからインポート
 
 // ダミー画像として使用するプレースホルダー画像
-const PLACEHOLDER_IMAGE = require('../../assets/images/growth/placeholder.png'); // 仮のパス
+const PLACEHOLDER_IMAGE = require('../../../assets/images/growth/placeholder.png'); // 仮のパス
 
 export const THEMES: Theme[] = [
   {
@@ -12,11 +12,11 @@ export const THEMES: Theme[] = [
     description: '森の穏やかな精霊が宿るテーマです。',
     locked: false,
     growthStages: {
-      seed: { image: require('../../assets/images/growth/forest_spirit/seed.png') },
-      sprout: { image: require('../../assets/images/growth/forest_spirit/sprout.png') },
-      young: { image: require('../../assets/images/growth/forest_spirit/young.png') },
-      mature: { image: require('../../assets/images/growth/forest_spirit/mature.png') },
-      ancient: { image: require('../../assets/images/growth/forest_spirit/ancient.png') },
+      seed: { image: require('../../../assets/images/growth/forest_spirit/seed.png') },
+      sprout: { image: require('../../../assets/images/growth/forest_spirit/sprout.png') },
+      young: { image: require('../../../assets/images/growth/forest_spirit/young.png') },
+      mature: { image: require('../../../assets/images/growth/forest_spirit/mature.png') },
+      ancient: { image: require('../../../assets/images/growth/forest_spirit/ancient.png') },
     },
   },
   {
@@ -25,11 +25,11 @@ export const THEMES: Theme[] = [
     description: '深海の力が宿るテーマです。',
     locked: true,
     growthStages: {
-      seed: { image: require('../../assets/images/growth/ocean_guardian/seed.png') },
-      sprout: { image: require('../../assets/images/growth/ocean_guardian/sprout.png') },
-      young: { image: require('../../assets/images/growth/ocean_guardian/young.png') },
-      mature: { image: require('../../assets/images/growth/ocean_guardian/mature.png') },
-      ancient: { image: require('../../assets/images/growth/ocean_guardian/ancient.png') },
+      seed: { image: require('../../../assets/images/growth/ocean_guardian/seed.png') },
+      sprout: { image: require('../../../assets/images/growth/ocean_guardian/sprout.png') },
+      young: { image: require('../../../assets/images/growth/ocean_guardian/young.png') },
+      mature: { image: require('../../../assets/images/growth/ocean_guardian/mature.png') },
+      ancient: { image: require('../../../assets/images/growth/ocean_guardian/ancient.png') },
     },
   },
   {
