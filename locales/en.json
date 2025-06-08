@@ -91,6 +91,9 @@
     "minutes": "minutes ago",
     "hours": "hours ago",
     "days": "days ago",
+    "hours_label": "Hours",
+    "minutes_label": "Minutes",
+    "seconds_label": "Seconds",
     "today": "Today",
     "info": "Info",
     "notification_title": "Notification",
@@ -386,6 +389,8 @@
   "growth": {
     "title": "Growth",
     "description": "Your tree grows as you complete tasks",
-    "completed": "Completed tasks: {{count}}"
+    "completed": "Completed tasks: {{count}}",
+    "focus_mode_button_start": "Focus Mode",
+    "focus_mode_button_stop": "Stop Focus Mode"
   }
 }

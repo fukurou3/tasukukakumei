@@ -95,6 +95,9 @@
     "minutes": "分前",
     "hours": "時間前",
     "days": "日前",
+    "hours_label": "時間",
+    "minutes_label": "分",
+    "seconds_label": "秒",
     "today": "今日",
     "info": "お知らせ",
     "notification_title": "お知らせ",
@@ -407,6 +410,8 @@
     "stop_focus_mode_message": "集中モードを途中で終了すると、今回の集中時間は成長ポイントになりません。",
     "focus_mode_completed_title": "集中モード完了！",
     "focus_mode_completed_message": "{{minutes}}分の集中モードが完了し、{{points}}ポイント獲得しました！",
+    "focus_mode_button_start": "集中モード",
+    "focus_mode_button_stop": "集中モードを終了",
     "store": "ストア",
     "gacha": "ガチャ",
     "gallery": "図鑑"

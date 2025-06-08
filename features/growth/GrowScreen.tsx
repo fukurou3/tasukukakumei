@@ -19,14 +19,8 @@ import * as Notifications from 'expo-notifications';
 
 type FocusModeStatus = 'idle' | 'running' | 'paused';
 
-const FOCUS_DURATION_OPTIONS = [
-  { label: '5分', value: 5 },
-  { label: '15分', value: 15 },
-  { label: '25分', value: 25 },
-  { label: '30分', value: 30 },
-  { label: '45分', value: 45 },
-  { label: '60分', value: 60 },
-];
+const HOURS_OPTIONS = Array.from({ length: 24 }, (_, i) => `${i}`);
+const MINUTE_SECOND_OPTIONS = Array.from({ length: 60 }, (_, i) => `${i}`);
 
 const START_GROWTH_POINT = 0; // 開始時の成長ポイント
 
@@ -51,11 +45,14 @@ export default function GrowthScreen() {
   const [isThemeSelectionModalVisible, setThemeSelectionModalVisible] = useState(false);
   const [isFocusModeActive, setFocusModeActive] = useState(false);
   const [focusModeStatus, setFocusModeStatus] = useState<FocusModeStatus>('idle');
-  const [focusDuration, setFocusDuration] = useState(25); // minutes
-  const [timeRemaining, setTimeRemaining] = useState(focusDuration * 60); // seconds
+  const INITIAL_DURATION_SEC = 25 * 60;
+  const [focusDurationSec, setFocusDurationSec] = useState(INITIAL_DURATION_SEC);
+  const [timeRemaining, setTimeRemaining] = useState(INITIAL_DURATION_SEC);
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [isDurationPickerVisible, setDurationPickerVisible] = useState(false);
-  const [tempFocusDuration, setTempFocusDuration] = useState(focusDuration);
+  const [tempHours, setTempHours] = useState(0);
+  const [tempMinutes, setTempMinutes] = useState(25);
+  const [tempSeconds, setTempSeconds] = useState(0);
   const [isMuted, setMuted] = useState(false);
   const fadeAnim = useRef(new RNAnimated.Value(1)).current;
   
@@ -128,7 +125,7 @@ export default function GrowthScreen() {
         timerIntervalRef.current = null;
       }
     };
-  }, [focusModeStatus, focusDuration, selectedThemeId, addGrowthPoints, t]);
+  }, [focusModeStatus, focusDurationSec, selectedThemeId, addGrowthPoints, t]);
 
   useEffect(() => {
     RNAnimated.timing(fadeAnim, {
@@ -149,33 +146,36 @@ export default function GrowthScreen() {
       content: {
         title: t('growth.focus_mode_completed_title'),
         body: t('growth.focus_mode_completed_message', {
-          minutes: focusDuration,
-          points: focusDuration * GROWTH_POINTS_PER_FOCUS_MINUTE,
+          minutes: Math.ceil(focusDurationSec / 60),
+          points: Math.ceil(focusDurationSec / 60) * GROWTH_POINTS_PER_FOCUS_MINUTE,
         }),
       },
-      trigger: { seconds: focusDuration * 60 },
+      trigger: { seconds: focusDurationSec },
     }).then((id) => {
       notificationIdRef.current = id;
     });
     setFocusModeActive(true);
     setFocusModeStatus('running');
-    setTimeRemaining(focusDuration * 60);
-  }, [focusDuration, t]);
+    setTimeRemaining(focusDurationSec);
+  }, [focusDurationSec, t]);
 
   const showDurationPicker = useCallback(() => {
-    if (FOCUS_DURATION_OPTIONS.some(o => o.value === focusDuration)) {
-      setTempFocusDuration(focusDuration);
-    } else {
-      setTempFocusDuration(FOCUS_DURATION_OPTIONS[0].value);
-    }
+    const hours = Math.floor(focusDurationSec / 3600);
+    const minutes = Math.floor((focusDurationSec % 3600) / 60);
+    const seconds = focusDurationSec % 60;
+    setTempHours(hours);
+    setTempMinutes(minutes);
+    setTempSeconds(seconds);
     setDurationPickerVisible(true);
-  }, [focusDuration]);
+  }, [focusDurationSec]);
 
   const confirmDurationPicker = useCallback(() => {
-    setFocusDuration(tempFocusDuration);
+    const totalSec = tempHours * 3600 + tempMinutes * 60 + tempSeconds;
+    setFocusDurationSec(totalSec);
+    setTimeRemaining(totalSec);
     setDurationPickerVisible(false);
     startFocusMode();
-  }, [tempFocusDuration, startFocusMode]);
+  }, [tempHours, tempMinutes, tempSeconds, startFocusMode]);
 
   const pauseFocusMode = useCallback(() => {
     if (timerIntervalRef.current !== null) {
@@ -200,13 +200,13 @@ export default function GrowthScreen() {
         title: t('growth.focus_mode_completed_title'),
         body: t('growth.focus_mode_completed_message', {
           minutes: Math.ceil(timeRemaining / 60),
-          points: focusDuration * GROWTH_POINTS_PER_FOCUS_MINUTE,
+          points: Math.ceil(focusDurationSec / 60) * GROWTH_POINTS_PER_FOCUS_MINUTE,
         }),
       },
       trigger: { seconds: timeRemaining },
     }).then((id) => { notificationIdRef.current = id; });
     setFocusModeStatus('running');
-  }, [timeRemaining, focusDuration, t]);
+  }, [timeRemaining, focusDurationSec, t]);
 
   const toggleMute = useCallback(() => {
     setMuted(prev => !prev);
@@ -229,11 +229,11 @@ export default function GrowthScreen() {
           }
           setFocusModeStatus('idle');
           setFocusModeActive(false);
-          setTimeRemaining(focusDuration * 60); // Reset timer
+          setTimeRemaining(focusDurationSec); // Reset timer
         }}
       ]
     );
-  }, [focusDuration, t]);
+  }, [focusDurationSec, t]);
 
   const handleFocusModeCompletion = useCallback(() => {
     if (notificationIdRef.current) {
@@ -241,19 +241,23 @@ export default function GrowthScreen() {
       notificationIdRef.current = null;
     }
     Vibration.vibrate();
-    const pointsEarned = focusDuration * GROWTH_POINTS_PER_FOCUS_MINUTE; // 正しくアクセスできる
+    const pointsEarned = Math.ceil(focusDurationSec / 60) * GROWTH_POINTS_PER_FOCUS_MINUTE; // 正しくアクセスできる
     addGrowthPoints(selectedThemeId!, pointsEarned);
     Alert.alert( // Alertが正しくインポートされたので使用可能
       t('growth.focus_mode_completed_title'),
-      t('growth.focus_mode_completed_message', { minutes: focusDuration, points: pointsEarned }),
+      t('growth.focus_mode_completed_message', { minutes: Math.ceil(focusDurationSec / 60), points: pointsEarned }),
       [{ text: t('common.ok') }]
     );
-  }, [focusDuration, selectedThemeId, addGrowthPoints, t]);
+  }, [focusDurationSec, selectedThemeId, addGrowthPoints, t]);
 
   const formatTime = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    const hoursStr = hours > 0 ? `${hours}:` : '';
+    const minutesStr = `${hours > 0 && minutes < 10 ? '0' : ''}${minutes}`;
+    const secondsStr = `${seconds < 10 ? '0' : ''}${seconds}`;
+    return `${hoursStr}${minutesStr}:${secondsStr}`;
   };
 
   if (loading) {
@@ -291,13 +295,6 @@ export default function GrowthScreen() {
         </Text>
       </View>
 
-      {/* テーマ選択ボタン */}
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: subColor }]}
-        onPress={() => setThemeSelectionModalVisible(true)}
-      >
-        <Text style={styles.buttonText}>{t('growth.select_theme')}</Text>
-      </TouchableOpacity>
 
 
 
@@ -309,7 +306,7 @@ export default function GrowthScreen() {
           </TouchableOpacity>
           <View style={styles.focusModeTimerContainer}>
             <Canvas style={{ width: width * 0.6, height: 10, marginBottom: 20 }}>
-              <Rect x={0} y={0} width={width * 0.6 * (timeRemaining / (focusDuration * 60))} height={10} color={subColor} />
+              <Rect x={0} y={0} width={width * 0.6 * (timeRemaining / focusDurationSec)} height={10} color={subColor} />
             </Canvas>
             <Text style={styles.focusModeTimerText}>
               {formatTime(timeRemaining)}
@@ -411,13 +408,32 @@ export default function GrowthScreen() {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setDurationPickerVisible(false)}>
           <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            <WheelPicker
-              options={FOCUS_DURATION_OPTIONS.map(o => o.label)}
-              selectedIndex={Math.max(0, FOCUS_DURATION_OPTIONS.findIndex(o => o.value === tempFocusDuration))}
-              onChange={index => setTempFocusDuration(FOCUS_DURATION_OPTIONS[index].value)}
-              itemHeight={40}
-              visibleRest={1}
-            />
+            <View style={styles.timePickerRow}>
+              <WheelPicker
+                options={HOURS_OPTIONS}
+                selectedIndex={tempHours}
+                onChange={setTempHours}
+                itemHeight={40}
+                visibleRest={1}
+              />
+              <Text style={styles.timePickerLabel}>{t('common.hours_label')}</Text>
+              <WheelPicker
+                options={MINUTE_SECOND_OPTIONS}
+                selectedIndex={tempMinutes}
+                onChange={setTempMinutes}
+                itemHeight={40}
+                visibleRest={1}
+              />
+              <Text style={styles.timePickerLabel}>{t('common.minutes_label')}</Text>
+              <WheelPicker
+                options={MINUTE_SECOND_OPTIONS}
+                selectedIndex={tempSeconds}
+                onChange={setTempSeconds}
+                itemHeight={40}
+                visibleRest={1}
+              />
+              <Text style={styles.timePickerLabel}>{t('common.seconds_label')}</Text>
+            </View>
             <TouchableOpacity style={[styles.button, styles.modalCloseButton]} onPress={confirmDurationPicker}>
               <Text style={styles.buttonText}>{t('growth.start_focus_mode')}</Text>
             </TouchableOpacity>
@@ -429,8 +445,13 @@ export default function GrowthScreen() {
         <TouchableOpacity onPress={toggleMute} style={styles.bottomActionButton}>
           <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color={isDark ? '#fff' : '#000'} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={showDurationPicker} style={styles.focusButton}>
-          <Ionicons name="timer-outline" size={40} color={isDark ? '#fff' : '#000'} />
+        <TouchableOpacity
+          onPress={isFocusModeActive ? stopFocusMode : showDurationPicker}
+          style={[styles.focusModeToggleButton, { backgroundColor: subColor }]}
+        >
+          <Text style={styles.focusModeToggleText}>
+            {isFocusModeActive ? t('growth.focus_mode_button_stop') : t('growth.focus_mode_button_start')}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.bottomActionButton}>
           <Ionicons name="menu" size={24} color={isDark ? '#fff' : '#000'} />
@@ -614,6 +635,25 @@ const styles = StyleSheet.create({
   focusButton: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  focusModeToggleButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  focusModeToggleText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  timePickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  timePickerLabel: {
+    marginHorizontal: 5,
+    fontSize: 16,
   },
   audioButton: {
     position: 'absolute',
