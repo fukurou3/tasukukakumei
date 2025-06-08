@@ -6,9 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useGrowth } from './hooks/useGrowth';
-import { GROWTH_THRESHOLDS, GROWTH_POINTS_PER_FOCUS_MINUTE } from './themes'; // GROWTH_POINTS_PER_FOCUS_MINUTE を追加
-import { Theme, GrowthStage } from './themes/types'; // types.tsからThemeとGrowthStageを直接インポート
+import { useGrowth } from '../hooks/useGrowth';
+import { GROWTH_THRESHOLDS, GROWTH_POINTS_PER_FOCUS_MINUTE } from '../themes'; // GROWTH_POINTS_PER_FOCUS_MINUTE を追加
+import { Theme, GrowthStage } from '../themes/types'; // types.tsからThemeとGrowthStageを直接インポート
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import GrowthDisplay from '../components/GrowthDisplay';
