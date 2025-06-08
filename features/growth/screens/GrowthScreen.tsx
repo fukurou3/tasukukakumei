@@ -147,7 +147,7 @@ export default function GrowthScreen() {
           points: Math.ceil(focusDurationSec / 60) * GROWTH_POINTS_PER_FOCUS_MINUTE,
         }),
       },
-      trigger: { seconds: focusDurationSec, type: 'timeInterval' },
+      trigger: { seconds: focusDurationSec, repeats: false },
     }).then((id) => {
       notificationIdRef.current = id;
     });
@@ -200,7 +200,7 @@ export default function GrowthScreen() {
           points: Math.ceil(focusDurationSec / 60) * GROWTH_POINTS_PER_FOCUS_MINUTE,
         }),
       },
-      trigger: { seconds: timeRemaining, type: 'timeInterval' },
+      trigger: { seconds: timeRemaining, repeats: false },
     }).then((id) => { notificationIdRef.current = id; });
     setFocusModeStatus('running');
   }, [timeRemaining, focusDurationSec, t]);
