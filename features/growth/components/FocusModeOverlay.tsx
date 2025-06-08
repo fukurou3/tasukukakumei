@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -35,12 +36,23 @@ export default function FocusModeOverlay({
   onToggleMute,
 }: Props) {
   if (!visible) return null;
+  const insets = useSafeAreaInsets();
   const size = width * 0.6;
   const radius = size / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = timeRemaining / focusDurationSec;
   return (
-    <View style={styles.overlay}>
+    <View
+      style={[
+        styles.overlay,
+        {
+          top: -insets.top,
+          bottom: -insets.bottom,
+          left: -insets.left,
+          right: -insets.right,
+        },
+      ]}
+    >
       <TouchableOpacity onPress={onToggleMute} style={styles.audioButton}>
         <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color="#fff" />
       </TouchableOpacity>
