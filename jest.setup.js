@@ -27,6 +27,11 @@ jest.mock('expo-network', () => ({
   getNetworkStateAsync: jest.fn().mockResolvedValue({ isConnected: true }),
 }));
 
+jest.mock('expo-notifications', () => ({
+  scheduleNotificationAsync: jest.fn(() => Promise.resolve('1')),
+  cancelScheduledNotificationAsync: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock('@shopify/react-native-skia', () => ({
   Canvas: () => null,
   Image: () => null,
