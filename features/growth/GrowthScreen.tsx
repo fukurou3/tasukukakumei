@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { usePlayerData } from '@/features/growth/hooks/usePlayerData';
 import FocusTimer from '@/features/growth/component/FocusTimer';
 import SceneViewer from '@/features/growth/component/SceneViewer';
-import { SceneProvider, useSceneState } from '@/features/growth/hooks/UseSceneState';
+import { SceneProvider, useSceneState } from '@/features/growth/hooks/useSceneState';
 
 export default function GrowthScreen() {
   const { isReady, gold, growthPoints, addGold, addGrowth } = usePlayerData();
