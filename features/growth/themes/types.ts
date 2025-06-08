@@ -16,6 +16,11 @@ export interface Theme {
   growthStages: {
     [key in GrowthStage]: ThemeAsset;
   };
+  /**
+   * 成長画面下部アクションタブの背景色指定
+   * "black" または "white" を指定する
+   */
+  actionTabBackground?: 'black' | 'white';
   // 必要に応じて、テーマごとのBGM、効果音、特殊能力などもここに追加
 }
 

@@ -39,6 +39,11 @@ export default function GrowthScreen() {
     reloadTasks, // タスク再読み込み関数
   } = useGrowth();
 
+  const tabBackgroundColor =
+    currentTheme.actionTabBackground === 'black' ? '#000' : '#fff';
+  const tabIconColor =
+    currentTheme.actionTabBackground === 'black' ? '#fff' : '#000';
+
   const [isThemeSelectionModalVisible, setThemeSelectionModalVisible] = useState(false);
   const [isFocusModeActive, setFocusModeActive] = useState(false);
   const [focusModeStatus, setFocusModeStatus] = useState<FocusModeStatus>('idle');
@@ -318,24 +323,18 @@ export default function GrowthScreen() {
         onConfirm={confirmDurationPicker}
       />
 
-      <View style={styles.bottomActions}>
+      <View style={[styles.bottomActions, { backgroundColor: tabBackgroundColor }]}>
         <TouchableOpacity onPress={toggleMute} style={styles.bottomActionButton}>
-          <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color={isDark ? '#fff' : '#000'} />
+          <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color={tabIconColor} />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={showDurationPicker}
-          style={[styles.focusModeToggleButton, { backgroundColor: subColor }]}
-        >
-          <Text style={styles.focusModeToggleText}>{t('growth.start_focus_mode')}</Text>
+        <TouchableOpacity onPress={showDurationPicker} style={styles.focusModeToggleButton}>
+          <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.start_focus_mode')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={stopFocusMode}
-          style={[styles.focusModeToggleButton, { backgroundColor: subColor }]}
-        >
-          <Text style={styles.focusModeToggleText}>{t('growth.focus_mode_button_stop')}</Text>
+        <TouchableOpacity onPress={stopFocusMode} style={styles.focusModeToggleButton}>
+          <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.focus_mode_button_stop')}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.bottomActionButton}>
-          <Ionicons name="menu" size={24} color={isDark ? '#fff' : '#000'} />
+          <Ionicons name="menu" size={24} color={tabIconColor} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -372,7 +371,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: '#ddd',
-    backgroundColor: '#fff',
     paddingHorizontal: 40,
   },
   bottomActionButton: {
@@ -381,10 +379,8 @@ const styles = StyleSheet.create({
   focusModeToggleButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 20,
   },
   focusModeToggleText: {
-    color: '#fff',
     fontWeight: 'bold',
   },
 });
