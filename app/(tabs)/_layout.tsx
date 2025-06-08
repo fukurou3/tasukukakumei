@@ -99,7 +99,7 @@ function InnerTabs() {
           <Tabs.Screen name="settings/index" />
 
           {/* ✅ 非表示にしたいルートたち */}
-          {[
+          {[ 
             'settings/repeating-tasks',
             'settings/language',
             'add/index',
@@ -108,6 +108,9 @@ function InnerTabs() {
             'task-detail/[id]',
             'drafts',
             'explore',
+            'growth/gacha',
+            'growth/store',
+            'growth/dictionary',
             'index',
           ].map((name) => (
             <Tabs.Screen key={name} name={name} options={{ href: null }} />
