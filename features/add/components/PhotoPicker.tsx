@@ -66,6 +66,8 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
   }, [visible, defaultSelected]);
 
   // --- 2. 権限確認 ---
+  // onCancel は依存不要なので警告を抑制
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (visible && granted === null && isComponentMounted.current) {
       if (isExpoGo) {
@@ -115,7 +117,7 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
         }
       })();
     }
-  }, [visible, granted, onCancel]);
+  }, [visible, granted]);
 
   // --- 3. メディア読み込み関数 ---
   const loadMedia = useCallback(async (isLoadingMore = false) => {
