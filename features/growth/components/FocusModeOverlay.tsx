@@ -55,6 +55,9 @@ export default function FocusModeOverlay({
             fill="none"
             strokeDasharray={`${circumference}`}
             strokeDashoffset={circumference * (1 - progress)}
+            rotation={-90}
+            originX={radius}
+            originY={radius}
           />
         </Svg>
         <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
@@ -80,7 +83,7 @@ export default function FocusModeOverlay({
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,

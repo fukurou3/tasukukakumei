@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useGrowth } from '../hooks/useGrowth';
 import { GROWTH_THRESHOLDS, GROWTH_POINTS_PER_FOCUS_MINUTE } from '../themes'; // GROWTH_POINTS_PER_FOCUS_MINUTE を追加
 import { Theme, GrowthStage } from '../themes/types'; // types.tsからThemeとGrowthStageを直接インポート
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import GrowthDisplay from '../components/GrowthDisplay';
 import ThemeSelectionModal from '../components/ThemeSelectionModal';
@@ -26,6 +26,8 @@ export default function GrowthScreen() {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const router = useRouter();
+  const { view } = useLocalSearchParams<{ view?: string }>();
+  const isViewMode = view === 'true';
 
   const {
     loading,
@@ -321,6 +323,7 @@ export default function GrowthScreen() {
         onChangeMinutes={setTempMinutes}
         onChangeSeconds={setTempSeconds}
         onConfirm={confirmDurationPicker}
+        onClose={() => setDurationPickerVisible(false)}
       />
 
       <View style={[styles.bottomActions, { backgroundColor: tabBackgroundColor }]}>
@@ -330,10 +333,16 @@ export default function GrowthScreen() {
         <TouchableOpacity onPress={showDurationPicker} style={styles.focusModeToggleButton}>
           <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.start_focus_mode')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={stopFocusMode} style={styles.focusModeToggleButton}>
-          <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.focus_mode_button_stop')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.bottomActionButton}>
+        {!isViewMode && (
+          <TouchableOpacity onPress={stopFocusMode} style={styles.focusModeToggleButton}>
+            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.focus_mode_button_stop')}</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          onPress={() => setMenuVisible(true)}
+          style={styles.bottomActionButton}
+          disabled={focusModeStatus === 'running' || focusModeStatus === 'paused'}
+        >
           <Ionicons name="menu" size={24} color={tabIconColor} />
         </TouchableOpacity>
       </View>
