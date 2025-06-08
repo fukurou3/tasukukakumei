@@ -4,9 +4,12 @@ import { View, StyleSheet, Button } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { usePlayerData } from '@/features/growth/hooks/usePlayerData';
+import SceneViewer from '@/features/growth/component/SceneViewer';
+import FocusTimer from '@/features/growth/component/FocusTimer';
 
 export default function GrowthScreen() {
-  const { isReady, gold, addGold } = usePlayerData();
+  const { isReady, gold, addGold, growthPoints, addGrowthPoints } =
+    usePlayerData();
 
   if (!isReady) {
     return (
@@ -22,8 +25,11 @@ export default function GrowthScreen() {
 
       <View style={styles.statusContainer}>
         <ThemedText style={styles.goldText}>所持ゴールド: {gold} G</ThemedText>
+        <ThemedText style={styles.goldText}>成長ポイント: {growthPoints}</ThemedText>
       </View>
 
+      <SceneViewer growth={growthPoints} />
+      <FocusTimer onComplete={() => addGrowthPoints(1)} />
       <Button title="ゴールドを10増やす" onPress={() => addGold(10)} />
 
     </ThemedView>

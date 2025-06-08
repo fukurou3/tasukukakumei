@@ -4,8 +4,8 @@ export interface Scene {
   id: string;
   name: string;
   description: string;
-  imagePath: string;
-  bgmPath: string;
+  imagePath: any;
+  bgmPath: any;
 }
 
 export interface Award {
