@@ -9,7 +9,7 @@ class GoogleSyncService : HeadlessJsTaskService() {
     override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
         return HeadlessJsTaskConfig(
             "GoogleCalendarSync",
-            intent?.extras ?: Arguments.createMap(),
+            intent?.extras?.let { Arguments.fromBundle(it) } ?: Arguments.createMap(),
             0,
             true
         )
