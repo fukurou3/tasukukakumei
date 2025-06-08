@@ -3,7 +3,7 @@ import React from 'react';
 import { View, StyleSheet, Button } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { usePlayerData } from '@/features/growth/hooks/usePlayerData';
+import { usePlayerData } from '@/features/growth/hooks/UsePlayerData';
 
 export default function GrowthScreen() {
   const { isReady, gold, addGold } = usePlayerData();
