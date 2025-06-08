@@ -103,7 +103,7 @@ export default function CalendarPage() {
     const layout = processMultiDayEvents(allMonthEvents, displayMonth);
     setEventCache(prev => ({ ...prev, [key]: layout }));
     return layout;
-  }, [allMonthEvents, displayMonth, eventCache]);
+  }, [allMonthEvents, displayMonth]);
 
   useEffect(() => {
     const prev = displayMonth.subtract(1, 'month');
@@ -115,7 +115,7 @@ export default function CalendarPage() {
         setEventCache(prevCache => ({ ...prevCache, [key]: layout }));
       }
     });
-  }, [displayMonth, allMonthEvents, eventCache]);
+  }, [displayMonth, allMonthEvents]);
   const dayTasks = useMemo(() => groupedTasks[selectedDate] || [], [groupedTasks, selectedDate]);
   const googleDayEvents = useMemo(() => {
     if (!googleEnabled) return [];
