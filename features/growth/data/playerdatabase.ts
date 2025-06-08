@@ -20,6 +20,7 @@ const initializeDatabase = async (): Promise<void> => {
       CREATE TABLE IF NOT EXISTS player_items (id TEXT PRIMARY KEY NOT NULL, quantity INTEGER);
       CREATE TABLE IF NOT EXISTS player_currency (id TEXT PRIMARY KEY NOT NULL, amount INTEGER);
       INSERT OR IGNORE INTO player_currency (id, amount) VALUES ('gold', 0);
+      INSERT OR IGNORE INTO player_currency (id, amount) VALUES ('growthPoints', 0);
     `);
 };
 
@@ -40,4 +41,12 @@ const updateCurrency = async (id: string, newAmount: number): Promise<void> => {
     );
 };
 
-export { initializeDatabase, getCurrency, updateCurrency };
+const getGrowthPoints = async (): Promise<number> => {
+    return getCurrency('growthPoints');
+};
+
+const updateGrowthPoints = async (newAmount: number): Promise<void> => {
+    await updateCurrency('growthPoints', newAmount);
+};
+
+export { initializeDatabase, getCurrency, updateCurrency, getGrowthPoints, updateGrowthPoints };
