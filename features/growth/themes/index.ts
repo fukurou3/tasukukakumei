@@ -3,7 +3,9 @@
 import { Theme, GrowthStage, UserThemeProgress } from './types'; // Theme, GrowthStage, UserThemeProgressをtypes.tsからインポート
 
 // ダミー画像として使用するプレースホルダー画像
-const PLACEHOLDER_IMAGE = require('../../../assets/images/growth/placeholder.png'); // 仮のパス
+// 画像アセットはプロジェクト直下の assets 配下に置かれている
+// import 時には `@` エイリアスを使ってルートから参照する
+const PLACEHOLDER_IMAGE = require('@/assets/images/growth/placeholder.png');
 
 export const THEMES: Theme[] = [
   {
@@ -12,11 +14,11 @@ export const THEMES: Theme[] = [
     description: '森の穏やかな精霊が宿るテーマです。',
     locked: false,
     growthStages: {
-      seed: { image: require('../../../assets/images/growth/forest_spirit/seed.png') },
-      sprout: { image: require('../../../assets/images/growth/forest_spirit/sprout.png') },
-      young: { image: require('../../../assets/images/growth/forest_spirit/young.png') },
-      mature: { image: require('../../../assets/images/growth/forest_spirit/mature.png') },
-      ancient: { image: require('../../../assets/images/growth/forest_spirit/ancient.png') },
+      seed: { image: PLACEHOLDER_IMAGE },
+      sprout: { image: PLACEHOLDER_IMAGE },
+      young: { image: PLACEHOLDER_IMAGE },
+      mature: { image: PLACEHOLDER_IMAGE },
+      ancient: { image: PLACEHOLDER_IMAGE },
     },
   },
   {
@@ -25,11 +27,11 @@ export const THEMES: Theme[] = [
     description: '深海の力が宿るテーマです。',
     locked: true,
     growthStages: {
-      seed: { image: require('../../../assets/images/growth/ocean_guardian/seed.png') },
-      sprout: { image: require('../../../assets/images/growth/ocean_guardian/sprout.png') },
-      young: { image: require('../../../assets/images/growth/ocean_guardian/young.png') },
-      mature: { image: require('../../../assets/images/growth/ocean_guardian/mature.png') },
-      ancient: { image: require('../../../assets/images/growth/ocean_guardian/ancient.png') },
+      seed: { image: PLACEHOLDER_IMAGE },
+      sprout: { image: PLACEHOLDER_IMAGE },
+      young: { image: PLACEHOLDER_IMAGE },
+      mature: { image: PLACEHOLDER_IMAGE },
+      ancient: { image: PLACEHOLDER_IMAGE },
     },
   },
   {
