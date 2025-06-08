@@ -15,6 +15,7 @@ interface Props {
   timeRemaining: number;
   focusDurationSec: number;
   formatTime: (sec: number) => string;
+  onStart: () => void;
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
@@ -31,6 +32,7 @@ export default function FocusModeOverlay({
   timeRemaining,
   focusDurationSec,
   formatTime,
+  onStart,
   onPause,
   onResume,
   onStop,
@@ -82,9 +84,13 @@ export default function FocusModeOverlay({
             <TouchableOpacity onPress={onPause} style={styles.controlButton}>
               <Text style={styles.controlText}>{t('growth.pause')}</Text>
             </TouchableOpacity>
-          ) : (
+          ) : focusModeStatus === 'paused' ? (
             <TouchableOpacity onPress={onResume} style={styles.controlButton}>
               <Text style={styles.controlText}>{t('growth.resume')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={onStart} style={styles.controlButton}>
+              <Text style={styles.controlText}>{t('growth.start_focus_mode')}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={onStop} style={styles.controlButton}>

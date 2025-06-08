@@ -390,6 +390,7 @@
     "title": "Growth",
     "description": "Your tree grows as you complete tasks",
     "completed": "Completed tasks: {{count}}",
+    "start_focus_mode": "Start Focus Mode",
     "focus_mode_button_start": "Focus Mode",
     "focus_mode_button_stop": "Stop Focus Mode",
     "pause": "Pause",
