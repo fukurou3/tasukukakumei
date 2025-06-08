@@ -7,19 +7,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test": "jest --watchAll"
-  },
-  "jest": {
-    "preset": "jest-expo",
-    "testMatch": [
-      "<rootDir>/__tests__/**/*.test.tsx"
-    ],
-    "setupFiles": [
-      "<rootDir>/jest.setup.js"
-    ],
-    "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)"
-    ]
+    "test": "jest --config jest.config.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
