@@ -133,7 +133,9 @@ export const useTasksScreenLogic = () => {
 
   // ★ フォルダタブリストの変更（例：未完了/完了の切替）時に、ページャーの位置を同期させる
   useEffect(() => {
-    const targetIndex = folderTabs.findIndex(ft => ft.name === selectedFolderTabName);
+    const targetIndex = folderTabs.findIndex(
+      (ft) => ft.name === selectedFolderTabName
+    );
     const newIndex = targetIndex !== -1 ? targetIndex : 0;
 
     if (selectedTabIndex !== newIndex) {
@@ -142,7 +144,7 @@ export const useTasksScreenLogic = () => {
       pagerRef.current?.setPageWithoutAnimation(newIndex);
       pageScrollPosition.value = newIndex;
     }
-  }, [folderTabs]);
+  }, [folderTabs, selectedFolderTabName]);
 
 
   const scrollFolderTabsToCenter = useCallback((pageIndex: number) => {
