@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import { Canvas, Path, Skia } from '@shopify/react-native-skia';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
@@ -36,27 +36,26 @@ export default function FocusModeOverlay({
 }: Props) {
   if (!visible) return null;
   const size = width * 0.6;
-  const radius = size / 2;
-  const circumference = 2 * Math.PI * radius;
+  const strokeWidth = 10;
+  const radius = size / 2 - strokeWidth / 2;
   const progress = timeRemaining / focusDurationSec;
+  const progressPath = React.useMemo(() => {
+    const start = -Math.PI / 2;
+    const sweep = 2 * Math.PI * progress;
+    const rect = Skia.XYWHRect(strokeWidth / 2, strokeWidth / 2, radius * 2, radius * 2);
+    const path = Skia.Path.Make();
+    path.addArc(rect, (start * 180) / Math.PI, (sweep * 180) / Math.PI);
+    return path;
+  }, [progress, radius]);
   return (
     <View style={styles.overlay}>
       <TouchableOpacity onPress={onToggleMute} style={styles.audioButton}>
         <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color="#fff" />
       </TouchableOpacity>
       <View style={styles.timerContainer}>
-        <Svg width={size} height={size} style={styles.progressCircle}>
-          <Circle
-            cx={radius}
-            cy={radius}
-            r={radius}
-            stroke="#fff"
-            strokeWidth={10}
-            fill="none"
-            strokeDasharray={`${circumference}`}
-            strokeDashoffset={circumference * (1 - progress)}
-          />
-        </Svg>
+        <Canvas style={[styles.progressCircle, { width: size, height: size }] }>
+          <Path path={progressPath} color="#fff" style="stroke" strokeWidth={strokeWidth} strokeCap="round" />
+        </Canvas>
         <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
         <View style={styles.controls}>
           {focusModeStatus === 'running' ? (
