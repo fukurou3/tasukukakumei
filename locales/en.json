@@ -391,6 +391,9 @@
     "description": "Your tree grows as you complete tasks",
     "completed": "Completed tasks: {{count}}",
     "focus_mode_button_start": "Focus Mode",
-    "focus_mode_button_stop": "Stop Focus Mode"
+    "focus_mode_button_stop": "Stop Focus Mode",
+    "pause": "Pause",
+    "resume": "Resume",
+    "end": "End"
   }
 }
