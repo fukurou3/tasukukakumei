@@ -1,7 +1,7 @@
 // features/growth/GrowthScreen.tsx
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated as RNAnimated, Vibration, Alert, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Vibration, Alert, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/ThemeContext';
 import { useTranslation } from 'react-i18next';
@@ -51,7 +51,6 @@ export default function GrowthScreen() {
   const [tempMinutes, setTempMinutes] = useState(25);
   const [tempSeconds, setTempSeconds] = useState(0);
   const [isMuted, setMuted] = useState(false);
-  const fadeAnim = useRef(new RNAnimated.Value(1)).current;
   
   // ここを修正: NodeJS.Timeoutの代わりに ReturnType<typeof setInterval> を使用
   const timerIntervalRef = useRef<number | null>(null);
@@ -124,13 +123,6 @@ export default function GrowthScreen() {
     };
   }, [focusModeStatus, focusDurationSec, selectedThemeId, addGrowthPoints, t]);
 
-  useEffect(() => {
-    RNAnimated.timing(fadeAnim, {
-      toValue: isFocusModeActive ? 0 : 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [isFocusModeActive, fadeAnim]);
 
 
   const startFocusMode = useCallback(() => {
@@ -324,25 +316,28 @@ export default function GrowthScreen() {
         onChangeMinutes={setTempMinutes}
         onChangeSeconds={setTempSeconds}
         onConfirm={confirmDurationPicker}
-        onClose={() => setDurationPickerVisible(false)}
       />
 
-      <RNAnimated.View style={[styles.bottomActions, { opacity: fadeAnim }]}>
+      <View style={styles.bottomActions}>
         <TouchableOpacity onPress={toggleMute} style={styles.bottomActionButton}>
           <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color={isDark ? '#fff' : '#000'} />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={isFocusModeActive ? stopFocusMode : showDurationPicker}
+          onPress={showDurationPicker}
           style={[styles.focusModeToggleButton, { backgroundColor: subColor }]}
         >
-          <Text style={styles.focusModeToggleText}>
-            {isFocusModeActive ? t('growth.focus_mode_button_stop') : t('growth.focus_mode_button_start')}
-          </Text>
+          <Text style={styles.focusModeToggleText}>{t('growth.start_focus_mode')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={stopFocusMode}
+          style={[styles.focusModeToggleButton, { backgroundColor: subColor }]}
+        >
+          <Text style={styles.focusModeToggleText}>{t('growth.focus_mode_button_stop')}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.bottomActionButton}>
           <Ionicons name="menu" size={24} color={isDark ? '#fff' : '#000'} />
         </TouchableOpacity>
-      </RNAnimated.View>
+      </View>
     </SafeAreaView>
   );
 }
