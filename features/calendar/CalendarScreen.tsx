@@ -99,11 +99,16 @@ export default function CalendarPage() {
   >({});
   const eventLayout = useMemo(() => {
     const key = displayMonth.format('YYYY-MM');
-    if (eventCache[key]) return eventCache[key];
-    const layout = processMultiDayEvents(allMonthEvents, displayMonth);
-    setEventCache(prev => ({ ...prev, [key]: layout }));
-    return layout;
-  }, [allMonthEvents, displayMonth]);
+    return eventCache[key] || processMultiDayEvents(allMonthEvents, displayMonth);
+  }, [eventCache, allMonthEvents, displayMonth]);
+
+  useEffect(() => {
+    const key = displayMonth.format('YYYY-MM');
+    if (!eventCache[key]) {
+      const layout = processMultiDayEvents(allMonthEvents, displayMonth);
+      setEventCache(prev => ({ ...prev, [key]: layout }));
+    }
+  }, [eventCache, allMonthEvents, displayMonth]);
 
   useEffect(() => {
     const prev = displayMonth.subtract(1, 'month');
