@@ -30,6 +30,7 @@ const SUNDAY_COLOR = '#FF6666';
 const SATURDAY_COLOR = '#66B2FF';
 // 曜日欄の高さに合わせて短くする
 const HEADER_HEIGHT = 24;
+const FULL_CELL_HEIGHT_FACTOR = 1.9;
 
 export default function CalendarPage() {
   const { t } = useTranslation();
@@ -58,7 +59,7 @@ export default function CalendarPage() {
     const PADDING = 0;
     const calendarWidth = width - PADDING * 2;
     const cellWidth = calendarWidth / 7;
-    const cellHeight = viewType === 'full' ? cellWidth * 1.5 : cellWidth;
+    const cellHeight = viewType === 'full' ? cellWidth * FULL_CELL_HEIGHT_FACTOR : cellWidth;
 
     const firstDayOfMonth = displayMonth.startOf('month');
     const daysInMonth = displayMonth.daysInMonth();

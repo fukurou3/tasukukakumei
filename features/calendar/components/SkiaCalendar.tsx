@@ -19,6 +19,7 @@ const FONT_PATH_REGULAR = require('@/assets/fonts/NotoSansJP-Regular.ttf');
 const PADDING = 0;
 // 曜日欄の高さをさらにコンパクトに
 const HEADER_HEIGHT = 24;
+const FULL_CELL_HEIGHT_FACTOR = 1.9;
 const TASK_BAR_HEIGHT = 5;
 const TASK_BAR_MARGIN = 3;
 const EVENT_BAR_HEIGHT = 20;
@@ -68,7 +69,7 @@ export default function SkiaCalendar({
   const { width } = useWindowDimensions();
   const calendarWidth = width - PADDING * 2;
   const cellWidth = calendarWidth / 7;
-  const cellHeight = showTaskTitles ? cellWidth * 1.5 : cellWidth; // 大表示時は縦長に
+  const cellHeight = showTaskTitles ? cellWidth * FULL_CELL_HEIGHT_FACTOR : cellWidth; // 大表示時は縦長に
 
   const font = useFont(FONT_PATH_MEDIUM, CALENDAR_FONT_SIZES[fontSizeKey]);
   const eventFont = useFont(FONT_PATH_REGULAR, 10);
