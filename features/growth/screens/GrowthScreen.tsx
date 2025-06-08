@@ -209,27 +209,19 @@ export default function GrowthScreen() {
   }, []);
 
   const stopFocusMode = useCallback(() => {
-    Alert.alert( // Alertが正しくインポートされたので使用可能
-      t('growth.stop_focus_mode_title'),
-      t('growth.stop_focus_mode_message'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('common.ok'), onPress: () => {
-          if (timerIntervalRef.current) {
-            clearInterval(timerIntervalRef.current);
-            timerIntervalRef.current = null;
-          }
-          if (notificationIdRef.current) {
-            Notifications.cancelScheduledNotificationAsync(notificationIdRef.current).catch(() => {});
-            notificationIdRef.current = null;
-          }
-          setFocusModeStatus('idle');
-          setFocusModeActive(false);
-          setTimeRemaining(focusDurationSec); // Reset timer
-        }}
-      ]
-    );
-  }, [focusDurationSec, t]);
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    if (notificationIdRef.current) {
+      Notifications.cancelScheduledNotificationAsync(notificationIdRef.current).catch(() => {});
+      notificationIdRef.current = null;
+    }
+    setFocusModeStatus('idle');
+    setFocusModeActive(false);
+    setTimeRemaining(focusDurationSec);
+    showDurationPicker();
+  }, [focusDurationSec, showDurationPicker]);
 
   const handleFocusModeCompletion = useCallback(() => {
     if (notificationIdRef.current) {
@@ -324,19 +316,23 @@ export default function GrowthScreen() {
         onChangeSeconds={setTempSeconds}
         onConfirm={confirmDurationPicker}
         onClose={() => setDurationPickerVisible(false)}
+        textColor="#fff"
       />
 
       <View style={[styles.bottomActions, { backgroundColor: tabBackgroundColor }]}>
         <TouchableOpacity onPress={toggleMute} style={styles.bottomActionButton}>
           <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color={tabIconColor} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={showDurationPicker} style={styles.focusModeToggleButton}>
-          <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.start_focus_mode')}</Text>
-        </TouchableOpacity>
-        {!isViewMode && (
-          <TouchableOpacity onPress={stopFocusMode} style={styles.focusModeToggleButton}>
-            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.focus_mode_button_stop')}</Text>
+        {focusModeStatus === 'idle' ? (
+          <TouchableOpacity onPress={showDurationPicker} style={styles.focusModeToggleButton}>
+            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.start_focus_mode')}</Text>
           </TouchableOpacity>
+        ) : (
+          !isViewMode && (
+            <TouchableOpacity onPress={stopFocusMode} style={styles.focusModeToggleButton}>
+              <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.focus_mode_button_stop')}</Text>
+            </TouchableOpacity>
+          )
         )}
         <TouchableOpacity
           onPress={() => setMenuVisible(true)}

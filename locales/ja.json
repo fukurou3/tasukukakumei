@@ -412,6 +412,9 @@
     "focus_mode_completed_message": "{{minutes}}分の集中モードが完了し、{{points}}ポイント獲得しました！",
     "focus_mode_button_start": "集中モード",
     "focus_mode_button_stop": "集中モードを終了",
+    "pause": "一時停止",
+    "resume": "再開",
+    "end": "終了",
     "store": "ストア",
     "gacha": "ガチャ",
     "gallery": "図鑑"
