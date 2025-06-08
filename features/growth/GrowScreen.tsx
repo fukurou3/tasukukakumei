@@ -11,7 +11,7 @@ import { GROWTH_THRESHOLDS, GROWTH_POINTS_PER_FOCUS_MINUTE } from './themes'; //
 import { Theme, GrowthStage } from './themes/types'; // types.tsからThemeとGrowthStageを直接インポート
 import { Task } from '@/features/add/types';
 import TasksDatabase from '@/lib/TaskDatabase';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import WheelPicker from 'react-native-wheely';
 import { Canvas, Rect } from '@shopify/react-native-skia';
 import * as Notifications from 'expo-notifications';
@@ -34,7 +34,6 @@ export default function GrowthScreen() {
   const { colorScheme, subColor } = useAppTheme();
   const isDark = colorScheme === 'dark';
   const { t } = useTranslation();
-  const router = useRouter(); // ここでuseRouterを初期化
   const { width } = useWindowDimensions();
 
   const {
@@ -254,7 +253,7 @@ export default function GrowthScreen() {
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return `<span class="math-inline">\{minutes\}\:</span>{seconds < 10 ? '0' : ''}${seconds}`;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
   if (loading) {
