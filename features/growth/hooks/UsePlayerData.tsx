@@ -5,15 +5,18 @@ import { initializeDatabase, getCurrency, updateCurrency } from '@/features/grow
 export const usePlayerData = () => {
   const [isReady, setIsReady] = useState(false);
   const [gold, setGold] = useState(0);
+  const [growth, setGrowth] = useState(0);
 
   useEffect(() => {
     const setup = async () => {
       try {
         await initializeDatabase();
         const initialGold = await getCurrency('gold');
+        const initialGrowth = await getCurrency('growth');
         setGold(initialGold);
+        setGrowth(initialGrowth);
       } catch (e) {
-        console.error("Database setup failed", e);
+        console.error('Database setup failed', e);
       } finally {
         setIsReady(true);
       }
@@ -27,5 +30,11 @@ export const usePlayerData = () => {
     setGold(newGold);
   }, [gold]);
 
-  return { isReady, gold, addGold };
+  const addGrowth = useCallback(async (amount: number) => {
+    const newGrowth = growth + amount;
+    await updateCurrency('growth', newGrowth);
+    setGrowth(newGrowth);
+  }, [growth]);
+
+  return { isReady, gold, growth, addGold, addGrowth };
 };
