@@ -14,7 +14,6 @@ import * as Notifications from 'expo-notifications';
 import GrowthDisplay from '../components/GrowthDisplay';
 import ThemeSelectionModal from '../components/ThemeSelectionModal';
 import MenuModal from '../components/MenuModal';
-import DurationPickerModal from '../components/DurationPickerModal';
 import FocusModeOverlay from '../components/FocusModeOverlay';
 
 
@@ -53,7 +52,6 @@ export default function GrowthScreen() {
   const [focusDurationSec, setFocusDurationSec] = useState(INITIAL_DURATION_SEC);
   const [timeRemaining, setTimeRemaining] = useState(INITIAL_DURATION_SEC);
   const [isMenuVisible, setMenuVisible] = useState(false);
-  const [isDurationPickerVisible, setDurationPickerVisible] = useState(false);
   const [tempHours, setTempHours] = useState(0);
   const [tempMinutes, setTempMinutes] = useState(25);
   const [tempSeconds, setTempSeconds] = useState(0);
@@ -155,24 +153,23 @@ export default function GrowthScreen() {
     setTimeRemaining(focusDurationSec);
   }, [focusDurationSec, t]);
 
-  const showDurationPicker = useCallback(() => {
+  const openFocusMode = useCallback(() => {
     const hours = Math.floor(focusDurationSec / 3600);
     const minutes = Math.floor((focusDurationSec % 3600) / 60);
     const seconds = focusDurationSec % 60;
     setTempHours(hours);
     setTempMinutes(minutes);
     setTempSeconds(seconds);
-    setDurationPickerVisible(true);
+    setFocusModeActive(true);
+    setFocusModeStatus('idle');
   }, [focusDurationSec]);
 
-  const confirmDurationPicker = useCallback(() => {
+  const startFocusModeWithPicker = useCallback(() => {
     const totalSec = tempHours * 3600 + tempMinutes * 60 + tempSeconds;
     setFocusDurationSec(totalSec);
     setTimeRemaining(totalSec);
-    setDurationPickerVisible(false);
-    setFocusModeActive(true);
-    setFocusModeStatus('idle');
-  }, [tempHours, tempMinutes, tempSeconds]);
+    startFocusMode();
+  }, [tempHours, tempMinutes, tempSeconds, startFocusMode]);
 
   const pauseFocusMode = useCallback(() => {
     if (timerIntervalRef.current !== null) {
@@ -209,7 +206,7 @@ export default function GrowthScreen() {
     setMuted(prev => !prev);
   }, []);
 
-  const stopFocusMode = useCallback(() => {
+  const resetFocusModeTimer = useCallback(() => {
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
@@ -219,9 +216,13 @@ export default function GrowthScreen() {
       notificationIdRef.current = null;
     }
     setFocusModeStatus('idle');
-    setFocusModeActive(false);
     setTimeRemaining(focusDurationSec);
   }, [focusDurationSec]);
+
+  const stopFocusMode = useCallback(() => {
+    resetFocusModeTimer();
+    setFocusModeActive(false);
+  }, [resetFocusModeTimer]);
 
   const handleFocusModeCompletion = useCallback(() => {
     if (notificationIdRef.current) {
@@ -283,11 +284,17 @@ export default function GrowthScreen() {
         timeRemaining={timeRemaining}
         focusDurationSec={focusDurationSec}
         formatTime={formatTime}
-        onStart={startFocusMode}
+        onStart={startFocusModeWithPicker}
         onPause={pauseFocusMode}
         onResume={resumeFocusMode}
-        onStop={stopFocusMode}
+        onStop={resetFocusModeTimer}
         onToggleMute={toggleMute}
+        hours={tempHours}
+        minutes={tempMinutes}
+        seconds={tempSeconds}
+        onChangeHours={setTempHours}
+        onChangeMinutes={setTempMinutes}
+        onChangeSeconds={setTempSeconds}
       />
 
       <ThemeSelectionModal
@@ -307,43 +314,19 @@ export default function GrowthScreen() {
         onClose={() => setMenuVisible(false)}
       />
 
-      <DurationPickerModal
-        visible={isDurationPickerVisible}
-        hours={tempHours}
-        minutes={tempMinutes}
-        seconds={tempSeconds}
-        onChangeHours={setTempHours}
-        onChangeMinutes={setTempMinutes}
-        onChangeSeconds={setTempSeconds}
-        onConfirm={confirmDurationPicker}
-        onClose={() => setDurationPickerVisible(false)}
-        textColor="#fff"
-      />
 
       <View style={[styles.bottomActions, { backgroundColor: tabBackgroundColor }]}>
         <TouchableOpacity onPress={toggleMute} style={styles.bottomActionButton}>
           <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color={tabIconColor} />
         </TouchableOpacity>
-        {focusModeStatus === 'idle' && (
-          <TouchableOpacity onPress={showDurationPicker} style={styles.focusModeToggleButton}>
-            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.start_focus_mode')}</Text>
-          </TouchableOpacity>
-        )}
-        {focusModeStatus === 'running' && (
-          <TouchableOpacity onPress={pauseFocusMode} style={styles.focusModeToggleButton}>
-            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.pause')}</Text>
-          </TouchableOpacity>
-        )}
-        {focusModeStatus === 'paused' && (
-          <TouchableOpacity onPress={resumeFocusMode} style={styles.focusModeToggleButton}>
-            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.resume')}</Text>
-          </TouchableOpacity>
-        )}
-        {focusModeStatus !== 'idle' && !isViewMode && (
-          <TouchableOpacity onPress={stopFocusMode} style={styles.focusModeToggleButton}>
-            <Text style={[styles.focusModeToggleText, { color: subColor }]}>{t('growth.end')}</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={isFocusModeActive ? stopFocusMode : openFocusMode}
+          style={styles.focusModeToggleButton}
+        >
+          <Text style={[styles.focusModeToggleText, { color: subColor }]}> 
+            {isFocusModeActive ? t('growth.focus_mode_button_stop') : t('growth.focus_mode_button_start')}
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setMenuVisible(true)}
           style={styles.bottomActionButton}
