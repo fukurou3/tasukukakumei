@@ -4,6 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import WheelPicker from 'react-native-wheely';
+
+const HOURS_OPTIONS = Array.from({ length: 24 }, (_, i) => `${i}`);
+const MINUTE_SECOND_OPTIONS = Array.from({ length: 60 }, (_, i) => `${i}`);
 
 interface Props {
   visible: boolean;
@@ -20,6 +24,12 @@ interface Props {
   onResume: () => void;
   onStop: () => void;
   onToggleMute: () => void;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  onChangeHours: (val: number) => void;
+  onChangeMinutes: (val: number) => void;
+  onChangeSeconds: (val: number) => void;
 }
 
 export default function FocusModeOverlay({
@@ -61,43 +71,81 @@ export default function FocusModeOverlay({
       <TouchableOpacity onPress={onToggleMute} style={styles.audioButton}>
         <Ionicons name={isMuted ? 'volume-mute' : 'musical-notes'} size={24} color="#fff" />
       </TouchableOpacity>
-      <View style={styles.timerContainer}>
-        <Svg width={size} height={size} style={styles.progressCircle}>
-          <Circle
-            cx={radius}
-            cy={radius}
-            r={radius}
-            stroke="#fff"
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeDasharray={`${circumference}`}
-            strokeDashoffset={circumference * (1 - progress)}
-            rotation={-90}
-            originX={radius}
-            originY={radius}
-            strokeLinecap="round"
-          />
-        </Svg>
-        <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
-        <View style={styles.controls}>
-          {focusModeStatus === 'running' ? (
-            <TouchableOpacity onPress={onPause} style={styles.controlButton}>
-              <Text style={styles.controlText}>{t('growth.pause')}</Text>
-            </TouchableOpacity>
-          ) : focusModeStatus === 'paused' ? (
-            <TouchableOpacity onPress={onResume} style={styles.controlButton}>
-              <Text style={styles.controlText}>{t('growth.resume')}</Text>
-            </TouchableOpacity>
-          ) : (
+      {focusModeStatus === 'idle' ? (
+        <View style={styles.pickerContainer}>
+          <View style={styles.pickerRow}>
+            <WheelPicker
+              options={HOURS_OPTIONS}
+              selectedIndex={hours}
+              onChange={onChangeHours}
+              itemHeight={40}
+              visibleRest={1}
+              itemTextStyle={{ color: '#fff' }}
+            />
+            <Text style={styles.pickerLabel}>{t('common.hours_label')}</Text>
+            <WheelPicker
+              options={MINUTE_SECOND_OPTIONS}
+              selectedIndex={minutes}
+              onChange={onChangeMinutes}
+              itemHeight={40}
+              visibleRest={1}
+              itemTextStyle={{ color: '#fff' }}
+            />
+            <Text style={styles.pickerLabel}>{t('common.minutes_label')}</Text>
+            <WheelPicker
+              options={MINUTE_SECOND_OPTIONS}
+              selectedIndex={seconds}
+              onChange={onChangeSeconds}
+              itemHeight={40}
+              visibleRest={1}
+              itemTextStyle={{ color: '#fff' }}
+            />
+            <Text style={styles.pickerLabel}>{t('common.seconds_label')}</Text>
+          </View>
+          <View style={styles.controls}>
             <TouchableOpacity onPress={onStart} style={styles.controlButton}>
-              <Text style={styles.controlText}>{t('growth.start_focus_mode')}</Text>
+              <Ionicons name="play" size={32} color="#fff" />
             </TouchableOpacity>
-          )}
-          <TouchableOpacity onPress={onStop} style={styles.controlButton}>
-            <Text style={styles.controlText}>{t('growth.end')}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={onStop} style={styles.controlButton}>
+              <Ionicons name="stop" size={32} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      ) : (
+        <View style={styles.timerContainer}>
+          <Svg width={size} height={size} style={styles.progressCircle}>
+            <Circle
+              cx={radius}
+              cy={radius}
+              r={radius}
+              stroke="#fff"
+              strokeWidth={strokeWidth}
+              fill="none"
+              strokeDasharray={`${circumference}`}
+              strokeDashoffset={circumference * (1 - progress)}
+              rotation={-90}
+              originX={radius}
+              originY={radius}
+              strokeLinecap="round"
+            />
+          </Svg>
+          <Text style={styles.timerText}>{formatTime(timeRemaining)}</Text>
+          <View style={styles.controls}>
+            {focusModeStatus === 'running' ? (
+              <TouchableOpacity onPress={onPause} style={styles.controlButton}>
+                <Ionicons name="pause" size={32} color="#fff" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={onResume} style={styles.controlButton}>
+                <Ionicons name="play" size={32} color="#fff" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={onStop} style={styles.controlButton}>
+              <Ionicons name="stop" size={32} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -114,6 +162,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 30,
   },
+  pickerContainer: {
+    alignItems: 'center',
+    padding: 30,
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  pickerLabel: {
+    color: '#fff',
+    marginHorizontal: 5,
+    fontSize: 16,
+  },
   timerText: {
     fontSize: 60,
     fontWeight: 'bold',
@@ -126,11 +188,6 @@ const styles = StyleSheet.create({
   },
   controlButton: {
     padding: 10,
-  },
-  controlText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   audioButton: {
     position: 'absolute',
